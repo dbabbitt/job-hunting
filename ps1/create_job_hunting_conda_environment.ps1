@@ -1,5 +1,6 @@
 
-# You have to manually stop the jupyter server before you run this in a PowerShell window:
+# You have to manually stop the jupyter server before you run this in a PowerShell window
+# if you are deleting the environment before recreating it:
 # 
 # cd C:\Users\dev\Documents\Repositories\job-hunting\ps1
 # clear
@@ -18,9 +19,12 @@ $TokenString = $TokenRegex.Match($ListResults).Groups[1].Value
 If ($TokenString -Ne "") {
 	Read-Host "Stop the Jupyter server manually, then press ENTER to continue..."
 }
-."C:\Users\dev\Documents\Repositories\job-hunting\ps1\update_conda_environment.ps1"
+."C:\Users\dev\Documents\Repositories\job-hunting\ps1\delete_conda_environment.ps1"
 
-<# # Create environment
+# Create environment
+<# $OldPath = Get-Location
+."C:\Users\dev\Documents\repositories\job-hunting\ps1\update_conda_environment.ps1"
+cd $OldPath #>
 ."C:\Users\dev\Documents\repositories\job-hunting\ps1\create_conda_environment.ps1"
 
 # Bring up the workspace in Chrome
@@ -30,4 +34,4 @@ $TokenString = $TokenRegex.Match($ListResults).Groups[1].Value
 If ($TokenString -Eq "") {
 	Read-Host "Launch the Jupyter server manually, then press ENTER to continue..."
 }
-."C:\Users\dev\Documents\Repositories\job-hunting\ps1\launch_lab_in_chrome.ps1" #>
+."C:\Users\dev\Documents\Repositories\job-hunting\ps1\launch_lab_in_chrome.ps1"

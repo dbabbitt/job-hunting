@@ -8,7 +8,7 @@ conda remove --name $EnvironmentName --all --yes
 
 # You have to manually delete the folder if you don't manually stop the server
 # `jupyter notebook stop 8888` Won't work on Windows as of 2020-11-19
-If ([System.IO.File]::Exists($EnvironmentPath)) {
+If (Test-Path -Path $EnvironmentPath -PathType Container) {
 	Write-Host ""
 	Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 	Write-Host "              Recursively removing ${EnvironmentPath}" -ForegroundColor Green

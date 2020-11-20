@@ -104,20 +104,7 @@ Write-Host "--------------------------------------------------------------------
 conda update --all --yes
 
 # Create the conda environment
-cd "C:\Users\dev\Documents\repositories\${RepositoryPath}"
-$CommandString = "conda activate ${EnvironmentName}"
-$ResultString = cmd /c $CommandString '2>&1'
-Write-Host ""
-Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
-If ($ResultString -Like "Could not find conda environment*") {
-	Write-Host "                Creating the ${DisplayName} conda environment" -ForegroundColor Green
-} Else {
-	Write-Host "                Updating the ${DisplayName} conda environment" -ForegroundColor Green
-}
-Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
-# conda env create --file environment.yml
-conda env update --file environment.yml --prune
-conda info --envs
+."C:\Users\dev\Documents\repositories\${RepositoryPath}\ps1\update_conda_environment.ps1"
 
 # Add the kernel to the Launcher
 Write-Host ""
@@ -146,7 +133,7 @@ $CommandString = -Join('python -m ipykernel install --user --name ', $Environmen
 # Write-Host "CommandString = ${CommandString}" -ForegroundColor Red
 Invoke-Expression $CommandString
 $KernelPath = "C:\Users\dev\AppData\Roaming\jupyter\kernels\${EnvironmentName}\kernel.json"
-If ([System.IO.File]::Exists($KernelPath)) {
+If (Test-Path -Path $KernelPath -PathType Leaf) {
 	(Get-Content $KernelPath) | ConvertFrom-Json | ConvertTo-Json -depth 7 | Format-Json -Indentation 2
 }
 
@@ -160,7 +147,7 @@ $WorkspacePath = $WorkspacePath.Trim()
 Write-Host "${WorkspacePath}"
 $WorkspacePath = $WorkspacePath -csplit ' '
 $WorkspacePath = $WorkspacePath[$WorkspacePath.Count - 1]
-If ([System.IO.File]::Exists($WorkspacePath)) {
+If (Test-Path -Path $WorkspacePath -PathType Leaf) {
 	(Get-Content $WorkspacePath) | ConvertFrom-Json | ConvertTo-Json -depth 7 | Format-Json -Indentation 2
 }
 
@@ -180,7 +167,7 @@ Write-Host "--------------------------------------------------------------------
 Write-Host "                       Rebuilding the Jupyter Lab assets" -ForegroundColor Green
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 $ConfigPath = "C:\Users\dev\Documents\repositories\${RepositoryPath}\jupyter_notebook_config.py"
-If ([System.IO.File]::Exists($ConfigPath)) {
+If (Test-Path -Path $ConfigPath -PathType Leaf) {
 	Copy-Item $ConfigPath -Destination "C:\Users\dev\.jupyter"
 }
 jupyter-lab build
