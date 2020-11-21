@@ -247,3 +247,28 @@ def get_modules_dataframe():
     modules_df = pd.DataFrame(rows_list)
     
     return modules_df
+
+
+
+def get_all_files_containing(root_dir=r'../', contains_str='test', black_list=['.git']):
+    file_path_list = []
+    if type(root_dir) == list:
+        root_dir_list = root_dir
+    else:
+        root_dir_list = [root_dir]
+    if type(contains_str) == list:
+        contains_list = contains_str
+    else:
+        contains_list = [contains_str]
+    for root_dir in root_dir_list:
+        for sub_directory, directories_list, files_list in os.walk(root_dir):
+            if all(map(lambda x: x not in sub_directory, black_list)):
+                for file_name in files_list:
+                    contains_bool = False
+                    for contains_str in contains_list:
+                        contains_bool = contains_bool or (contains_str in file_name)
+                    if contains_bool:
+                        file_path = os.path.join(sub_directory, file_name)
+                        file_path_list.append(file_path)
+    
+    return file_path_list
