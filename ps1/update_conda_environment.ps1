@@ -1,6 +1,6 @@
 
 # Create the conda environment
-cd "C:\Users\dev\Documents\repositories\${RepositoryPath}"
+cd "${RepositoriesDirectory}\${RepositoryPath}"
 Write-Host ""
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 # Assume here that if the environment folder is missing, the environment was already deleted

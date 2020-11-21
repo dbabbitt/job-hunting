@@ -10,28 +10,21 @@
 $DisplayName = "Job Hunting"
 $RepositoryPath = "job-hunting"
 $EnvironmentName = "jh"
-$EnvironmentPath = "C:\Users\dev\anaconda3\envs\${EnvironmentName}"
+
+$HomeDirectory = $Env:UserProfile
+$EnvironmentsDirectory = "${HomeDirectory}\anaconda3\envs"
+$RepositoriesDirectory = "${HomeDirectory}\Documents\Repositories"
+$PowerScriptsDirectory = "${RepositoriesDirectory}\${RepositoryPath}\ps1"
+$EnvironmentPath = "${EnvironmentsDirectory}\${EnvironmentName}"
 
 # Delete environment
-$TokenRegex = [regex] '(?m)http://localhost:8888/\?token=([^ ]+) :: '
-$ListResults = (jupyter notebook list) | Out-String
-$TokenString = $TokenRegex.Match($ListResults).Groups[1].Value
-If ($TokenString -Ne "") {
-	Read-Host "Stop the Jupyter server manually, then press ENTER to continue..."
-}
-."C:\Users\dev\Documents\Repositories\job-hunting\ps1\delete_conda_environment.ps1"
+."${PowerScriptsDirectory}\delete_conda_environment.ps1"
 
 # Create environment
 <# $OldPath = Get-Location
-."C:\Users\dev\Documents\repositories\job-hunting\ps1\update_conda_environment.ps1"
+."${PowerScriptsDirectory}\update_conda_environment.ps1"
 cd $OldPath #>
-."C:\Users\dev\Documents\repositories\job-hunting\ps1\create_conda_environment.ps1"
+."${PowerScriptsDirectory}\create_conda_environment.ps1"
 
 # Bring up the workspace in Chrome
-$TokenRegex = [regex] '(?m)http://localhost:8888/\?token=([^ ]+) :: '
-$ListResults = (jupyter notebook list) | Out-String
-$TokenString = $TokenRegex.Match($ListResults).Groups[1].Value
-If ($TokenString -Eq "") {
-	Read-Host "Launch the Jupyter server manually, then press ENTER to continue..."
-}
-."C:\Users\dev\Documents\Repositories\job-hunting\ps1\launch_lab_in_chrome.ps1"
+."${PowerScriptsDirectory}\launch_lab_in_chrome.ps1"
