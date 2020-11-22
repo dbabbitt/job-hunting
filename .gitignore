@@ -13,6 +13,10 @@
 !/sh
 !/tests
 
+# Exclude job hunting notebooks that I didn't make
+ipynb/bert_language_model_with_sequence_classification.ipynb
+ipynb/grid_search_text_feature_extraction.ipynb
+
 # Ignore whole folders
 **/.git/
 saves/html
@@ -30,9 +34,6 @@ saves/txt
 
 # Exclude pickles
 *.pickle
-
-# Exclude job hunting notebooks that I didn't make
-ipynb/bert_language_model_with_sequence_classification.ipynb
 
 # Exclude Mac, Jupyter, R, and Octave admin files
 **/octave-workspace
