@@ -1,5 +1,5 @@
 
-# cd C:\Users\dev\Documents\Repositories\job-hunting\ps1
+# cd $Env:UserProfile\Documents\Repositories\job-hunting\ps1
 # clear
 # .\test.ps1
 

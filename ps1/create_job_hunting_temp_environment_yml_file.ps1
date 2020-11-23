@@ -1,5 +1,5 @@
 
-# cd C:\Users\dev\Documents\Repositories\job-hunting\ps1
+# cd $Env:UserProfile\Documents\Repositories\job-hunting\ps1
 # clear
 # .\create_job_hunting_temp_environment_yml_file.ps1
 

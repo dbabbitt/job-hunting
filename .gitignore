@@ -14,6 +14,7 @@
 !/tests
 
 # Exclude job hunting notebooks that I didn't make
+ipynb/benchmarking.ipynb
 ipynb/bert_language_model_with_sequence_classification.ipynb
 ipynb/grid_search_text_feature_extraction.ipynb
 ipynb/plot_feature_transformation.ipynb

@@ -1,5 +1,5 @@
 
-# cd C:\Users\dev\Documents\repositories\job-hunting\ps1
+# cd $Env:UserProfile\Documents\repositories\job-hunting\ps1
 # clear
 # .\repair_anaconda3.ps1
 
