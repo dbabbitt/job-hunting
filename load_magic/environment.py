@@ -39,11 +39,11 @@ def get_notebook_path():
             sessions = json.load(req)
             for sess in sessions:
                 if sess['kernel']['id'] == kernel_id:
-                    
+
                     return os.path.abspath(os.path.join(root_dir, sess['notebook']['path']))
         except:
-            pass  # There may be stale entries in the runtime directory 
-    
+            pass  # There may be stale entries in the runtime directory
+
     return None
 
 
@@ -53,18 +53,31 @@ def get_module_version(python_module):
         if '_version' in attr.lower():
             print('{}: {}'.format(attr, getattr(python_module, attr, '????')))
 
-            
-            
-def get_dir_tree(module_name, max_levels=2):
+
+
+def get_dir_tree(module_name, max_levels=2, contains_str=None):
     if max_levels < 1:
         return None
-    dir_list = eval("['{}.{{}}'.format(fn) for fn in dir({}) if not fn.startswith('_')]".format(module_name, module_name))
-    if len(dir_list):
-        print()
-        print(module_name)
-        print(dir_list)
-        for m in dir_list:
-            get_dir_tree(m, max_levels=max_levels-1)
+    base_eval_str = f"['{module_name}.{{}}'.format(fn) for fn in dir({module_name}) if not fn.startswith('_')]"
+    if contains_str is None:
+        eval_str = base_eval_str
+    else:
+        eval_str = f"['{module_name}.{{}}'.format(fn) for fn in dir({module_name}) if '{contains_str.lower()}' in fn.lower()]"
+    try:
+        dir_list = eval(eval_str)
+        if len(dir_list):
+            print()
+            print(module_name)
+            print(dir_list)
+    except Exception as e:
+        print(f'The evaluated list {eval_str} gets this error: {str(e).strip()}')
+    try:
+        base_dir_list = eval(base_eval_str)
+        if len(base_dir_list):
+            for base_module_name in base_dir_list:
+                get_dir_tree(base_module_name, max_levels=max_levels-1, contains_str=contains_str)
+    except:
+        return None
 
 
 
@@ -90,7 +103,7 @@ def get_data_structs_dataframe(data_struct_list):
     print('The shape of y is:', y.shape)
     clf = get_classifier(X, y)
     get_importances(data_structs_df, clf)[:10]
-    
+
     f_str = 'Type: {}, Given Name: {}, Actual Name: {}, Prediction: {}'
     for (s_str, data_struct) in [('s.{}'.format(fn), eval('s.{}'.format(fn))) for fn in dir(s) if not fn.startswith('_')]:
         print(f_str.format(str(type(data_struct)).split("'")[1], get_struct_name(data_struct),
@@ -114,7 +127,7 @@ def get_data_structs_dataframe(data_struct_list):
             row_dict[column_name] = (column_name in attr_set)
         rows_list.append(row_dict)
     data_structs_df = pd.DataFrame(rows_list, columns=columns_list, index=index_list)
-    
+
     return data_structs_df
 
 
@@ -124,7 +137,7 @@ def get_input_sample(df, func):
     attr_list = dir(func)
     for column_name in df.columns:
         bool_list.append(column_name in attr_list)
-    
+
     return pd.np.array(bool_list).reshape(1, -1)
 
 
@@ -133,7 +146,7 @@ def preprocess_data(df):
     struct_cats = df.index.astype('category')
     X = df.values
     y = struct_cats.codes
-    
+
     return X, y
 
 
@@ -141,7 +154,7 @@ def preprocess_data(df):
 def get_classifier(X, y):
     clf = RandomForestClassifier(n_estimators=13)
     clf.fit(X, y)
-    
+
     return clf
 
 
@@ -149,7 +162,7 @@ def get_classifier(X, y):
 def get_importances(df, clf):
     importances_list = [(fn, fi) for fn, fi in zip(df.columns, clf.feature_importances_)]
     importances_list.sort(key=lambda x: x[1], reverse=True)
-    
+
     return importances_list
 
 
@@ -158,7 +171,7 @@ def get_datastructure_prediction(df, clf, func):
     idx = df.index
     codes_list = list(idx.astype('category').codes)
     prediction = clf.predict(get_input_sample(df, func))
-    
+
     return idx[codes_list.index(prediction[0])]
 
 
@@ -213,7 +226,7 @@ def get_struct_name(data_struct):
                             print(struct_name)
             elif callable(data_struct):
                 struct_name = 'function'
-    
+
     return struct_name
 
 
@@ -224,7 +237,7 @@ def get_modules_dataframe():
     proc = subprocess.Popen(command_str, stdout=subprocess.PIPE)
     modules_list = proc.stdout.read().decode().split('\r\n')
     modules_list = [module for module in modules_list if module != '']
-    
+
     rows_list = []
     for module_str in modules_list:
         location_list = module_str.split(' @ ')
@@ -245,7 +258,7 @@ def get_modules_dataframe():
         row_dict['module_location'] = module_location
         rows_list.append(row_dict.copy())
     modules_df = pd.DataFrame(rows_list)
-    
+
     return modules_df
 
 
@@ -270,5 +283,5 @@ def get_all_files_containing(root_dir=r'../', contains_str='test', black_list=['
                     if contains_bool:
                         file_path = os.path.join(sub_directory, file_name)
                         file_path_list.append(file_path)
-    
+
     return file_path_list
