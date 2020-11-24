@@ -100,10 +100,10 @@ def attempt_to_pickle(df, pickle_path, raise_exception=False, verbose=True):
 
 
 
-scanner_regex = re.compile(r'(</?|\b)[1-9a-zA-Z][0-9a-zA-Z]*( *[#\+]{1,2}|>|:\b|\.\b|\b)')
+SCANNER_REGEX = re.compile(r'</?\w+|\w+[#\+]*|:|\.')
 def regex_tokenizer(corpus):
     
-    return [match.group() for match in re.finditer(scanner_regex, corpus)]
+    return [match.group() for match in re.finditer(SCANNER_REGEX, corpus)]
 
 
 
@@ -121,40 +121,13 @@ fit_estimators_dict = load_object('fit_estimators_dict')
 pipeline = Pipeline([
     ('vect', CountVectorizer()),
     ('tfidf', TfidfTransformer()),
-    #('clf', LogisticRegression()),
-    ('clf', fit_estimators_dict['LogisticRegression']),
+    ('clf', LogisticRegression()),
+    #('clf', fit_estimators_dict['LogisticRegression']),
 ])
 
 
 
 '''
-scoring=None
-Best score: 0.796
-Best parameters set:
-    clf__C: 32.5
-    clf__max_iter: 12.5
-    vect__max_df: 0.15625
-    vect__ngram_range: (1, 3)
-                       LogisticRegression(**{'C': 32.5, 'class_weight': None, 'dual': False, 'fit_intercept': True, 'intercept_scaling': 1,
-                                             'l1_ratio': None, 'max_iter': 12.5, 'multi_class': 'auto', 'n_jobs': None, 'penalty': 'l2',
-                                             'random_state': None, 'solver': 'lbfgs', 'tol': 0.0001, 'verbose': 0, 'warm_start': False}),
-'''
-'''
-scoring=None
-Best score: 0.796
-Best parameters set:
-	clf__C: 8.5
-	clf__class_weight: None
-	clf__dual: False
-	clf__fit_intercept: True
-	clf__max_iter: 6
-	clf__penalty: 'l2'
-	clf__solver: 'sag'
-	clf__tol: 1e-08
-	vect__max_df: 0.15625
-	vect__ngram_range: (1, 3)
-                       LogisticRegression(**{'C': 8.5, 'class_weight': None, 'dual': False, 'fit_intercept': True, 'max_iter': 6,
-                                             'penalty': 'l2', 'solver': 'sag', 'tol': 1e-08}),
                        # Used in Indeed Header Classifier Scores
                        LogisticRegression(C=7.5, class_weight='balanced', dual=True, fit_intercept=False, max_iter=64,
                                           solver='liblinear', tol=1e-09)
@@ -167,187 +140,21 @@ Best parameters set:
 '''
 '''
 scoring='f1'
-Best score: 0.270
+Best score: 0.881
 Best parameters set:
-	clf__C: 8.5
-	clf__class_weight: 'balanced'
-	clf__dual: False
-	clf__fit_intercept: True
-	clf__max_iter: 6
-	clf__penalty: 'l2'
-	clf__solver: 'sag'
-	clf__tol: 1e-08
-	vect__max_df: 0.15625
-	vect__ngram_range: (1, 3)
-CountVectorizer(*, input='content', encoding='utf-8', decode_error='strict', strip_accents=None, lowercase=True, preprocessor=None,
-                tokenizer=None, stop_words=None, token_pattern='(?u)\b\w\w+\b', ngram_range=(1, 1), analyzer='word', max_df=1.0, min_df=1,
-                max_features=None, vocabulary=None, binary=False, dtype=<class 'numpy.int64'>)
-'''
-'''
-scoring='f1'
-Best score: 0.853
-Best parameters set:
-        vect__analyzer: 'char_wb'
-        vect__binary: True
-        vect__decode_error: 'strict'
-        vect__lowercase: False
-        vect__max_df: 0.5
-        vect__max_features: 100
-        vect__min_df: 0.0
-        vect__ngram_range: (1, 2)
-        vect__stop_words: 'english'
-        vect__strip_accents: 'ascii'
-scoring='f1'
-Best score: 0.853
-Best parameters set:
-        tfidf__norm: 'l2'
-        tfidf__smooth_idf: True
-        tfidf__sublinear_tf: False
-        tfidf__use_idf: True
-        vect__analyzer: 'char_wb'
-        vect__binary: True
-        vect__decode_error: 'strict'
-        vect__lowercase: False
-        vect__max_df: 0.5
-        vect__max_features: 100
-        vect__min_df: 0.0
-        vect__ngram_range: (1, 2)
-        vect__stop_words: 'english'
-        vect__strip_accents: 'ascii'
-scoring='f1'
-Best score: 0.853
-Best parameters set:
-        tfidf__norm: 'l2'
-        tfidf__smooth_idf: True
-        tfidf__sublinear_tf: False
-        tfidf__use_idf: True
-        vect__analyzer: 'char_wb'
-        vect__binary: True
-        vect__decode_error: 'strict'
-        vect__lowercase: False
-        vect__max_df: 0.5
-        vect__max_features: 100
-        vect__min_df: 0.0
-        vect__ngram_range: (1, 2)
-        vect__stop_words: 'english'
-        vect__strip_accents: 'ascii'
-scoring='f1'
-Best score: 0.900
-Best parameters set:
-        clf__C: 85.0
+        clf__C: 375.0
         clf__class_weight: 'balanced'
         clf__dual: False
         clf__fit_intercept: True
-        clf__max_iter: 6
-        clf__penalty: 'l2'
-        clf__solver: 'sag'
-        clf__tol: 1e-08
-        tfidf__norm: 'l2'
-        tfidf__smooth_idf: True
-        tfidf__sublinear_tf: False
-        tfidf__use_idf: True
-        vect__analyzer: 'char_wb'
-        vect__binary: True
-        vect__decode_error: 'strict'
-        vect__lowercase: False
-        vect__max_df: 0.5
-        vect__max_features: 100
-        vect__min_df: 0.0
-        vect__ngram_range: (1, 2)
-        vect__stop_words: 'english'
-        vect__strip_accents: 'ascii'
-scoring='f1'
-Best score: 0.883
-Best parameters set:
-        clf__C: 100.0
-        clf__class_weight: 'balanced'
-        clf__dual: False
-        clf__fit_intercept: True
-        clf__max_iter: 3
-        clf__penalty: 'l2'
-        clf__solver: 'sag'
-        clf__tol: 1e-08
-        tfidf__norm: 'l2'
-        tfidf__smooth_idf: True
-        tfidf__sublinear_tf: False
-        tfidf__use_idf: True
-        vect__analyzer: 'char_wb'
-        vect__binary: True
-        vect__decode_error: 'strict'
-        vect__lowercase: False
-        vect__max_df: 0.5
-        vect__max_features: 100
-        vect__min_df: 0.2
-        vect__ngram_range: (1, 2)
-        vect__stop_words: 'english'
-        vect__strip_accents: 'ascii'
-scoring='f1'
-Best score: 0.876
-Best parameters set:
-        clf__C: 85.0
-        clf__class_weight: 'balanced'
-        clf__dual: False
-        clf__fit_intercept: True
-        clf__max_iter: 6
-        clf__penalty: 'l2'
-        clf__solver: 'sag'
-        clf__tol: 1e-08
-        tfidf__norm: 'l2'
-        tfidf__smooth_idf: True
-        tfidf__sublinear_tf: False
-        tfidf__use_idf: True
-        vect__analyzer: 'char_wb'
-        vect__binary: False
-        vect__decode_error: 'ignore'
-        vect__lowercase: False
-        vect__max_df: 1.0
-        vect__max_features: None
-        vect__min_df: 0.0
-        vect__ngram_range: (1, 4)
-        vect__stop_words: None
-        vect__strip_accents: 'ascii'
-scoring='f1'
-Best score: 0.861
-Best parameters set:
-        clf__C: 85.0
-        clf__class_weight: 'balanced'
-        clf__dual: False
-        clf__fit_intercept: True
-        clf__max_iter: 6
-        clf__penalty: 'l2'
-        clf__solver: 'sag'
-        clf__tol: 1e-08
-        tfidf__norm: 'l2'
-        tfidf__smooth_idf: True
-        tfidf__sublinear_tf: False
-        tfidf__use_idf: True
-        vect__analyzer: 'char_wb'
-        vect__binary: False
-        vect__decode_error: 'strict'
-        vect__lowercase: False
-        vect__max_df: 1.0
-        vect__max_features: None
-        vect__min_df: 0.0
-        vect__ngram_range: (1, 2)
-        vect__stop_words: None
-        vect__strip_accents: 'ascii'
-        vect__tokenizer: <function regex_tokenizer at 0x000001A3DDDFE310>
-scoring='f1'
-Best score: 0.854
-Best parameters set:
-        clf__C: 85.0
-        clf__class_weight: 'balanced'
-        clf__dual: False
-        clf__fit_intercept: True
-        clf__max_iter: 6
-        clf__penalty: 'l2'
-        clf__solver: 'sag'
-        clf__tol: 1e-08
+        clf__max_iter: 4
+        clf__penalty: 'l1'
+        clf__solver: 'liblinear'
+        clf__tol: 7e-07
         tfidf__norm: 'l1'
         tfidf__smooth_idf: True
         tfidf__sublinear_tf: False
         tfidf__use_idf: True
-        vect__analyzer: 'char_wb'
+        vect__analyzer: 'word'
         vect__binary: False
         vect__decode_error: 'strict'
         vect__lowercase: False
@@ -357,7 +164,7 @@ Best parameters set:
         vect__ngram_range: (1, 2)
         vect__stop_words: None
         vect__strip_accents: 'ascii'
-        vect__tokenizer: <function regex_tokenizer at 0x000002A31117E310>
+        vect__tokenizer: <function regex_tokenizer at 0x0000015A9516E430>
 '''
 '''
     'clf__C': (0.85, 8.5, 85.0, 850.0),
@@ -384,14 +191,14 @@ Best parameters set:
     'vect__strip_accents': ('ascii', 'unicode', None),
 '''
 parameters = {
-    'clf__C': (0.85, 8.5, 85.0, 850.0),
+    'clf__C': (375.0, 400.0, 425.0,),
     'clf__class_weight': ('balanced',),
     'clf__dual': (False,),
     'clf__fit_intercept': (True,),
-    'clf__max_iter': (6, 35, 64),
-    'clf__penalty': ('l1', 'l2', 'elasticnet', 'none',),
-    'clf__solver': ('sag', 'liblinear'),
-    'clf__tol': (1e-07, 1e-08, 1e-09),
+    'clf__max_iter': (4, 5, 6,),
+    'clf__penalty': ('l1',),
+    'clf__solver': ('liblinear',),
+    'clf__tol': (1e-06, 3e-06, 7e-07,),
     'tfidf__norm': ('l1',),
     'tfidf__smooth_idf': (True,),
     'tfidf__sublinear_tf': (False,),
@@ -403,7 +210,7 @@ parameters = {
     'vect__max_df': (1.0,),
     'vect__max_features': (None,),
     'vect__min_df': (0.0,),
-    'vect__ngram_range': ((1, 2), (1, 3), (1, 4),),
+    'vect__ngram_range': ((1, 2),),
     'vect__stop_words': (None,),
     'vect__strip_accents': ('ascii',),
     'vect__tokenizer': (regex_tokenizer,),
