@@ -55,6 +55,11 @@ class Storage(object):
         
         return(data_frame)
 
+    def pickle_exists(self, pickle_name):
+        pickle_path = os.path.join(self.saves_pickle_folder, '{}.pickle'.format(pickle_name))
+        
+        return os.path.isfile(pickle_path)
+
     def load_dataframes(self, **kwargs):
         frame_dict = {}
         for frame_name in kwargs:
@@ -86,7 +91,7 @@ class Storage(object):
             csv_path = os.path.join(self.saves_csv_folder, '{}.csv'.format(obj_name))
             if not os.path.isfile(csv_path):
                 print('No csv exists at {} - attempting to download from URL.'.format(os.path.abspath(csv_path)))
-                object = pd.read_csv(download_url, low_memory=False,
+                object = pd.read_csv(download_url, low_memory=False, sep=';',
                                      encoding=self.encoding_type)
             else:
                 object = pd.read_csv(csv_path, low_memory=False,
