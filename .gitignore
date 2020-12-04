@@ -18,6 +18,8 @@ ipynb/benchmarking.ipynb
 ipynb/bert_language_model_with_sequence_classification.ipynb
 ipynb/grid_search_text_feature_extraction.ipynb
 ipynb/plot_feature_transformation.ipynb
+ipynb/pycrfsuite.ipynb
+ipynb/sklearn_crfsuite.ipynb
 
 # Ignore whole folders
 **/.git/
