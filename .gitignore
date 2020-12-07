@@ -174,3 +174,4 @@ dmypy.json
 
 # Exclude Pyre type checker
 .pyre/
+ipynb/plot_classifier_chain_yeast.ipynb

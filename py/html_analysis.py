@@ -206,12 +206,17 @@ class HeaderAnalysis(object):
 		else:
 			self.CHILDLESS_TAGS_LIST = ['template','script']
 			s.store_objects(CHILDLESS_TAGS_LIST=self.CHILDLESS_TAGS_LIST)
-		if s.pickle_exists('BASIC_TAGS_DICT'):
-			self.BASIC_TAGS_DICT = s.load_object('BASIC_TAGS_DICT')
+		if s.pickle_exists('NAVIGABLE_PARENT_IS_HEADER_DICT'):
+			self.NAVIGABLE_PARENT_IS_HEADER_DICT = s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
 		else:
 			assert False, "You're in deep doodoo: you lost your basic tags dictionary"
-			self.BASIC_TAGS_DICT = {}
-			s.store_objects(BASIC_TAGS_DICT=self.BASIC_TAGS_DICT)
+			self.NAVIGABLE_PARENT_IS_HEADER_DICT = {}
+			s.store_objects(NAVIGABLE_PARENT_IS_HEADER_DICT=self.NAVIGABLE_PARENT_IS_HEADER_DICT)
+		if s.pickle_exists('NAVIGABLE_PARENT_IS_QUAL_DICT'):
+			self.NAVIGABLE_PARENT_IS_QUAL_DICT = s.load_object('NAVIGABLE_PARENT_IS_QUAL_DICT')
+		else:
+			self.NAVIGABLE_PARENT_IS_QUAL_DICT = {}
+			s.store_objects(NAVIGABLE_PARENT_IS_QUAL_DICT=self.NAVIGABLE_PARENT_IS_QUAL_DICT)
 	
 	def html_regex_tokenizer(self, corpus):
 		
@@ -299,8 +304,8 @@ class HeaderAnalysis(object):
 	def get_is_header_list(self, child_strs_list):
 		is_header_list = []
 		for navigable_parent in child_strs_list:
-			if navigable_parent in self.BASIC_TAGS_DICT:
-				is_header = self.BASIC_TAGS_DICT[navigable_parent]
+			if navigable_parent in self.NAVIGABLE_PARENT_IS_HEADER_DICT:
+				is_header = self.NAVIGABLE_PARENT_IS_HEADER_DICT[navigable_parent]
 			else:
 				is_header = np.nan
 			is_header_list.append(is_header)
@@ -343,7 +348,7 @@ class ElementAnalysis(object):
 			self.CHILD_STRS_LIST_DICT = s.load_object('CHILD_STRS_LIST_DICT')
 		else:
 			self.build_child_strs_list_dictionary()
-		self.lda_predict_percent_fit = self.build_lda_predict_percent_fit()
+		self.lda_predict_percent_is_header = self.build_lda_predict_percent_is_header()
 		if s.pickle_exists('CS_CV'):
 			self.CS_CV = s.load_object('CS_CV')
 		else:
@@ -377,7 +382,7 @@ class ElementAnalysis(object):
 			else:
 				self.CHILD_STR_CLF = LogisticRegression(C=375.0,class_weight='balanced',dual=False,fit_intercept=True,intercept_scaling=1,l1_ratio=None,max_iter=1000,multi_class='auto',n_jobs=None,penalty='l1',random_state=None,solver='liblinear',tol=0.0001,verbose=0,warm_start=False)
 			s.store_objects(CHILD_STR_CLF=self.CHILD_STR_CLF)
-		self.lr_predict_percent_fit = self.build_lr_predict_percent_fit()
+		self.lr_predict_percent_is_header = self.build_lr_predict_percent_is_header()
 
 	def build_child_strs_list_dictionary(self):
 		self.CHILD_STRS_LIST_DICT = {}
@@ -389,11 +394,11 @@ class ElementAnalysis(object):
 			else:
 				child_strs_list = self.get_child_strs_from_file(file_name)
 			navigable_parent = child_strs_list[0]
-			if navigable_parent not in ha.BASIC_TAGS_DICT:
+			if navigable_parent not in ha.NAVIGABLE_PARENT_IS_HEADER_DICT:
 				continue
 			child_tags_list = []
 			for navigable_parent in child_strs_list:
-				if navigable_parent not in ha.BASIC_TAGS_DICT:
+				if navigable_parent not in ha.NAVIGABLE_PARENT_IS_HEADER_DICT:
 					break
 				tokenized_sent = ha.html_regex_tokenizer(navigable_parent)
 				try:
@@ -409,7 +414,7 @@ class ElementAnalysis(object):
 					self.CHILD_STRS_LIST_DICT[file_name] = child_strs_list
 					s.store_objects(CHILD_STRS_LIST_DICT=self.CHILD_STRS_LIST_DICT)
 
-	def build_lda_predict_percent_fit(self):
+	def build_lda_predict_percent_is_header(self):
 		from gensim.corpora.dictionary import Dictionary
 		from gensim.models.ldamodel import LdaModel
 		ha = HeaderAnalysis()
@@ -441,7 +446,7 @@ class ElementAnalysis(object):
 		
 		return predict_percent_fit
 	
-	def build_lr_predict_percent_fit(self):
+	def build_lr_predict_percent_is_header(self):
 		from sklearn.feature_extraction.text import CountVectorizer
 		from sklearn.feature_extraction.text import TfidfTransformer
 		from sklearn.linear_model import LogisticRegression
@@ -449,7 +454,7 @@ class ElementAnalysis(object):
 		
 		# Re-transform the bag-of-words and tf-idf from the new manual scores
 		rows_list = [{'navigable_parent': navigable_parent,
-					  'is_header': is_header} for navigable_parent, is_header in ha.BASIC_TAGS_DICT.items()]
+					  'is_header': is_header} for navigable_parent, is_header in ha.NAVIGABLE_PARENT_IS_HEADER_DICT.items()]
 		child_str_df = pd.DataFrame(rows_list)
 		
 		# The shape of the Bag-of-words count vector here should be n sentences * m unique words
@@ -521,8 +526,8 @@ class ElementAnalysis(object):
 			'tag.presentation_set': tag in self.presentation_set,
 			'tag.null_element': tag == null_element,
 			'postag': postag,
-			'child_str.lda': self.lda_predict_percent_fit(child_str),
-			'child_str.lr': self.lr_predict_percent_fit(child_str),
+			'child_str.lda': self.lda_predict_percent_is_header(child_str),
+			'child_str.lr': self.lr_predict_percent_is_header(child_str),
 		}
 		if i > 0:
 			tag1 = sent[i-1][0]
@@ -649,7 +654,7 @@ class ElementAnalysis(object):
 		pos_list = []
 		for pos, feature_tuple in zip(crf_list, feature_tuple_list):
 			navigable_parent = feature_tuple[1]
-			if navigable_parent in ha.BASIC_TAGS_DICT:
+			if navigable_parent in ha.NAVIGABLE_PARENT_IS_HEADER_DICT:
 				pos_list = hc.append_parts_of_speech_list(navigable_parent, pos_list)
 			else:
 				pos_list.append(pos)

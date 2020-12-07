@@ -153,9 +153,9 @@ def get_value_str(best_parameters_dict, params_dict, param_name):
 
 
 
-basic_tags_dict = load_object('basic_tags_dict')
+navigable_parent_is_header_dict = load_object('navigable_parent_is_header_dict')
 rows_list = [{'navigable_parent': navigable_parent,
-			  'is_header': is_header} for navigable_parent, is_header in basic_tags_dict.items()]
+			  'is_header': is_header} for navigable_parent, is_header in navigable_parent_is_header_dict.items()]
 child_str_df = pd.DataFrame(rows_list)
 data = Bunch(data=child_str_df.navigable_parent.tolist(), target=child_str_df.is_header.to_numpy())
 
