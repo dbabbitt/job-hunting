@@ -54,7 +54,7 @@ class HeaderCategories(object):
 		if s.pickle_exists('SUPP_PAY_HEADERS_LIST'):
 			self.SUPP_PAY_HEADERS_LIST = s.load_object('SUPP_PAY_HEADERS_LIST')
 		else:
-			self.SUPP_PAY_HEADERS_LIST = ['<p>Supplemental Pay:</p>','<b>Options</b>']
+			self.SUPP_PAY_HEADERS_LIST = ['<b>Benefits</b>','<p>Supplemental Pay:</p>','<p>Benefit Conditions:</p>','<b>Options</b>','<p>Our Benefits Include:</p>','<p>Benefits:</p>']
 			s.store_objects(SUPP_PAY_HEADERS_LIST=self.SUPP_PAY_HEADERS_LIST)
 		if s.pickle_exists('EDUC_REQS_HEADERS_LIST'):
 			self.EDUC_REQS_HEADERS_LIST = s.load_object('EDUC_REQS_HEADERS_LIST')
@@ -348,7 +348,7 @@ class ElementAnalysis(object):
 			self.CHILD_STRS_LIST_DICT = s.load_object('CHILD_STRS_LIST_DICT')
 		else:
 			self.build_child_strs_list_dictionary()
-		self.lda_predict_percent_is_header = self.build_lda_predict_percent_is_header()
+		self.lda_predict_percent = self.build_lda_predict_percent()
 		if s.pickle_exists('CS_CV'):
 			self.CS_CV = s.load_object('CS_CV')
 		else:
@@ -414,7 +414,7 @@ class ElementAnalysis(object):
 					self.CHILD_STRS_LIST_DICT[file_name] = child_strs_list
 					s.store_objects(CHILD_STRS_LIST_DICT=self.CHILD_STRS_LIST_DICT)
 
-	def build_lda_predict_percent_is_header(self):
+	def build_lda_predict_percent(self):
 		from gensim.corpora.dictionary import Dictionary
 		from gensim.models.ldamodel import LdaModel
 		ha = HeaderAnalysis()
@@ -515,36 +515,37 @@ class ElementAnalysis(object):
 		
 		features = {
 			'bias': 1.0,
-			'tag.document_body_elements_set': tag in self.document_body_elements_set,
-			'tag.block_elements_set': tag in self.block_elements_set,
+			'child_str.is_header_lr': self.lr_predict_percent_is_header(child_str),
+			'child_str.lda': self.lda_predict_percent(child_str),
+			'position': i+1,
+			'postag': postag,
 			'tag.basic_text_set': tag in self.basic_text_set,
-			'tag.section_headings_set': tag in self.section_headings_set,
-			'tag.lists_set': tag in self.lists_set,
-			'tag.other_block_elements_set': tag in self.other_block_elements_set,
+			'tag.block_elements_set': tag in self.block_elements_set,
+			'tag.document_body_elements_set': tag in self.document_body_elements_set,
 			'tag.inline_elements_set': tag in self.inline_elements_set,
+			'tag.lists_set': tag in self.lists_set,
+			'tag.null_element': tag == null_element,
+			'tag.other_block_elements_set': tag in self.other_block_elements_set,
 			'tag.phrase_elements_set': tag in self.phrase_elements_set,
 			'tag.presentation_set': tag in self.presentation_set,
-			'tag.null_element': tag == null_element,
-			'postag': postag,
-			'child_str.lda': self.lda_predict_percent_is_header(child_str),
-			'child_str.lr': self.lr_predict_percent_is_header(child_str),
+			'tag.section_headings_set': tag in self.section_headings_set,
 		}
 		if i > 0:
 			tag1 = sent[i-1][0]
 			postag1 = sent[i-1][2]
 			features.update({
-				'-1:tag.document_body_elements_set': tag1 in self.document_body_elements_set,
-				'-1:tag.block_elements_set': tag1 in self.block_elements_set,
-				'-1:tag.basic_text_set': tag1 in self.basic_text_set,
-				'-1:tag.section_headings_set': tag1 in self.section_headings_set,
-				'-1:tag.lists_set': tag1 in self.lists_set,
-				'-1:tag.other_block_elements_set': tag1 in self.other_block_elements_set,
-				'-1:tag.inline_elements_set': tag1 in self.inline_elements_set,
-				'-1:tag.phrase_elements_set': tag1 in self.phrase_elements_set,
-				'-1:tag.presentation_set': tag1 in self.presentation_set,
-				'-1:tag.null_element': tag1 == null_element,
 				'-1:postag': postag1,
 				'-1:previous==tag': tag1 == tag,
+				'-1:tag.basic_text_set': tag1 in self.basic_text_set,
+				'-1:tag.block_elements_set': tag1 in self.block_elements_set,
+				'-1:tag.document_body_elements_set': tag1 in self.document_body_elements_set,
+				'-1:tag.inline_elements_set': tag1 in self.inline_elements_set,
+				'-1:tag.lists_set': tag1 in self.lists_set,
+				'-1:tag.null_element': tag1 == null_element,
+				'-1:tag.other_block_elements_set': tag1 in self.other_block_elements_set,
+				'-1:tag.phrase_elements_set': tag1 in self.phrase_elements_set,
+				'-1:tag.presentation_set': tag1 in self.presentation_set,
+				'-1:tag.section_headings_set': tag1 in self.section_headings_set,
 			})
 		else:
 			features['BOS'] = True
@@ -553,17 +554,17 @@ class ElementAnalysis(object):
 			tag1 = sent[i+1][0]
 			postag1 = sent[i+1][2]
 			features.update({
+				'+1:postag': postag1,
 				'+1:tag.basic_text_set': tag1 in self.basic_text_set,
 				'+1:tag.block_elements_set': tag1 in self.block_elements_set,
 				'+1:tag.document_body_elements_set': tag1 in self.document_body_elements_set,
 				'+1:tag.inline_elements_set': tag1 in self.inline_elements_set,
 				'+1:tag.lists_set': tag1 in self.lists_set,
+				'+1:tag.null_element': tag1 == null_element,
 				'+1:tag.other_block_elements_set': tag1 in self.other_block_elements_set,
 				'+1:tag.phrase_elements_set': tag1 in self.phrase_elements_set,
 				'+1:tag.presentation_set': tag1 in self.presentation_set,
 				'+1:tag.section_headings_set': tag1 in self.section_headings_set,
-				'+1:tag.null_element': tag1 == null_element,
-				'+1:postag': postag1,
 				'+1:tag==previous': tag1 == tag,
 			})
 		else:
@@ -582,17 +583,17 @@ class ElementAnalysis(object):
 			else:
 				consecutive_next_tags = consecutives_list[1][1]
 			features.update({
+				'+2:postag': postag2,
 				'+2:tag.basic_text_set': tag2 in self.basic_text_set,
 				'+2:tag.block_elements_set': tag2 in self.block_elements_set,
 				'+2:tag.document_body_elements_set': tag2 in self.document_body_elements_set,
 				'+2:tag.inline_elements_set': tag2 in self.inline_elements_set,
 				'+2:tag.lists_set': tag2 in self.lists_set,
+				'+2:tag.null_element': tag2 == null_element,
 				'+2:tag.other_block_elements_set': tag2 in self.other_block_elements_set,
 				'+2:tag.phrase_elements_set': tag2 in self.phrase_elements_set,
 				'+2:tag.presentation_set': tag2 in self.presentation_set,
 				'+2:tag.section_headings_set': tag2 in self.section_headings_set,
-				'+2:tag.null_element': tag2 == null_element,
-				'+2:postag': postag2,
 				'+2:tag==previous': tag2 == tag1,
 				'tag.consecutive_next_tags': consecutive_next_tags,
 			})
@@ -602,17 +603,17 @@ class ElementAnalysis(object):
 			tag3 = sent[i+3][0]
 			postag3 = sent[i+3][2]
 			features.update({
+				'+3:postag': postag3,
 				'+3:tag.basic_text_set': tag3 in self.basic_text_set,
 				'+3:tag.block_elements_set': tag3 in self.block_elements_set,
 				'+3:tag.document_body_elements_set': tag3 in self.document_body_elements_set,
 				'+3:tag.inline_elements_set': tag3 in self.inline_elements_set,
 				'+3:tag.lists_set': tag3 in self.lists_set,
+				'+3:tag.null_element': tag3 == null_element,
 				'+3:tag.other_block_elements_set': tag3 in self.other_block_elements_set,
 				'+3:tag.phrase_elements_set': tag3 in self.phrase_elements_set,
 				'+3:tag.presentation_set': tag3 in self.presentation_set,
 				'+3:tag.section_headings_set': tag3 in self.section_headings_set,
-				'+3:tag.null_element': tag3 == null_element,
-				'+3:postag': postag3,
 				'+3:tag==previous': tag3 == tag2,
 			})
 		
