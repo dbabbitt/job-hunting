@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# coding: utf-8
 
 from IPython.display import HTML, display
 from bs4 import BeautifulSoup
