@@ -82,6 +82,7 @@ ELSE
 			sequence_order = ?
 	END;'''
 		self.create_query_table_sql_str = '''
+DROP TABLE IF EXISTS dbo.#query;
 CREATE TABLE #query(
 	header_tag NVARCHAR (2224) NOT NULL,
 	sequence_order INT NOT NULL
@@ -94,6 +95,8 @@ INSERT INTO #query (
 	?,
 	?
 );'''
+		self.select_query_rows_sql_str = '''
+SELECT * FROM #query;'''
 		self.select_query_sql_str = '''
 SELECT file_name
 FROM HeaderTagSequence s
@@ -223,60 +226,7 @@ HAVING Count(*) = (SELECT Count(*) FROM #query)'''
 	def get_filenames_by_starting_sequence(self, sequence_list=[], verbose=False):
 	
 		# https://stackoverflow.com/questions/5160742/how-to-store-and-search-for-a-sequence-in-a-rdbms
-		
-		# Insert sequence list into SQL Server:
-		if len(sequence_list):
-			conn, cursor = self.get_jh_conn_cursor()
-			start_num = 0
-			row_tuples_list = []
-			while start_num < len(sequence_list) or not len(row_tuples_list):
-				if len(row_tuples_list):
-					break
-				start_num += 1
-				if verbose:
-					print(self.create_query_table_sql_str)
-				cursor.execute(self.create_query_table_sql_str)
-				try:
-					row_objs_list = cursor.fetchall()
-					row_tuples_list = [tuple(row_obj) for row_obj in row_objs_list]
-				except:
-					row_tuples_list = []
-				if verbose:
-					print(row_tuples_list)
-				for sequence_order, header_tag in enumerate(sequence_list):
-					if verbose:
-						print(self.insert_query_rows_sql_str.replace('?', '"{}"').format(header_tag, sequence_order))
-					try:
-						cursor.execute(self.insert_query_rows_sql_str, header_tag, sequence_order)
-					except Exception as e:
-						print(str(e).strip())
-						print(self.insert_query_rows_sql_str.replace('?', '"{}"').format(header_tag, sequence_order))
-						break
-					try:
-						row_objs_list = cursor.fetchall()
-					except:
-						row_objs_list = []
-				if verbose:
-					print(self.select_query_sql_str)
-				cursor.execute(self.select_query_sql_str)
-				try:
-					row_objs_list = cursor.fetchall()
-					row_tuples_list = [tuple(row_obj) for row_obj in row_objs_list]
-				except:
-					row_tuples_list = []
-				if verbose:
-					print(row_tuples_list)
-			conn.commit()
-			cursor.close()
-			filenames_list = [filename_tuple[0] for filename_tuple in row_tuples_list]
-			
-			return filenames_list
-
-
-
-	def get_filenames_by_sequence(self, sequence_list=[], verbose=False):
-		
-		# Insert sequence list into SQL Server:
+		filenames_list = []
 		if len(sequence_list):
 			conn, cursor = self.get_jh_conn_cursor()
 			if verbose:
@@ -289,6 +239,8 @@ HAVING Count(*) = (SELECT Count(*) FROM #query)'''
 				row_tuples_list = []
 			if verbose:
 				print(row_tuples_list)
+			
+			# Insert sequence list into SQL Server:
 			for sequence_order, header_tag in enumerate(sequence_list):
 				if verbose:
 					print(self.insert_query_rows_sql_str.replace('?', '"{}"').format(header_tag, sequence_order))
@@ -315,5 +267,66 @@ HAVING Count(*) = (SELECT Count(*) FROM #query)'''
 			conn.commit()
 			cursor.close()
 			filenames_list = [filename_tuple[0] for filename_tuple in row_tuples_list]
+		
+		return filenames_list
+
+
+
+	def get_filenames_by_sequence(self, sequence_list=[], verbose=False):
+		all_filenames_list = []
+		if len(sequence_list):
+			conn, cursor = self.get_jh_conn_cursor()
+			start_num = 0
+			header_tag_sequence_table_df = self.create_header_tag_sequence_table_dataframe()
+			max_num = header_tag_sequence_table_df.sequence_order.max() - len(sequence_list) + 1
+			while start_num < max_num:
+				
+				# Recreate temp table
+				if verbose:
+					print(self.create_query_table_sql_str)
+				cursor.execute(self.create_query_table_sql_str)
+				try:
+					row_objs_list = cursor.fetchall()
+					row_tuples_list = [tuple(row_obj) for row_obj in row_objs_list]
+				except:
+					row_tuples_list = []
+				if verbose:
+					print(row_tuples_list)
+				
+				# Insert sequence list into temp table
+				for sequence_order, header_tag in enumerate(sequence_list):
+					if verbose:
+						print(self.insert_query_rows_sql_str.replace('?', '"{}"').format(header_tag, start_num + sequence_order))
+					try:
+						cursor.execute(self.insert_query_rows_sql_str, header_tag, start_num + sequence_order)
+					except Exception as e:
+						print(str(e).strip())
+						print(self.insert_query_rows_sql_str.replace('?', '"{}"').format(header_tag, start_num + sequence_order))
+						break
+					try:
+						row_objs_list = cursor.fetchall()
+						row_tuples_list = [tuple(row_obj) for row_obj in row_objs_list]
+					except:
+						row_tuples_list = []
+				
+				# Find sequence list by file name
+				if verbose:
+					print(self.select_query_sql_str)
+				cursor.execute(self.select_query_sql_str)
+				try:
+					row_objs_list = cursor.fetchall()
+					row_tuples_list = [tuple(row_obj) for row_obj in row_objs_list]
+				except:
+					row_tuples_list = []
+				if verbose:
+					print(row_tuples_list)
+				filenames_list = [filename_tuple[0] for filename_tuple in row_tuples_list]
+				
+				# Add these file names to the list
+				all_filenames_list.extend(filenames_list)
+				
+				start_num += 1
+			conn.commit()
+			cursor.close()
 			
-			return filenames_list
+		return list(set(all_filenames_list))
