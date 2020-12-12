@@ -15,14 +15,14 @@ $HomeDirectory = $Env:UserProfile
 $EnvironmentsDirectory = "${HomeDirectory}\anaconda3\envs"
 $RepositoriesDirectory = "${HomeDirectory}\Documents\Repositories"
 $PowerScriptsDirectory = "${RepositoriesDirectory}\${RepositoryPath}\ps1"
-$EnvironmentPath = "${EnvironmentsDirectory}\${EnvironmentName}"
+$EnvironmentPath = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}"
 
 # Delete environment
-# ."${PowerScriptsDirectory}\delete_conda_environment.ps1"
+."${PowerScriptsDirectory}\delete_conda_environment.ps1"
 
 # Create environment
-# ."${PowerScriptsDirectory}\create_conda_environment.ps1"
 $OldPath = Get-Location
+# ."${PowerScriptsDirectory}\create_conda_environment.ps1"
 ."${PowerScriptsDirectory}\update_conda_environment.ps1"
 cd $OldPath
 

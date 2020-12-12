@@ -8,12 +8,12 @@ Write-Host ""
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "               Temporarily activating the ${EnvironmentName} environment" -ForegroundColor Green
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
-conda activate $EnvironmentName
+conda activate $EnvironmentPath
 Write-Host ""
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "               Creating the temporary conda environment.yml file" -ForegroundColor Green
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
-conda env export --name $EnvironmentName -f tmp_environment.yml
+conda env export --name $EnvironmentPath -f tmp_environment.yml
 Write-Host ""
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                    Deactivating the ${EnvironmentName} environment" -ForegroundColor Green
