@@ -35,8 +35,8 @@ Write-Host ""
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                        Adding the kernel to the Launcher" -ForegroundColor Green
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
-Add-Python-Executable-To-Path $EnvironmentName
-Add-Kernel-To-Launcher $EnvironmentName -DisplayName $DisplayName
+Add-Python-Executable-To-Path $EnvironmentPath
+Add-Kernel-To-Launcher $EnvironmentPath -DisplayName $DisplayName
 $KernelPath = "${HomeDirectory}\AppData\Roaming\jupyter\kernels\${EnvironmentName}\kernel.json"
 If (Test-Path -Path $KernelPath -PathType Leaf) {
 	(Get-Content $KernelPath) | ConvertFrom-Json | ConvertTo-Json -depth 7 | Format-Json -Indentation 2
@@ -48,8 +48,10 @@ Write-Host "--------------------------------------------------------------------
 Write-Host "                        Importing the workspace file" -ForegroundColor Green
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 $WorkspacePath = Import-Workspace-File $RepositoryPath
-If (Test-Path -Path $WorkspacePath -PathType Leaf) {
-	(Get-Content $WorkspacePath) | ConvertFrom-Json | ConvertTo-Json -depth 7 | Format-Json -Indentation 2
+If ($WorkspacePath -Ne $null) {
+	If (Test-Path -Path $WorkspacePath -PathType Leaf) {
+		(Get-Content $WorkspacePath) | ConvertFrom-Json | ConvertTo-Json -depth 7 | Format-Json -Indentation 2
+	}
 }
 
 # Clean up the mess
@@ -57,6 +59,8 @@ Write-Host ""
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                          Cleaning the staging area" -ForegroundColor Green
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
+<# $CommandString = "jupyter-lab clean"
+cmd /c $CommandString '2>&1' #>
 jupyter-lab clean
 $CommandString = "jupyter labextension list"
 $ExtensionsList = Invoke-Expression $CommandString
@@ -81,6 +85,8 @@ $ConfigPath = "${RepositoriesDirectory}\${RepositoryPath}\jupyter_notebook_confi
 If (Test-Path -Path $ConfigPath -PathType Leaf) {
 	Copy-Item $ConfigPath -Destination $NewConfigPath
 }
-jupyter-lab build
+$CommandString = "jupyter-lab build"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
+cmd /c $CommandString '2>&1'
 
 cd $OldPath

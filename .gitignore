@@ -175,3 +175,7 @@ dmypy.json
 
 # Exclude Pyre type checker
 .pyre/
+saves/png/JOB_SEARCH-512.png
+saves/png/logo-32x32.png
+saves/png/logo-64x64.png
+saves/xcf/JOB_SEARCH-512.xcf

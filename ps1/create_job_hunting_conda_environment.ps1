@@ -18,12 +18,12 @@ $PowerScriptsDirectory = "${RepositoriesDirectory}\${RepositoryPath}\ps1"
 $EnvironmentPath = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}"
 
 # Delete environment
-."${PowerScriptsDirectory}\delete_conda_environment.ps1"
+# ."${PowerScriptsDirectory}\delete_conda_environment.ps1"
 
 # Create environment
 $OldPath = Get-Location
-# ."${PowerScriptsDirectory}\create_conda_environment.ps1"
-."${PowerScriptsDirectory}\update_conda_environment.ps1"
+."${PowerScriptsDirectory}\create_conda_environment.ps1"
+# ."${PowerScriptsDirectory}\update_conda_environment.ps1"
 cd $OldPath
 
 # Bring up the workspace in Chrome

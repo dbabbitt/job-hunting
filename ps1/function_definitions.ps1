@@ -74,19 +74,19 @@ function Add-Python-Executable-To-Path {
     .SYNOPSIS
         Adds python's executable path associated with the environment to the PATH if necessary.
     .EXAMPLE
-        Add-Python-Executable-To-Path $EnvironmentName
+        Add-Python-Executable-To-Path $EnvironmentPath
     #>
-    [CmdletBinding(DefaultParameterSetName = 'EnvironmentName')]
+    [CmdletBinding(DefaultParameterSetName = 'EnvironmentPath')]
     Param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
-        [string]$EnvironmentName
+        [string]$EnvironmentPath
     )
-	$ExecutablePath = "${HomeDirectory}\Anaconda3\envs\${EnvironmentName}\python.exe"
+	$ExecutablePath = "${EnvironmentPath}\python.exe"
 	$PathArray = $ExecutablePath -Split "\\"
 	$PythonFolder = $PathArray[0..($PathArray.count - 2)] -Join "\"
 	if (!($env:Path -Like "*$PythonFolder*")) {
-		# Write-Host "The ${EnvironmentName} executable path is not in PATH" -ForegroundColor Red
-		$env:Path = "${HomeDirectory}\Anaconda3\envs\${EnvironmentName};" + $env:Path
+		# Write-Host "The ${EnvironmentPath} executable path is not in PATH" -ForegroundColor Red
+		$env:Path = "${EnvironmentPath};" + $env:Path
 	}
 }
 
@@ -95,14 +95,14 @@ function Get-Python-Version {
     .SYNOPSIS
         Get the version of python associated with the environment.
     .EXAMPLE
-        $PythonVersion = Get-Python-Version $EnvironmentName
+        $PythonVersion = Get-Python-Version $EnvironmentPath
     #>
-    [CmdletBinding(DefaultParameterSetName = 'EnvironmentName')]
+    [CmdletBinding(DefaultParameterSetName = 'EnvironmentPath')]
     Param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
-        [string]$EnvironmentName
+        [string]$EnvironmentPath
     )
-	$CommandString = "${HomeDirectory}\Anaconda3\envs\${EnvironmentName}\python.exe --version"
+	$CommandString = "cd ${EnvironmentPath} & python --version"
 	$PythonVersion = cmd /c $CommandString '2>&1'
 	$PythonVersion = $PythonVersion.Trim()
 	
@@ -114,28 +114,31 @@ function Add-Kernel-To-Launcher {
     .SYNOPSIS
         Adds python's executable path associated with the environment to the PATH if necessary.
     .EXAMPLE
-        Add-Kernel-To-Launcher $EnvironmentName -DisplayName $DisplayName
+        Add-Kernel-To-Launcher $EnvironmentPath -DisplayName $DisplayName
     #>
-    [CmdletBinding(DefaultParameterSetName = 'EnvironmentName')]
+    [CmdletBinding(DefaultParameterSetName = 'EnvironmentPath')]
     Param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
-        [string]$EnvironmentName,
+        [string]$EnvironmentPath,
 		
         [Parameter(ParameterSetName = 'DisplayName')]
         [string]$DisplayName = "Python"
     )
-	$PythonVersion = Get-Python-Version $EnvironmentName
+	$PythonVersion = Get-Python-Version $EnvironmentPath
 	
-	$ExecutablePath = "${HomeDirectory}\Anaconda3\envs\${EnvironmentName}\python.exe"
+	$ExecutablePath = "${EnvironmentPath}\python.exe"
 	
 	# Fix LookupError: unknown encoding: cp65001
-	$CommandString = -Join($ExecutablePath, ' -c "import os; os.environ[', "'PYTHONIOENCODING'", "] = 'UTF-8'", '"')
-	# Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
-	Invoke-Expression $CommandString
+	$CommandString = -Join('cd ', $EnvironmentPath, ' & python -c "import os; os.environ[', "'PYTHONIOENCODING'", "] = 'UTF-8'", '"')
+	Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
+	cmd /c $CommandString '2>&1'
 	
-	$CommandString = -Join($ExecutablePath, ' -m ipykernel install --user --name ', $EnvironmentName, ' --display-name "', $DisplayName, ' (', $PythonVersion, ')"')
-	# Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
-	Invoke-Expression $CommandString
+	$PathArray = $EnvironmentPath -Split "\\"
+	$EnvironmentName = $PathArray[$PathArray.count - 1]
+	$CommandString = -Join('cd ', $EnvironmentPath, ' & python -m ipykernel install --user --name ', $EnvironmentName, ' --display-name "', $DisplayName, ' (', $PythonVersion, ')"')
+	Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
+	cmd /c $CommandString '2>&1'
+	# Invoke-Expression $CommandString
 }
 
 function Import-Workspace-File {
@@ -157,10 +160,16 @@ function Import-Workspace-File {
     )
 	$OldPath = Get-Location
 	cd $RepositoriesDirectory\$RepositoryPath
-	$WorkspacePath = (jupyter-lab workspaces import workspace.json) | Out-String
-	$WorkspacePath = $WorkspacePath.Trim()
-	$WorkspacePath = $WorkspacePath -csplit ' '
-	$WorkspacePath = $WorkspacePath[$WorkspacePath.Count - 1]
+	$CommandString = "cd ${RepositoriesDirectory}\${RepositoryPath} & jupyter-lab workspaces import workspace.json"
+	Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
+	$WorkspacePath = cmd /c $CommandString '2>&1'
+	Write-Host "WorkspacePath = '${WorkspacePath}'" -ForegroundColor Red
+	# $WorkspacePath = (jupyter-lab workspaces import workspace.json) | Out-String
+	If ($WorkspacePath -Ne $null) {
+		$WorkspacePath = $WorkspacePath.Trim()
+		$WorkspacePath = $WorkspacePath -csplit ' '
+		$WorkspacePath = $WorkspacePath[$WorkspacePath.Count - 1]
+	}
 	cd $OldPath
 	
 	Return $WorkspacePath

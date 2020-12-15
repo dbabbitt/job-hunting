@@ -9,5 +9,6 @@ $RepositoryPath = "job-hunting"
 $EnvironmentName = "jh"
 $HomeDirectory = $Env:UserProfile
 $RepositoriesDirectory = "${HomeDirectory}\Documents\Repositories"
+$EnvironmentPath = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}"
 
 ."${RepositoriesDirectory}\${RepositoryPath}\ps1\create_temp_environment_yml_file.ps1"
