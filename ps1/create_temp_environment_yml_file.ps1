@@ -4,11 +4,8 @@
 # conda init powershell
 # but it doesn't seem to work
 
-$OldPath = Get-Location
-
 # Create the temporary conda environment.yml file
 conda config --set env_prompt '({name})'
-cd "${RepositoriesDirectory}\${RepositoryPath}"
 Write-Host ""
 Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "            Temporarily activating the ${EnvironmentName} environment" -ForegroundColor Green
@@ -18,5 +15,3 @@ Write-Host "--------------------------------------------------------------------
 $CommandString = "conda activate ${EnvironmentPath} & conda env export -f tmp_environment.yml & conda deactivate"
 Write-Host $CommandString -ForegroundColor Yellow
 cmd /k $CommandString
-
-cd $OldPath
