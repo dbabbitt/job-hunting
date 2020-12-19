@@ -3,9 +3,9 @@
 
 # Delete environment
 Write-Host ""
-Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                   Deleting the ${DisplayName} conda environment (${EnvironmentName})" -ForegroundColor Green
-Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 conda remove --name $EnvironmentName --all --yes
 
 # You have to manually delete the folder if you don't manually stop the server
@@ -16,9 +16,9 @@ If (Test-Path -Path $EnvironmentPath -PathType Container) {
 		Read-Host "Stop the Jupyter server manually, then press ENTER to continue..."
 	}
 	Write-Host ""
-	Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
-	Write-Host "         Recursively removing ${EnvironmentPath}" -ForegroundColor Green
-	Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
+	Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+	Write-Host "    Recursively removing ${EnvironmentPath}" -ForegroundColor Green
+	Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 	Remove-Item -Recurse -Force $EnvironmentPath
 }
 
@@ -30,9 +30,9 @@ If (Test-Path -Path $KernelPath -PathType Container) {
 		Read-Host "Stop the Jupyter server manually, then press ENTER to continue..."
 	}
 	Write-Host ""
-	Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
+	Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 	Write-Host "         Recursively removing ${KernelPath}" -ForegroundColor Green
-	Write-Host "---------------------------------------------------------------------------------" -ForegroundColor Green
+	Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 	Remove-Item -Recurse -Force $KernelPath
 }
 conda info --envs

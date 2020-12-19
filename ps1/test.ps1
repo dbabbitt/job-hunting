@@ -10,44 +10,19 @@
 [string]$HomeDirectory = "${Env:UserProfile}"
 [string]$RepositoriesDirectory = "${HomeDirectory}\Documents\Repositories"
 [string]$RepositoryPath = "job-hunting"
+[string]$EnvironmentName = "jh"
+
 ."${RepositoriesDirectory}\${RepositoryPath}\ps1\function_definitions.ps1"
 
 $OldPath = Get-Location
 
-$EnvironmentName = "jh"
-$ExecutablePath = "${HomeDirectory}\Anaconda3\envs\${EnvironmentName}\python.exe"
+cd "${RepositoriesDirectory}\${RepositoryPath}"
+# flask init-db
 Write-Host ""
-
-$OldConfigPath = "${HomeDirectory}\.jupyter\old_jupyter_notebook_config.py"
-If (Test-Path -Path $OldConfigPath -PathType Leaf) {
-	Read-Host "You better rescue your old_jupyter_notebook_config.py in the .jupyter folder, we are about to overwrite it. Then press ENTER to continue..."
-}
-$NewConfigPath = "${HomeDirectory}\.jupyter\jupyter_notebook_config.py"
-Copy-Item $NewConfigPath -Destination $OldConfigPath
-$ConfigPath = "${HomeDirectory}\Documents\repositories\${RepositoryPath}\jupyter_notebook_config.py"
-If (Test-Path -Path $ConfigPath -PathType Leaf) {
-	Copy-Item $ConfigPath -Destination $NewConfigPath
-}
-
-$PythonVersion = Get-Python-Version $EnvironmentName
-Write-Host "PythonVersion = '${PythonVersion}'" -ForegroundColor Yellow
-
-# sys.getdefaultencoding()
-$CommandString = -Join($ExecutablePath, ' -c "import sys; print(sys.getdefaultencoding())"')
-Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
-$DefaultEncoding = Invoke-Expression $CommandString
-Write-Host "DefaultEncoding = '${DefaultEncoding}'" -ForegroundColor Magenta
-
-# locale.getpreferredencoding()
-$CommandString = -Join($ExecutablePath, ' -c "import locale; print(locale.getpreferredencoding())"')
-Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
-$PreferredEncoding = Invoke-Expression $CommandString
-Write-Host "PreferredEncoding = '${PreferredEncoding}'" -ForegroundColor Cyan
-
-# sys.stdin.encoding
-$CommandString = -Join($ExecutablePath, ' -c "import sys; print(sys.stdin.encoding)"')
-Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
-$StdinEncoding = Invoke-Expression $CommandString
-Write-Host "StdinEncoding = '${StdinEncoding}'" -ForegroundColor Blue
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "       Running the flaskr app from the ${RepositoryPath} repository" -ForegroundColor Green
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+$server = Start-Process flask -ArgumentList 'run --host localhost --port 5000' -PassThru 
+Read-Host "${server.Id}"
 
 cd $OldPath

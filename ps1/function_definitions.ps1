@@ -130,13 +130,13 @@ function Add-Kernel-To-Launcher {
 	
 	# Fix LookupError: unknown encoding: cp65001
 	$CommandString = -Join('cd ', $EnvironmentPath, ' & python -c "import os; os.environ[', "'PYTHONIOENCODING'", "] = 'UTF-8'", '"')
-	Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
+	# Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
 	cmd /c $CommandString '2>&1'
 	
 	$PathArray = $EnvironmentPath -Split "\\"
 	$EnvironmentName = $PathArray[$PathArray.count - 1]
 	$CommandString = -Join('cd ', $EnvironmentPath, ' & python -m ipykernel install --user --name ', $EnvironmentName, ' --display-name "', $DisplayName, ' (', $PythonVersion, ')"')
-	Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
+	# Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
 	cmd /c $CommandString '2>&1'
 	# Invoke-Expression $CommandString
 }
@@ -144,7 +144,7 @@ function Add-Kernel-To-Launcher {
 function Import-Workspace-File {
     <#
     .SYNOPSIS
-        Import the local workspace file into the Juoyter Lab workspaces.
+        Import the local workspace file into the Jupyter Lab workspaces.
     .DESCRIPTION
         Returns the newly created workspace path.
     .EXAMPLE
@@ -158,21 +158,47 @@ function Import-Workspace-File {
         [Parameter(ParameterSetName = 'RepositoriesDirectory')]
         [string]$RepositoriesDirectory = "${Env:UserProfile}\Documents\Repositories"
     )
-	$OldPath = Get-Location
-	cd $RepositoriesDirectory\$RepositoryPath
 	$CommandString = "cd ${RepositoriesDirectory}\${RepositoryPath} & jupyter-lab workspaces import workspace.json"
-	Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
+	# Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
 	$WorkspacePath = cmd /c $CommandString '2>&1'
-	Write-Host "WorkspacePath = '${WorkspacePath}'" -ForegroundColor Red
+	# Write-Host "WorkspacePath = '${WorkspacePath}'" -ForegroundColor Red
 	# $WorkspacePath = (jupyter-lab workspaces import workspace.json) | Out-String
 	If ($WorkspacePath -Ne $null) {
 		$WorkspacePath = $WorkspacePath.Trim()
 		$WorkspacePath = $WorkspacePath -csplit ' '
 		$WorkspacePath = $WorkspacePath[$WorkspacePath.Count - 1]
 	}
-	cd $OldPath
 	
 	Return $WorkspacePath
+}
+
+function Add-Logos-To-Kernel-Folder {
+    <#
+    .SYNOPSIS
+        Copy the 32x32 and 64x64 PNGs to the kernel folder if available.
+    .EXAMPLE
+        Add-Logos-To-Kernel-Folder $EnvironmentName -RepositoryPath $RepositoryPath
+    #>
+    Param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
+        [string]$EnvironmentName,
+		
+        [Parameter(ParameterSetName = 'RepositoryPath')]
+        [string]$RepositoryPath,
+		
+        [Parameter(ParameterSetName = 'RepositoriesDirectory')]
+        [string]$RepositoriesDirectory = "${Env:UserProfile}\Documents\Repositories"
+    )
+	$KernelFolder = "${Env:UserProfile}\AppData\Roaming\jupyter\kernels\${EnvironmentName}"
+	$LogoFolder = "${RepositoriesDirectory}\${RepositoryPath}\saves\png"
+	$SmallPath = "${LogoFolder}\logo-32x32.png"
+	If (Test-Path -Path $SmallPath -PathType Leaf) {
+		Copy-Item $SmallPath -Destination $KernelFolder
+	}
+	$LargePath = "${LogoFolder}\logo-64x64.png"
+	If (Test-Path -Path $LargePath -PathType Leaf) {
+		Copy-Item $LargePath -Destination $KernelFolder
+	}
 }
 
 function Get-Token-String {
