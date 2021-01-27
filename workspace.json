@@ -1,0 +1,52 @@
+{
+    "data": {
+        "layout-restorer:data": {
+            "main": {
+                "dock": {
+                    "type": "tab-area",
+                    "currentIndex": 0,
+                    "widgets": [
+								"editor:job-hunting/README.md",
+								"notebook:job-hunting/ipynb/Indeed.com Scraped for Requirements Lists.ipynb"
+							   ]
+                },
+                "mode": "multiple-document",
+                "current": "editor:job-hunting/README.md"
+            },
+            "left": {
+                "collapsed": false,
+                "current": "filebrowser",
+                "widgets": [
+                            "filebrowser",
+                            "running-sessions",
+                            "command-palette",
+                            "jp-property-inspector",
+                            "tab-manager",
+                            "extensionmanager.main-view"
+                           ]
+            },
+            "right": {
+                "collapsed": true,
+                "widgets": []
+            }
+        },
+        "file-browser-filebrowser:cwd": {
+            "path": "job-hunting/ipynb"
+        },
+        "editor:job-hunting/README.md": {
+            "data": {
+                "path": "job-hunting/README.md",
+                "factory": "Editor"
+            }
+        },
+        "notebook:job-hunting/ipynb/Indeed.com Scraped for Requirements Lists.ipynb": {
+            "data": {
+                "path": "job-hunting/ipynb/Indeed.com Scraped for Requirements Lists.ipynb",
+                "factory": "Notebook"
+            }
+        }
+    },
+    "metadata": {
+        "id": "/lab/workspaces/jh"
+    }
+}

@@ -43,7 +43,9 @@ If (Test-Path -Path $KernelPath -PathType Leaf) {
 	(Get-Content $KernelPath) | ConvertFrom-Json | ConvertTo-Json -depth 7 | Format-Json -Indentation 2
 }
 
-# Add a workspace file for bookmarking
+# Add a workspace file for bookmarking. You can create a temporary workspace file in the 
+# $Env:UserProfile\.jupyter\lab\workspaces folder by going to this URL:
+# http://localhost:8888/lab/?clone=$EnvironmentName
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                        Importing the workspace file" -ForegroundColor Green
@@ -60,8 +62,6 @@ Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                          Cleaning the staging area" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-<# $CommandString = "jupyter-lab clean"
-cmd /c $CommandString '2>&1' #>
 jupyter-lab clean
 $CommandString = "jupyter labextension list"
 $ExtensionsList = Invoke-Expression $CommandString
@@ -86,8 +86,6 @@ $ConfigPath = "${RepositoriesDirectory}\${RepositoryPath}\jupyter_notebook_confi
 If (Test-Path -Path $ConfigPath -PathType Leaf) {
 	Copy-Item $ConfigPath -Destination $NewConfigPath
 }
-$CommandString = "jupyter-lab build"
-# Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
-cmd /c $CommandString '2>&1'
+jupyter-lab build
 
 cd $OldPath

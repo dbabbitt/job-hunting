@@ -12,15 +12,31 @@
 !/ps1
 !/sh
 !/tests
+!/src
+!/templates
+!.gitignore
+!environment.yml
+!jupyter_notebook_config.py
+!package-lock.json
+!package.json
+!README.md
+!serverless.yml
+!workspace.json
 
 # Exclude job hunting notebooks that I didn't make
 ipynb/benchmarking.ipynb
 ipynb/bert_language_model_with_sequence_classification.ipynb
 ipynb/grid_search_text_feature_extraction.ipynb
+ipynb/plot_classifier_chain_yeast.ipynb
 ipynb/plot_feature_transformation.ipynb
 ipynb/pycrfsuite.ipynb
 ipynb/sklearn_crfsuite.ipynb
-ipynb/plot_classifier_chain_yeast.ipynb
+
+# Exclude images that I didn't make
+saves/png/JOB_SEARCH-512.png
+saves/png/logo-32x32.png
+saves/png/logo-64x64.png
+saves/xcf/JOB_SEARCH-512.xcf
 
 # Ignore whole folders
 **/.git/
@@ -175,7 +191,10 @@ dmypy.json
 
 # Exclude Pyre type checker
 .pyre/
-saves/png/JOB_SEARCH-512.png
-saves/png/logo-32x32.png
-saves/png/logo-64x64.png
-saves/xcf/JOB_SEARCH-512.xcf
+
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless

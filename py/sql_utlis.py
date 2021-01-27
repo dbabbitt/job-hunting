@@ -7,16 +7,25 @@ import random
 import sqlite3
 import os
 
-import storage
-s = storage.Storage()
-import html_analysis
-ha = html_analysis.HeaderAnalysis()
+try:
+	import storage
+	s = storage.Storage()
+except:
+	from flaskr.storage import Storage
+	s = Storage()
+
+try:
+	import html_analysis
+	ha = html_analysis.HeaderAnalysis()
+except:
+	from flaskr.html_analysis import HeaderAnalysis
+	ha = HeaderAnalysis()
 
 class SqlUtilities(object):
 	"""SQL class."""
-
+	
 	def __init__(self):
-
+		
 		# Various SQL strings
 		self.create_table_sql_str = """
 CREATE TABLE HeaderTagSequence(
@@ -64,7 +73,7 @@ FROM HeaderTagSequence s
 		q.sequence_order = s.sequence_order
 GROUP BY s.file_name
 HAVING Count(*) = (SELECT Count(*) FROM #query)"""
-
+		
 		# The email date is field TEXT as ISO8601 strings ("YYYY-MM-DD HH:MM:SS.SSS")
 		self.create_filenames_table_sql_str = """
 CREATE TABLE FileNames(
@@ -76,7 +85,7 @@ CREATE TABLE FileNames(
 	is_remote_delivery BIT NULL,
 	manager_notes TEXT NULL
 );"""
-
+		
 		self.create_headertags_table_sql_str = """
 CREATE TABLE HeaderTags(
 	header_tag_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -307,32 +316,32 @@ WHERE navigable_parent_id in (
 		)
 	ORDER BY sequence_order ASC
 	);"""
-
-
-
+	
+	
+	
 	def create_filenames_table(self, db, verbose=False):
 		db.execute('DROP TABLE IF EXISTS FileNames;')
 		db.execute(self.create_filenames_table_sql_str)
 		db.commit()
-
-
-
+	
+	
+	
 	def populate_filenames_table(self, db, verbose=False):
 		files_list = os.listdir(ha.SAVES_HTML_FOLDER)
 		for file_name in files_list:
 			if file_name.endswith('html'):
 				db.execute('INSERT INTO FileNames (file_name) VALUES (?)', (file_name,))
 		db.commit()
-
-
-
+	
+	
+	
 	def create_headertags_table(self, db, verbose=False):
 		db.execute('DROP TABLE IF EXISTS HeaderTags;')
 		db.execute(self.create_headertags_table_sql_str)
 		db.commit()
-
-
-
+	
+	
+	
 	def populate_headertags_table(self, db, verbose=False):
 		document_structure_elements_set = set(['body','head','html'])
 		document_head_elements_set = set(['base','basefont','isindex','link','meta','object','script','style','title'])
@@ -390,16 +399,16 @@ WHERE navigable_parent_id in (
 							is_in_tables_set, is_in_frames_set, is_in_historic_elements_set, is_in_non_standard_elements_set)
 			db.execute(self.insert_into_headertags_sql_str, params_tuple)
 		db.commit()
-
-
-
+	
+	
+	
 	def create_navigableparents_table(self, db, verbose=False):
 		db.execute('DROP TABLE IF EXISTS NavigableParents;')
 		db.execute(self.create_navigableparents_table_sql_str)
 		db.commit()
-
-
-
+	
+	
+	
 	def populate_navigableparents_table(self, db, verbose=False):
 		files_list = os.listdir(ha.SAVES_HTML_FOLDER)
 		navigable_parent_set = set()
@@ -414,12 +423,12 @@ WHERE navigable_parent_id in (
 									   (child_tag,)).fetchone()['header_tag_id']
 			db.execute('INSERT INTO NavigableParents (navigable_parent, header_tag_id) VALUES (?, ?)',
 					   (child_str, header_tag_id))
-
+		
 		# Set the Corporate Scope is_header
 		corp_scope_headers_list = s.load_object('corp_scope_headers_list')
 		for navigable_parent in corp_scope_headers_list:
 			db.execute(self.set_is_corporate_scope1_sql_str, (navigable_parent,))
-
+		
 		# Set the basic tags is_header
 		NAVIGABLE_PARENT_IS_HEADER_DICT = s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
 		for navigable_parent, is_header in NAVIGABLE_PARENT_IS_HEADER_DICT.items():
@@ -427,7 +436,7 @@ WHERE navigable_parent_id in (
 				db.execute(self.set_is_header1_sql_str, (navigable_parent,))
 			else:
 				db.execute(self.set_is_header0_sql_str, (navigable_parent,))
-
+		
 		# Set the basic tags is_qual
 		NAVIGABLE_PARENT_IS_QUAL_DICT = s.load_object('NAVIGABLE_PARENT_IS_QUAL_DICT')
 		for navigable_parent, is_qualification in NAVIGABLE_PARENT_IS_QUAL_DICT.items():
@@ -435,72 +444,72 @@ WHERE navigable_parent_id in (
 				db.execute(self.set_is_qualification1_sql_str, (navigable_parent,))
 			else:
 				db.execute(self.set_is_qualification0_sql_str, (navigable_parent,))
-
+		
 		# Set the Task Scope is_header
 		task_scope_headers_list = s.load_object('task_scope_headers_list')
 		for navigable_parent in task_scope_headers_list:
 			db.execute(self.set_is_task_scope1_sql_str, (navigable_parent,))
-
+		
 		# Set the Office Location is_header
 		office_loc_headers_list = s.load_object('office_loc_headers_list')
 		for navigable_parent in office_loc_headers_list:
 			db.execute(self.set_is_office_location1_sql_str, (navigable_parent,))
-
+		
 		# Set the Minimum Quals is_header
 		req_quals_headers_list = s.load_object('req_quals_headers_list')
 		for navigable_parent in req_quals_headers_list:
 			db.execute(self.set_is_minimum_qualification1_sql_str, (navigable_parent,))
-
+		
 		# Set the Supplemental Pay is_header
 		supp_pay_headers_list = s.load_object('supp_pay_headers_list')
 		for navigable_parent in supp_pay_headers_list:
 			db.execute(self.set_is_supplemental_pay1_sql_str, (navigable_parent,))
-
+		
 		# Set the Supplemental Pay non-header
 		supp_pay_nonheaders_list = s.load_object('supp_pay_nonheaders_list')
 		for navigable_parent in supp_pay_nonheaders_list:
 			db.execute(self.set_nonheader_is_supplemental_pay1_sql_str, (navigable_parent,))
-
+		
 		# Set the Preferred Quals is_header
 		preff_quals_headers_list = s.load_object('preff_quals_headers_list')
 		for navigable_parent in preff_quals_headers_list:
 			db.execute(self.set_is_preferred_qualification1_sql_str, (navigable_parent,))
-
+		
 		# Set the Legal Notifications is_header
 		legal_notifs_headers_list = s.load_object('legal_notifs_headers_list')
 		for navigable_parent in legal_notifs_headers_list:
 			db.execute(self.set_is_legal_notification1_sql_str, (navigable_parent,))
-
+		
 		# Set the Other is_header
 		other_headers_list = s.load_object('other_headers_list')
 		for navigable_parent in other_headers_list:
 			db.execute(self.set_is_other1_sql_str, (navigable_parent,))
-
+		
 		# Set the Education Requirements is_header
 		educ_reqs_headers_list = s.load_object('educ_reqs_headers_list')
 		for navigable_parent in educ_reqs_headers_list:
 			db.execute(self.set_is_educational_requirement1_sql_str, (navigable_parent,))
-
+		
 		# Set the Interview Process is_header
 		interv_proc_headers_list = s.load_object('interv_proc_headers_list')
 		for navigable_parent in interv_proc_headers_list:
 			db.execute(self.set_is_interview_procedure1_sql_str, (navigable_parent,))
-
+		
 		# Set the Posting Date is_header
 		post_date_headers_list = s.load_object('post_date_headers_list')
 		for navigable_parent in post_date_headers_list:
 			db.execute(self.set_is_posting_date1_sql_str, (navigable_parent,))
-
+		
 		# Set the Job Duration is_header
 		job_duration_headers_list = s.load_object('job_duration_headers_list')
 		for navigable_parent in job_duration_headers_list:
 			db.execute(self.set_is_job_duration1_sql_str, (navigable_parent,))
-
+		
 		# Set the Job Title is_header
 		job_title_headers_list = s.load_object('job_title_headers_list')
 		for navigable_parent in job_title_headers_list:
 			db.execute(self.set_is_job_title1_sql_str, (navigable_parent,))
-
+		
 		# SET other subtypes as 0; assume 0 rows affected if primary and secondary columns are the same
 		subtypes_list = ['is_task_scope', 'is_minimum_qualification', 'is_preferred_qualification', 'is_legal_notification',
 						 'is_job_title', 'is_office_location', 'is_job_duration', 'is_supplemental_pay',
@@ -509,21 +518,21 @@ WHERE navigable_parent_id in (
 		for primary_column in subtypes_list:
 			for secondary_column in subtypes_list:
 				db.execute(self.set_secondary_column0_formatted_sql_str.format(secondary_column, primary_column, secondary_column))
-
+		
 		# Set the is_qualification if the other qual columns are set
 		db.execute(self.set_is_qualification1_or_sql_str)
-
+		
 		db.commit()
-
-
-
+	
+	
+	
 	def create_headertagsequence_table(self, db, verbose=False):
 		db.execute('DROP TABLE IF EXISTS HeaderTagSequence;')
 		db.execute(self.create_headertagsequence_table_sql_str)
 		db.commit()
-
-
-
+	
+	
+	
 	def populate_headertagsequence_table(self, db, verbose=False):
 		files_list = os.listdir(ha.SAVES_HTML_FOLDER)
 		for file_name in files_list:
@@ -535,16 +544,16 @@ WHERE navigable_parent_id in (
 				db.execute('INSERT INTO HeaderTagSequence (file_name_id, header_tag_id, sequence_order) VALUES (?, ?, ?)',
 						   (file_name_id, header_tag_id, sequence_order))
 		db.commit()
-
-
-
+	
+	
+	
 	def create_navigableparentsequence_table(self, db, verbose=False):
 		db.execute('DROP TABLE IF EXISTS NavigableParentSequence;')
 		db.execute(self.create_navigableparentsequence_table_sql_str)
 		db.commit()
-
-
-
+	
+	
+	
 	def populate_navigableparentsequence_table(self, db, verbose=False):
 		files_list = os.listdir(ha.SAVES_HTML_FOLDER)
 		for file_name in files_list:
@@ -556,16 +565,16 @@ WHERE navigable_parent_id in (
 				db.execute('INSERT INTO NavigableParentSequence (file_name_id, navigable_parent_id, sequence_order) VALUES (?, ?, ?)',
 						   (file_name_id, navigable_parent_id, sequence_order))
 		db.commit()
-
-
-
+	
+	
+	
 	def create_partsofspeech_table(self, db, verbose=False):
 		db.execute('DROP TABLE IF EXISTS PartsOfSpeech;')
 		db.execute(self.create_table_partsofspeech_sql_str)
 		db.commit()
-
-
-
+	
+	
+	
 	def populate_partsofspeech_table(self, db, verbose=False):
 		pos_explanation_dict = s.load_object('pos_explanation_dict')
 		for pos_symbol, pos_explanation in pos_explanation_dict.items():
@@ -575,16 +584,16 @@ WHERE navigable_parent_id in (
 				db.execute('INSERT INTO PartsOfSpeech (pos_symbol, pos_explanation) VALUES (?, ?)',
 						   (pos_symbol.replace('H-', 'O-'), pos_explanation.replace(' Header', ' Non-header')))
 		db.commit()
-
-
-
+	
+	
+	
 	def get_is_header_list(self, db, child_strs_list, verbose=False):
 		is_header_list = []
 		for navigable_parent in child_strs_list:
 			is_header = db.execute('SELECT is_header FROM NavigableParents WHERE navigable_parent = ?',
 								   (navigable_parent,)).fetchone()['is_header']
 			is_header_list.append(is_header)
-
+		
 		return is_header_list
 	
 	
@@ -595,9 +604,9 @@ WHERE navigable_parent_id in (
 		child_strs_list = [row_obj['navigable_parent'] for row_obj in row_obj_list]
 		
 		return child_strs_list
-
-
-
+	
+	
+	
 	def get_child_tags_list(self, db, child_strs_list, verbose=False):
 		child_tags_list = []
 		for navigable_parent in child_strs_list:
@@ -606,11 +615,11 @@ WHERE navigable_parent_id in (
 			header_tag = db.execute('SELECT header_tag FROM HeaderTags WHERE header_tag_id = ?',
 									(header_tag_id,)).fetchone()['header_tag']
 			child_tags_list.append(header_tag)
-
+		
 		return child_tags_list
-
-
-
+	
+	
+	
 	def get_feature_dict_list(self, db, child_tags_list, child_strs_list, verbose=False):
 		feature_dict_list = []
 		import numpy as np
@@ -629,27 +638,27 @@ WHERE navigable_parent_id in (
 							   'is_posting_date': np.nan, 'is_other': np.nan}
 			feature_dict['is_header'] = params_dict['is_header']
 			feature_dict['is_task_scope'] = params_dict['is_task_scope']
-			feature_dict['is_req_quals'] = params_dict['is_minimum_qualification']
-			feature_dict['is_preff_quals'] = params_dict['is_preferred_qualification']
-			feature_dict['is_legal_notifs'] = params_dict['is_legal_notification']
+			feature_dict['is_minimum_qualification'] = params_dict['is_minimum_qualification']
+			feature_dict['is_preferred_qualification'] = params_dict['is_preferred_qualification']
+			feature_dict['is_legal_notification'] = params_dict['is_legal_notification']
 			feature_dict['is_job_title'] = params_dict['is_job_title']
-			feature_dict['is_office_loc'] = params_dict['is_office_location']
+			feature_dict['is_office_location'] = params_dict['is_office_location']
 			feature_dict['is_job_duration'] = params_dict['is_job_duration']
-			feature_dict['is_supp_pay'] = params_dict['is_supplemental_pay']
-			feature_dict['is_educ_reqs'] = params_dict['is_educational_requirement']
-			feature_dict['is_interv_proc'] = params_dict['is_interview_procedure']
-			feature_dict['is_corp_scope'] = params_dict['is_corporate_scope']
-			feature_dict['is_post_date'] = params_dict['is_posting_date']
+			feature_dict['is_supplemental_pay'] = params_dict['is_supplemental_pay']
+			feature_dict['is_educational_requirement'] = params_dict['is_educational_requirement']
+			feature_dict['is_interview_procedure'] = params_dict['is_interview_procedure']
+			feature_dict['is_corporate_scope'] = params_dict['is_corporate_scope']
+			feature_dict['is_posting_date'] = params_dict['is_posting_date']
 			feature_dict['is_other'] = params_dict['is_other']
 			feature_dict['child_str'] = child_str
 			feature_dict_list.append(feature_dict)
-
+		
 		return feature_dict_list
-
-
-
+	
+	
+	
 	def append_parts_of_speech_list(self, db, navigable_parent, pos_list=[], verbose=False):
-		params_dict = db.execute(self.select_is_from_navigableparents_sql_str, (tag,)).fetchone()
+		params_dict = db.execute(self.select_is_from_navigableparents_sql_str, (navigable_parent,)).fetchone()
 		if params_dict['is_task_scope']:
 			pos_list.append('H-TS')
 		elif params_dict['is_minimum_qualification']:
@@ -678,11 +687,11 @@ WHERE navigable_parent_id in (
 			pos_list.append('H-O')
 		else:
 			pos_list.append('H')
-
+		
 		return pos_list
-
-
-
+	
+	
+	
 	def get_execution_results(self, cursor, sql_str, verbose=False):
 		if verbose:
 			print(sql_str)
@@ -693,7 +702,7 @@ WHERE navigable_parent_id in (
 		except:
 			row_tuples_list = []
 		cursor.commit()
-
+		
 		return row_tuples_list
 
 
@@ -713,16 +722,16 @@ WHERE navigable_parent_id in (
 		header_tag_sequence_table_df.index.name = 'header_tag_sequence_id'
 		if save_as_csv:
 			s.save_dataframes(include_index=True, verbose=verbose, header_tag_sequence_table_df=header_tag_sequence_table_df)
-
+		
 		return header_tag_sequence_table_df
 
 
 
 	def create_header_tag_sequence_table(self, cursor, verbose=False):
-
+		
 		# Create the navigable html strings dataset
 		header_tag_sequence_table_df = self.create_header_tag_sequence_table_dataframe(verbose=verbose)
-
+		
 		# Insert Dataframe into SQL Server:
 		for row_index, row_series in header_tag_sequence_table_df.iterrows():
 			if verbose:
@@ -741,7 +750,7 @@ WHERE navigable_parent_id in (
 
 
 	def get_filenames_by_starting_sequence(self, cursor, sequence_list=[], verbose=False):
-
+	
 		# https://stackoverflow.com/questions/5160742/how-to-store-and-search-for-a-sequence-in-a-rdbms
 		filenames_list = []
 		if len(sequence_list):
@@ -755,7 +764,7 @@ WHERE navigable_parent_id in (
 				row_tuples_list = []
 			if verbose:
 				print(row_tuples_list)
-
+			
 			# Insert sequence list into SQL Server:
 			for sequence_order, header_tag in enumerate(sequence_list):
 				if verbose:
@@ -782,7 +791,7 @@ WHERE navigable_parent_id in (
 				print(row_tuples_list)
 			cursor.commit()
 			filenames_list = [filename_tuple[0] for filename_tuple in row_tuples_list]
-
+		
 		return filenames_list
 
 
@@ -794,7 +803,7 @@ WHERE navigable_parent_id in (
 			header_tag_sequence_table_df = self.create_header_tag_sequence_table_dataframe()
 			max_num = header_tag_sequence_table_df.sequence_order.max() - len(sequence_list) + 1
 			while start_num < max_num:
-
+				
 				# Recreate temp table
 				if verbose:
 					print(self.create_query_table_sql_str)
@@ -806,7 +815,7 @@ WHERE navigable_parent_id in (
 					row_tuples_list = []
 				if verbose:
 					print(row_tuples_list)
-
+				
 				# Insert sequence list into temp table
 				for sequence_order, header_tag in enumerate(sequence_list):
 					if verbose:
@@ -822,7 +831,7 @@ WHERE navigable_parent_id in (
 						row_tuples_list = [tuple(row_obj) for row_obj in row_objs_list]
 					except:
 						row_tuples_list = []
-
+				
 				# Find sequence list by file name
 				if verbose:
 					print(self.select_query_sql_str)
@@ -835,11 +844,11 @@ WHERE navigable_parent_id in (
 				if verbose:
 					print(row_tuples_list)
 				filenames_list = [filename_tuple[0] for filename_tuple in row_tuples_list]
-
+				
 				# Add these file names to the list
 				all_filenames_list.extend(filenames_list)
-
+				
 				start_num += 1
 			cursor.commit()
-
+			
 		return list(set(all_filenames_list))
