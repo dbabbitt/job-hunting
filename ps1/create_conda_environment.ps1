@@ -4,28 +4,54 @@
 $OldPath = Get-Location
 
 # Update conda
+conda deactivate
 conda config --set auto_update_conda true
 conda config --set report_errors false
-<# Write-Host ""
-Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-Write-Host "                              Installing conda-build" -ForegroundColor Green
-Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-conda install conda-build --yes
+<# # You might have to un-comment this to compile some libraries
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                             Installing m2w64-toolchain" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-conda install m2w64-toolchain --yes
+conda install m2w64-toolchain --yes #>
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-Write-Host "                              Installing mkl-service" -ForegroundColor Green
+Write-Host " Installing the package for run-time control of the Intel Math Kernel Library" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-conda install mkl-service --yes #>
+conda install -c intel mkl-service --yes
+<# # You can force a re-download of your environment packages by un-commenting this out
+Write-Host ""
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "              Removing all unused base conda packages and caches" -ForegroundColor Green
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+conda clean --all --yes #>
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "              Checking all base conda packages for potential updates" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 conda update --all --yes
+<# Write-Host ""
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "                   Uninstalling the inexplicably corrupted pyzmq" -ForegroundColor Green
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+conda uninstall pyzmq --yes
+Write-Host ""
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "                               Reinstalling pyzmq" -ForegroundColor Green
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+# Reinstalling jupyter-lab to force all the uninstalls to come back
+conda install pyzmq jupyterlab --yes #>
+
+# Update Node.js
+Write-Host ""
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "                Checking all NPM packages for potential updates" -ForegroundColor Green
+Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+<# $CommandString = "npm cache clean"
+Invoke-Expression $CommandString #>
+$CommandString = "npm install -g npm"
+Invoke-Expression $CommandString
+$CommandString = "npm update -g"
+Invoke-Expression $CommandString
 
 # Create the conda environment
 ."${RepositoriesDirectory}\${RepositoryPath}\ps1\update_conda_environment.ps1"
@@ -62,30 +88,56 @@ Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                          Cleaning the staging area" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-jupyter-lab clean
-$CommandString = "jupyter labextension list"
+# jupyter-lab clean
+$CommandString = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-lab.exe clean"
+Invoke-Expression $CommandString
+# jupyter labextension list
+$CommandString = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-labextension.exe list"
 $ExtensionsList = Invoke-Expression $CommandString
 if (!($ExtensionsList -Like "*No installed extensions*")) {
 	Write-Host ""
 	Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 	Write-Host "                     Updating the Jupyter Lab extensions" -ForegroundColor Green
 	Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-	jupyter labextension update --all
+	# jupyter labextension update --all
+	$CommandString = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-labextension.exe update --all"
+	Invoke-Expression $CommandString
 }
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                       Rebuilding the Jupyter Lab assets" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-$OldConfigPath = "${HomeDirectory}\.jupyter\old_jupyter_notebook_config.py"
-If (Test-Path -Path $OldConfigPath -PathType Leaf) {
-	Read-Host "You better rescue your old_jupyter_notebook_config.py in the .jupyter folder, we are about to overwrite it. Then press ENTER to continue..."
+#,"${HomeDirectory}\anaconda3\etc\jupyter","C:\ProgramData\jupyter"
+$ConfigFoldersList = @("${HomeDirectory}\.jupyter")
+ForEach ($ConfigFolder in $ConfigFoldersList) {
+	$OldConfigPath = "${ConfigFolder}\old_jupyter_notebook_config.py"
+	If (Test-Path -Path $OldConfigPath -PathType Leaf) {
+		Read-Host "You better rescue your old_jupyter_notebook_config.py in the ${ConfigFolder} folder, we are about to overwrite it. Then press ENTER to continue..."
+	}
+	$NewConfigPath = "${ConfigFolder}\jupyter_notebook_config.py"
+	Copy-Item $NewConfigPath -Destination $OldConfigPath
+	$ConfigPath = "${RepositoriesDirectory}\${RepositoryPath}\jupyter_notebook_config.py"
+	If (Test-Path -Path $ConfigPath -PathType Leaf) {
+		Copy-Item $ConfigPath -Destination $NewConfigPath
+	}
 }
-$NewConfigPath = "${HomeDirectory}\.jupyter\jupyter_notebook_config.py"
-Copy-Item $NewConfigPath -Destination $OldConfigPath
-$ConfigPath = "${RepositoriesDirectory}\${RepositoryPath}\jupyter_notebook_config.py"
-If (Test-Path -Path $ConfigPath -PathType Leaf) {
-	Copy-Item $ConfigPath -Destination $NewConfigPath
+# jupyter-lab build
+$CommandString = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-lab.exe build"
+Invoke-Expression $CommandString
+
+# Copy the favicon asset to the static directory
+$IconPath = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\saves\ico\notebook_static_favicon.ico"
+If (Test-Path -Path $IconPath -PathType Leaf) {
+	$FaviconsFoldersList = @("${HomeDirectory}\anaconda3\share\jupyter\lab\static\favicons","${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\share\jupyter\lab\static\favicons")
+	ForEach ($FaviconsFolder in $FaviconsFoldersList) {
+		$NewIconPath = "${FaviconsFolder}\favicon.ico"
+		If (!(Test-Path -Path $NewIconPath -PathType Leaf)) {
+			If (!(Test-Path -Path $FaviconsFolder -PathType Container)) {
+				New-Item -ItemType Directory -Path $FaviconsFolder
+			}
+			Copy-Item $IconPath -Destination $NewIconPath
+		}
+	}
 }
-jupyter-lab build
 
 cd $OldPath

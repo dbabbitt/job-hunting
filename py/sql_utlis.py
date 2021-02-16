@@ -2,10 +2,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 import pandas as pd
+import pyodbc
 import random
 import sqlite3
-import os
 
 try:
 	import storage
@@ -36,18 +37,31 @@ CREATE TABLE HeaderTagSequence(
 );
 SELECT * FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME = N'HeaderTagSequence';"""
-		self.insert_columns_sql_str = """
-INSERT INTO HeaderTagSequence (
-	header_tag_sequence_id,
-	file_name,
-	header_tag,
-	sequence_order
-) values(
-	?,
-	?,
-	?,
-	?
-);"""
+		self.insert_header_tag_sequence_str = """
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+	BEGIN TRAN
+	
+		IF NOT EXISTS (
+			SELECT *
+			FROM dbo.HeaderTagSequence WITH (UPDLOCK)
+			WHERE
+				file_name = ? AND
+				header_tag = ? AND
+				sequence_order = ?)
+			INSERT INTO dbo.HeaderTagSequence (
+				header_tag_sequence_id,
+				file_name,
+				header_tag,
+				sequence_order
+			)
+			VALUES (
+				(SELECT MAX(header_tag_sequence_id) + 1 FROM dbo.HeaderTagSequence),
+				?,
+				?,
+				?
+			);
+	
+	COMMIT"""
 		self.create_query_table_sql_str = """
 DROP TABLE IF EXISTS dbo.#query;
 CREATE TABLE #query(
@@ -115,8 +129,8 @@ CREATE TABLE HeaderTags(
 );"""
 		self.create_navigableparents_table_sql_str = """
 CREATE TABLE NavigableParents (
-	navigable_parent_id INTEGER PRIMARY KEY AUTOINCREMENT,
-	navigable_parent TEXT NOT NULL,
+	navigable_parent_id INTEGER PRIMARY KEY,
+	navigable_parent NVARCHAR(MAX) NOT NULL,
 	header_tag_id INTEGER NULL,
 	is_header BIT NULL,
 	is_task_scope BIT NULL,
@@ -270,7 +284,7 @@ SELECT
 	is_posting_date,
 	is_other
 FROM NavigableParents
-WHERE navigable_parent = ?"""
+WHERE navigable_parent LIKE ?"""
 		self.select_file_name_where_is_qualification_sql_str = """
 SELECT file_name 
 FROM FileNames 
@@ -724,9 +738,22 @@ WHERE navigable_parent_id in (
 			s.save_dataframes(include_index=True, verbose=verbose, header_tag_sequence_table_df=header_tag_sequence_table_df)
 		
 		return header_tag_sequence_table_df
-
-
-
+	
+	
+	
+	def get_jh_conn_cursor(self):
+		conn = pyodbc.connect(
+			driver='{SQL Server}',
+			server='localhost\MSSQLSERVER01',
+			database='Jobhunting',
+			trusted_connection=True
+		)
+		cursor = conn.cursor()
+		
+		return conn, cursor
+	
+	
+	
 	def create_header_tag_sequence_table(self, cursor, verbose=False):
 		
 		# Create the navigable html strings dataset
@@ -735,15 +762,18 @@ WHERE navigable_parent_id in (
 		# Insert Dataframe into SQL Server:
 		for row_index, row_series in header_tag_sequence_table_df.iterrows():
 			if verbose:
-				print(self.insert_columns_sql_str.replace('?', '"{}"').format(row_index, row_series.file_name,
-																			  row_series.header_tag, row_series.sequence_order))
+				print(self.insert_header_tag_sequence_str.replace('?', '"{}"').format(row_series.file_name, row_series.header_tag,
+																					  row_series.sequence_order, row_series.file_name,
+																					  row_series.header_tag, row_series.sequence_order))
 			try:
-				cursor.execute(self.insert_columns_sql_str,
-							   (row_index, row_series.file_name, row_series.header_tag, row_series.sequence_order))
+				cursor.execute(self.insert_header_tag_sequence_str,
+							   (row_series.file_name, row_series.header_tag, row_series.sequence_order, row_series.file_name,
+							    row_series.header_tag, row_series.sequence_order))
 			except Exception as e:
 				print(str(e).strip())
-				print(self.insert_columns_sql_str.replace('?', '"{}"').format(row_index, row_series.file_name,
-																			  row_series.header_tag, row_series.sequence_order))
+				print(self.insert_header_tag_sequence_str.replace('?', '"{}"').format(row_series.file_name, row_series.header_tag,
+																					  row_series.sequence_order, row_series.file_name,
+																					  row_series.header_tag, row_series.sequence_order))
 				break
 		cursor.commit()
 
