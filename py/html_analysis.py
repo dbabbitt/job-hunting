@@ -5,12 +5,15 @@
 from IPython.display import HTML, display
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
-import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.linear_model import LogisticRegression
 import numpy as np
 import os
 import pandas as pd
 import pylab
 import re
+import sql_utlis
 
 try:
 	import storage
@@ -107,31 +110,6 @@ class HeaderCategories(object):
 			self.POS_EXPLANATION_DICT['H-O'] = 'Other Header'
 			self.POS_EXPLANATION_DICT['O'] = 'Non-header'
 			s.store_objects(POS_EXPLANATION_DICT=self.POS_EXPLANATION_DICT)
-
-	def get_feature_dict_list(self, child_tags_list, is_header_list, child_strs_list):
-		# print('In ha.get_feature_dict_list:')
-		# print(f'child_tags_list=>{child_tags_list}')
-		# print(f'is_header_list=>{is_header_list}')
-		# print(f'child_strs_list=>{child_strs_list}')
-		sql_dict = {False: None, True: 1}
-		feature_dict_list = [{'initial_tag': tag, 'is_header': is_header,
-							  'is_task_scope': sql_dict[(child_str in self.TASK_SCOPE_HEADERS_LIST)],
-							  'is_minimum_qualification': sql_dict[(child_str in self.REQ_QUALS_HEADERS_LIST)],
-							  'is_preferred_qualification': sql_dict[(child_str in self.PREFF_QUALS_HEADERS_LIST)],
-							  'is_legal_notification': sql_dict[(child_str in self.LEGAL_NOTIFS_HEADERS_LIST)],
-							  'is_job_title': sql_dict[(child_str in self.JOB_TITLE_HEADERS_LIST)],
-							  'is_office_location': sql_dict[(child_str in self.OFFICE_LOC_HEADERS_LIST)],
-							  'is_job_duration': sql_dict[(child_str in self.JOB_DURATION_HEADERS_LIST)],
-							  'is_supplemental_pay': sql_dict[(child_str in self.SUPP_PAY_HEADERS_LIST)],
-							  'is_educational_requirement': sql_dict[(child_str in self.EDUC_REQS_HEADERS_LIST)],
-							  'is_interview_procedure': sql_dict[(child_str in self.INTERV_PROC_HEADERS_LIST)],
-							  'is_corporate_scope': sql_dict[(child_str in self.CORP_SCOPE_HEADERS_LIST)],
-							  'is_posting_date': sql_dict[(child_str in self.POST_DATE_HEADERS_LIST)],
-							  'is_other': sql_dict[(child_str in self.OTHER_HEADERS_LIST)],
-							  'child_str': child_str} for tag, is_header, child_str in zip(child_tags_list, is_header_list,
-																						   child_strs_list)]
-		
-		return feature_dict_list
 	
 	def append_parts_of_speech_list(self, navigable_parent, pos_list=[]):
 		if navigable_parent in self.TASK_SCOPE_HEADERS_LIST:
@@ -165,71 +143,83 @@ class HeaderCategories(object):
 		
 		return pos_list
 
-	def get_feature_tuple(self, feature_dict):
+	def get_feature_tuple(self, feature_dict, lr_predict_single=None):
 		feature_list = [feature_dict['initial_tag'], feature_dict['child_str']]
 		is_header = feature_dict['is_header']
 		if (is_header == True):
-			if feature_dict['is_task_scope']:
+			if feature_dict.get('is_task_scope', False):
 				feature_list.append('H-TS')
-			elif feature_dict['is_minimum_qualification']:
+			elif feature_dict.get('is_minimum_qualification', False):
 				feature_list.append('H-RQ')
-			elif feature_dict['is_preferred_qualification']:
+			elif feature_dict.get('is_preferred_qualification', False):
 				feature_list.append('H-PQ')
-			elif feature_dict['is_legal_notification']:
+			elif feature_dict.get('is_legal_notification', False):
 				feature_list.append('H-LN')
-			elif feature_dict['is_job_title']:
+			elif feature_dict.get('is_job_title', False):
 				feature_list.append('H-JT')
-			elif feature_dict['is_office_location']:
+			elif feature_dict.get('is_office_location', False):
 				feature_list.append('H-OL')
-			elif feature_dict['is_job_duration']:
+			elif feature_dict.get('is_job_duration', False):
 				feature_list.append('H-JD')
-			elif feature_dict['is_supplemental_pay']:
+			elif feature_dict.get('is_supplemental_pay', False):
 				feature_list.append('H-SP')
-			elif feature_dict['is_educational_requirement']:
+			elif feature_dict.get('is_educational_requirement', False):
 				feature_list.append('H-ER')
-			elif feature_dict['is_interview_procedure']:
+			elif feature_dict.get('is_interview_procedure', False):
 				feature_list.append('H-IP')
-			elif feature_dict['is_corporate_scope']:
+			elif feature_dict.get('is_corporate_scope', False):
 				feature_list.append('H-CS')
-			elif feature_dict['is_posting_date']:
+			elif feature_dict.get('is_posting_date', False):
 				feature_list.append('H-PD')
-			elif feature_dict['is_other']:
+			elif feature_dict.get('is_other', False):
 				feature_list.append('H-O')
 			else:
-				feature_list.append('H')
+				if lr_predict_single is None:
+					feature_list.append('H')
+				else:
+					feature_list.append(lr_predict_single(feature_dict['child_str']))
 		elif (is_header == False):
-			if feature_dict['is_task_scope']:
+			if feature_dict.get('is_task_scope', False):
 				feature_list.append('O-TS')
-			elif feature_dict['is_minimum_qualification']:
+			elif feature_dict.get('is_minimum_qualification', False):
 				feature_list.append('O-RQ')
-			elif feature_dict['is_preferred_qualification']:
+			elif feature_dict.get('is_preferred_qualification', False):
 				feature_list.append('O-PQ')
-			elif feature_dict['is_legal_notification']:
+			elif feature_dict.get('is_legal_notification', False):
 				feature_list.append('O-LN')
-			elif feature_dict['is_job_title']:
+			elif feature_dict.get('is_job_title', False):
 				feature_list.append('O-JT')
-			elif feature_dict['is_office_location']:
+			elif feature_dict.get('is_office_location', False):
 				feature_list.append('O-OL')
-			elif feature_dict['is_job_duration']:
+			elif feature_dict.get('is_job_duration', False):
 				feature_list.append('O-JD')
-			elif feature_dict['is_supplemental_pay']:
+			elif feature_dict.get('is_supplemental_pay', False):
 				feature_list.append('O-SP')
-			elif feature_dict['is_educational_requirement']:
+			elif feature_dict.get('is_educational_requirement', False):
 				feature_list.append('O-ER')
-			elif feature_dict['is_interview_procedure']:
+			elif feature_dict.get('is_interview_procedure', False):
 				feature_list.append('O-IP')
-			elif feature_dict['is_corporate_scope']:
+			elif feature_dict.get('is_corporate_scope', False):
 				feature_list.append('O-CS')
-			elif feature_dict['is_posting_date']:
+			elif feature_dict.get('is_posting_date', False):
 				feature_list.append('O-PD')
-			elif feature_dict['is_other']:
+			elif feature_dict.get('is_other', False):
 				feature_list.append('O-O')
 			else:
-				feature_list.append('O')
+				if lr_predict_single is None:
+					feature_list.append('O')
+				else:
+					feature_list.append(lr_predict_single(feature_dict['child_str']))
 		elif str(is_header) == 'nan':
-			feature_list.append('O')
+			if lr_predict_single is None:
+				feature_list.append('O')
+			else:
+				feature_list.append(lr_predict_single(feature_dict['child_str']))
 		else:
-			feature_list.append('O')
+			if lr_predict_single is None:
+				feature_list.append('O')
+			else:
+				feature_list.append(lr_predict_single(feature_dict['child_str']))
 
 		return tuple(feature_list)
 
@@ -247,7 +237,7 @@ class HeaderAnalysis(object):
 		if s.pickle_exists('CHILDLESS_TAGS_LIST'):
 			self.CHILDLESS_TAGS_LIST = s.load_object('CHILDLESS_TAGS_LIST')
 		else:
-			self.CHILDLESS_TAGS_LIST = ['template','script']
+			self.CHILDLESS_TAGS_LIST = ['template', 'script']
 			s.store_objects(CHILDLESS_TAGS_LIST=self.CHILDLESS_TAGS_LIST)
 		if s.pickle_exists('NAVIGABLE_PARENT_IS_HEADER_DICT'):
 			self.NAVIGABLE_PARENT_IS_HEADER_DICT = s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
@@ -303,7 +293,10 @@ class HeaderAnalysis(object):
 				self.store_unique_list('CHILDLESS_TAGS_LIST', tag.name)
 		else:
 			base_str = self.clean_html_str(tag)
-			if base_str:
+			if re.search('[\r\n]+', base_str):
+				for line_str in re.split('[\r\n]+', base_str, 0):
+					result_list.append(line_str.strip())
+			elif base_str:
 				tag_str = self.clean_html_str(tag.parent)
 				if tag_str.count('<') > 2:
 					tag_str = base_str
@@ -363,145 +356,60 @@ class HeaderAnalysis(object):
 		
 		return is_header_list
 
-class ElementAnalysis(object):
-	"""Element analysis class."""
+class LdaUtilities(object):
+	"""Latent Dirichlet Allocation utilities class."""
 	
-	def __init__(self):
-		self.document_structure_elements_set = set(['body','head','html'])
-		self.document_head_elements_set = set(['base','basefont','isindex','link','meta','object','script','style','title'])
-		self.document_body_elements_set = set(['a','abbr','acronym','address','applet','area','article','aside','audio','b','bdi','bdo','big','blockquote','br','button','canvas','caption','center','cite','code','col','colgroup','data','datalist','dd','del','dfn','dir','div','dl','dt','em','embed','fieldset','figcaption','figure','font','footer','form','h1','h2','h3','h4','h5','h6','header','hr','i','img','input','ins','isindex','kbd','keygen','label','legend','li','main','map','mark','menu','meter','nav','noscript','object','ol','optgroup','option','output','p','param','pre','progress','q','rb','rp','rt','rtc','ruby','s','samp','script','section','select','small','source','span','strike','strong','sub','sup','table','tbody','td','template','textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var','video','wbr'])
-		self.block_elements_set = set(['address','article','aside','blockquote','center','dd','del','dir','div','dl','dt','figcaption','figure','footer','h1','h2','h3','h4','h5','h6','header','hr','ins','li','main','menu','nav','noscript','ol','p','pre','script','section','ul'])
-		self.basic_text_set = set(['h1','h2','h3','h4','h5','h6','p'])
-		self.section_headings_set = set(['h1','h2','h3','h4','h5','h6'])
-		self.lists_set = set(['dd','dir','dl','dt','li','ol','ul'])
-		self.other_block_elements_set = set(['address','article','aside','blockquote','center','del','div','figcaption','figure','footer','header','hr','ins','main','menu','nav','noscript','pre','script','section'])
-		self.inline_elements_set = set(['a','abbr','acronym','b','bdi','bdo','big','br','cite','code','data','del','dfn','em','font','i','ins','kbd','mark','q','rb','rp','rt','rtc','ruby','s','samp','script','small','span','strike','strong','sub','sup','template','time','tt','u','var','wbr'])
-		self.anchor_set = set(['a'])
-		self.phrase_elements_set = set(['abbr','acronym','b','big','code','dfn','em','font','i','kbd','s','samp','small','strike','strong','tt','u','var'])
-		self.general_set = set(['abbr','acronym','dfn','em','strong'])
-		self.computer_phrase_elements_set = set(['code','kbd','samp','var'])
-		self.presentation_set = set(['b','big','font','i','s','small','strike','tt','u'])
-		self.span_set = set(['span'])
-		self.other_inline_elements_set = set(['bdi','bdo','br','cite','data','del','ins','mark','q','rb','rp','rt','rtc','ruby','script','sub','sup','template','time','wbr'])
-		self.images_and_objects_set = set(['applet','area','audio','canvas','embed','img','map','object','param','source','track','video'])
-		self.forms_set = set(['button','datalist','fieldset','form','input','isindex','keygen','label','legend','meter','optgroup','option','output','progress','select','textarea'])
-		self.tables_set = set(['caption','col','colgroup','table','tbody','td','tfoot','th','thead','tr'])
-		self.frames_set = set(['frame','frameset','iframe','noframes'])
-		self.historic_elements_set = set(['listing','nextid','plaintext','xmp'])
-		self.non_standard_elements_set = set(['blink','layer','marquee','nobr','noembed'])
-		if s.pickle_exists('CRF'):
-			self.CRF = s.load_object('CRF')
+	def __init__(self, ha=None, hc=None, su=None, verbose=False):
+		if ha is None:
+			self.ha = HeaderAnalysis()
 		else:
-			import sklearn_crfsuite
-			self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs',c1=0.1,c2=0.1,max_iterations=100,all_possible_transitions=True)
-			s.store_objects(CRF=self.CRF)
-		if s.pickle_exists('CHILD_STRS_LIST_DICT'):
-			self.CHILD_STRS_LIST_DICT = s.load_object('CHILD_STRS_LIST_DICT')
+			self.ha = ha
+		if hc is None:
+			self.hc = HeaderCategories()
 		else:
-			self.build_child_strs_list_dictionary()
+			self.hc = hc
+		if su is None:
+			self.su = sql_utlis.SqlUtilities()
+		else:
+			self.su = su
 		
 		# Build the LDA elements
-		self.stopwords_list = ['U', 'A', 'S', 'a', '1', 'u', 's', 'to', 'my', 'by', 'an', 'we', '00', 'or', 'as', 're', 'in', 'be', 'on', 'of', 'do', 'is', '19', 'any', 'out', 'for', 'the', 'are', 'and', 'long', 'each', 'have', 'with', 'more', 'will', 'into', 'that', 'this', 'your', 'from', 'their', 'class', 'about', 'other', 'place']
-		if s.pickle_exists('HEADERS_DICTIONARY'):
-			self.HEADERS_DICTIONARY = s.load_object('HEADERS_DICTIONARY')
-		else:
-			self.build_headers_dictionary()
+		self.conn, self.cursor = self.su.get_jh_conn_cursor()
+		if not s.pickle_exists('NAVIGABLE_PARENT_IS_HEADER_DICT'):
+			self.su.build_child_strs_list_dictionary(self.cursor, verbose=verbose)
+		self.NAVIGABLE_PARENT_IS_HEADER_DICT = s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
+		self.stopwords_list = ['U', 'A', 'S', 'a', '1', 'u', 's', 'to', 'my', 'by', 'an', 'we', '00', 'or', 'as', 're', 'in', 'be', 'on', 'of', 'do', 'is', '19', 'any', 'out', 'for', 'the', 'are', 'and', 'long', 'each', 'have', 'with', 'more', 'will', 'into', 'that', 'this', 'your', 'from', 'their', 'class', 'about', 'other', 'place', '.']
+		self.tokenized_sents_list = self.get_tokenized_sents_list()
 		
-		if s.pickle_exists('HEADERS_CORPUS'):
-			self.HEADERS_CORPUS = s.load_object('HEADERS_CORPUS')
+		if s.pickle_exists('LDA_DICTIONARY'):
+			self.LDA_DICTIONARY = s.load_object('LDA_DICTIONARY')
 		else:
-			self.build_headers_corpus()
-		if s.pickle_exists('HEADERS_TOPIC_MODEL'):
-			self.HEADERS_TOPIC_MODEL = s.load_object('HEADERS_TOPIC_MODEL')
+			self.build_dictionary(verbose=verbose)
+		
+		if s.pickle_exists('LDA_CORPUS'):
+			self.LDA_CORPUS = s.load_object('LDA_CORPUS')
+		else:
+			self.build_corpus(verbose=verbose)
+		
+		if s.pickle_exists('TOPIC_MODEL'):
+			self.TOPIC_MODEL = s.load_object('TOPIC_MODEL')
 			# You'll have to eyeball this to get the dictionary correct
-			topic_dict = {0: 'O-SP', 1: 'O-TS', 2: 'O-SP'}
+			self.topic_dict = {0: 'O', 1: 'H'}
 		else:
-			self.build_lda()
-			topic_dict = {}
-		self.lda_predict_percent = self.build_lda_predict_percent()
+			self.build_topic_model(verbose=verbose)
+			self.topic_dict = {}
 		
-		# Build the LR elements
-		if s.pickle_exists('CS_CV'):
-			try:
-				self.CS_CV = s.load_object('CS_CV')
-			except:
-				from sklearn.feature_extraction.text import CountVectorizer
-				ha = HeaderAnalysis()
-				self.CS_CV = CountVectorizer(analyzer='word',binary=False,decode_error='strict',lowercase=False,max_df=1.0,max_features=None,min_df=0.0,ngram_range=(1,5),stop_words=None,strip_accents='ascii',tokenizer=ha.html_regex_tokenizer)
-				s.store_objects(CS_CV=self.CS_CV)
-		else:
-			from sklearn.feature_extraction.text import CountVectorizer
-			ha = HeaderAnalysis()
-			self.CS_CV = CountVectorizer(analyzer='word',binary=False,decode_error='strict',lowercase=False,max_df=1.0,max_features=None,min_df=0.0,ngram_range=(1,5),stop_words=None,strip_accents='ascii',tokenizer=ha.html_regex_tokenizer)
-			s.store_objects(CS_CV=self.CS_CV)
-		if s.pickle_exists('CS_CV_VOCAB'):
-			self.CS_CV_VOCAB = s.load_object('CS_CV_VOCAB')
-		else:
-			self.CS_CV_VOCAB = self.CS_CV.vocabulary_
-			s.store_objects(CS_CV_VOCAB=self.CS_CV_VOCAB)
-		if s.pickle_exists('CS_TT'):
-			self.CS_TT = s.load_object('CS_TT')
-		else:
-			from sklearn.feature_extraction.text import TfidfTransformer
-			self.CS_TT = TfidfTransformer(norm='l1',smooth_idf=True,sublinear_tf=False,use_idf=True)
-			s.store_objects(CS_TT=self.CS_TT)
-		if s.pickle_exists('FIT_ESTIMATORS_DICT'):
-			self.FIT_ESTIMATORS_DICT = s.load_object('FIT_ESTIMATORS_DICT')
-		else:
-			from sklearn.linear_model import LogisticRegression
-			self.FIT_ESTIMATORS_DICT = {}
-			self.FIT_ESTIMATORS_DICT['LogisticRegression'] = LogisticRegression(C=375.0,class_weight='balanced',dual=False,fit_intercept=True,intercept_scaling=1,l1_ratio=None,max_iter=1000,multi_class='auto',n_jobs=None,penalty='l1',random_state=None,solver='liblinear',tol=0.0001,verbose=0,warm_start=False)
-			s.store_objects(FIT_ESTIMATORS_DICT=self.FIT_ESTIMATORS_DICT)
-		if s.pickle_exists('CHILD_STR_CLF'):
-			self.CHILD_STR_CLF = s.load_object('CHILD_STR_CLF')
-		else:
-			if 'LogisticRegression' in self.FIT_ESTIMATORS_DICT:
-				self.CHILD_STR_CLF = self.FIT_ESTIMATORS_DICT['LogisticRegression']
-			else:
-				self.CHILD_STR_CLF = LogisticRegression(C=375.0,class_weight='balanced',dual=False,fit_intercept=True,intercept_scaling=1,l1_ratio=None,max_iter=1000,multi_class='auto',n_jobs=None,penalty='l1',random_state=None,solver='liblinear',tol=0.0001,verbose=0,warm_start=False)
-			s.store_objects(CHILD_STR_CLF=self.CHILD_STR_CLF)
-		# https://stackoverflow.com/questions/57507832/unable-to-allocate-array-with-shape-and-data-type
-		self.lr_predict_percent_is_header = self.build_lr_predict_percent_is_header()
-
-	def build_child_strs_list_dictionary(self):
-		self.CHILD_STRS_LIST_DICT = {}
-		ha = HeaderAnalysis()
-		files_list = os.listdir(ha.SAVES_HTML_FOLDER)
-		try:
-			import sql_utlis
-			su = sql_utlis.SqlUtilities()
-		except:
-			from flaskr.sql_utlis import SqlUtilities
-			su = SqlUtilities()
-		for file_name in files_list:
-			child_strs_list = su.get_child_strs_from_file(file_name)
-			navigable_parent = child_strs_list[0]
-			if navigable_parent not in ha.NAVIGABLE_PARENT_IS_HEADER_DICT:
-				continue
-			child_tags_list = []
-			for navigable_parent in child_strs_list:
-				if navigable_parent not in ha.NAVIGABLE_PARENT_IS_HEADER_DICT:
-					break
-				tokenized_sent = ha.html_regex_tokenizer(navigable_parent)
-				try:
-					first_token = tokenized_sent[0]
-					if first_token[0] == '<':
-						child_tags_list.append(first_token[1:])
-					else:
-						child_tags_list.append('plaintext')
-				except:
-					child_tags_list.append('plaintext')
-			if len(child_tags_list) == len(child_strs_list):
-				if file_name not in self.CHILD_STRS_LIST_DICT:
-					self.CHILD_STRS_LIST_DICT[file_name] = child_strs_list
-					s.store_objects(CHILD_STRS_LIST_DICT=self.CHILD_STRS_LIST_DICT)
+		self.lda_predict_single = self.build_lda_predict_single()
+	
+	###########################################
+	## Latent Dirichlet Allocation functions ##
+	###########################################
 
 	def get_tokenized_sents_list(self):
-		ha = HeaderAnalysis()
 		
 		# Build model with tokenized words
-		sents_list = [sent_str for sublist in self.CHILD_STRS_LIST_DICT.values() for sent_str in sublist]
-		tokenized_sents_list = [ha.html_regex_tokenizer(sent_str) for sent_str in sents_list]
+		sents_list = list(self.NAVIGABLE_PARENT_IS_HEADER_DICT.keys())
+		tokenized_sents_list = [self.ha.html_regex_tokenizer(sent_str) for sent_str in sents_list]
 		
 		# Remove stop words
 		for i in reversed(range(len(tokenized_sents_list))):
@@ -511,103 +419,174 @@ class ElementAnalysis(object):
 		
 		return tokenized_sents_list
 
-	def build_headers_dictionary(self):
+	def build_dictionary(self, verbose=False):
 		
 		# Create a corpus from a list of texts
-		tokenized_sents_list = self.get_tokenized_sents_list()
 		from gensim.corpora.dictionary import Dictionary
-		self.HEADERS_DICTIONARY = Dictionary(tokenized_sents_list)
-		# self.HEADERS_DICTIONARY.filter_extremes(no_below=5, no_above=0.5, keep_n=100000, keep_tokens=None)
-		s.store_objects(HEADERS_DICTIONARY=self.HEADERS_DICTIONARY)
+		self.LDA_DICTIONARY = Dictionary(self.tokenized_sents_list)
+		self.LDA_DICTIONARY.filter_extremes(no_below=100, no_above=0.5, keep_n=8_500, keep_tokens=[':', '<b', '</b'])
+		s.store_objects(LDA_DICTIONARY=self.LDA_DICTIONARY, verbose=verbose)
 
-	def build_headers_corpus(self):
+	def build_corpus(self, verbose=False):
 		
 		# Create a corpus from a list of texts
-		tokenized_sents_list = self.get_tokenized_sents_list()
-		self.HEADERS_CORPUS = [self.HEADERS_DICTIONARY.doc2bow(tag_str) for tag_str in tokenized_sents_list]
+		self.LDA_CORPUS = [self.LDA_DICTIONARY.doc2bow(tag_str) for tag_str in self.tokenized_sents_list]
 		
-		s.store_objects(HEADERS_CORPUS=self.HEADERS_CORPUS)
-
-	def build_lda(self):
-		
-		# Get the parts-of-speech count to use as number of topics
-		import sqlite3
-		db = sqlite3.connect(os.path.join('../', 'instance', 'flaskr.sqlite'),
-							 detect_types=sqlite3.PARSE_DECLTYPES)
-		db.row_factory = sqlite3.Row
-		num_topics = db.execute('SELECT COUNT(*) FROM PartsOfSpeech').fetchone()['COUNT(*)']
-		db.close()
+		s.store_objects(LDA_CORPUS=self.LDA_CORPUS, verbose=verbose)
+	
+	def build_topic_model(self, num_topics=2, chunksize=50, passes=75, alpha=None, decay=0.6, iterations=29, gamma_threshold=1e-10,
+						  minimum_probability=0.001, verbose=False):
 		
 		# Train the model on the corpus
-		id2word = {v: k for k, v in self.HEADERS_DICTIONARY.token2id.items()}
+		id2word = {v: k for k, v in self.LDA_DICTIONARY.token2id.items()}
+		if num_topics is None:
+			num_topics = self.get_pos_count(verbose=verbose)
+			
+		# Get ratio of headers to non-headers
+		if alpha is None:
+			import numpy as np
+			sql_str = '''
+				SELECT COUNT(np.[navigable_parent]) AS header_count
+				FROM [Jobhunting].[dbo].[NavigableParents] np
+				WHERE np.[is_header] = 1'''
+			is_header_df = pd.DataFrame(this.su.get_execution_results(this.cursor, sql_str))
+			header_count = is_header_df.header_count.squeeze()
+			sql_str = '''
+				SELECT COUNT(np.[navigable_parent]) AS nonheader_count
+				FROM [Jobhunting].[dbo].[NavigableParents] np
+				WHERE np.[is_header] = 0'''
+			is_nonheader_df = pd.DataFrame(this.su.get_execution_results(this.cursor, sql_str))
+			nonheader_count = is_nonheader_df.nonheader_count.squeeze()
+			nonheader_fraction = nonheader_count/(header_count + nonheader_count)
+			header_fraction = header_count/(header_count + nonheader_count)
+			alpha = np.array([nonheader_fraction, header_fraction], dtype=np.float32)
+		
 		from gensim.models.ldamodel import LdaModel
-		self.HEADERS_TOPIC_MODEL = LdaModel(corpus=self.HEADERS_CORPUS, num_topics=num_topics, id2word=id2word, passes=4,
-											alpha='auto', eta='auto')
-		s.store_objects(HEADERS_TOPIC_MODEL=self.HEADERS_TOPIC_MODEL)
+		self.TOPIC_MODEL = LdaModel(corpus=self.LDA_CORPUS, num_topics=num_topics, id2word=id2word, chunksize=chunksize, passes=passes,
+									alpha=alpha, decay=decay, iterations=iterations, gamma_threshold=gamma_threshold,
+									minimum_probability=minimum_probability)
+		s.store_objects(TOPIC_MODEL=self.TOPIC_MODEL, verbose=verbose)
 
-	def build_lda_predict_percent(self):
+	def build_lda_predict_single(self):
 		
 		# Define a predictor
-		ha = HeaderAnalysis()
-		def predict_percent_fit(navigable_parent):
-			X_test = self.HEADERS_DICTIONARY.doc2bow(ha.html_regex_tokenizer(navigable_parent))
-			result_list = self.HEADERS_TOPIC_MODEL[X_test]
-			result_list = sorted(result_list, key=lambda x: x[1], reverse=True)
-			result_tuple = result_list[0]
-
-			# Just return the topic number
-			y_predict_proba = result_tuple[0]
-
-			return y_predict_proba
-		
-		return predict_percent_fit
-	
-	def build_lr_predict_percent_is_header(self):
-		from sklearn.feature_extraction.text import CountVectorizer
-		from sklearn.feature_extraction.text import TfidfTransformer
-		from sklearn.linear_model import LogisticRegression
-		ha = HeaderAnalysis()
-		
-		# Re-transform the bag-of-words and tf-idf from the new manual scores
-		rows_list = [{'navigable_parent': navigable_parent,
-					  'is_header': is_header} for navigable_parent, is_header in ha.NAVIGABLE_PARENT_IS_HEADER_DICT.items()]
-		child_str_df = pd.DataFrame(rows_list)
-		
-		# The shape of the Bag-of-words count vector here should be n sentences * m unique words
-		sents_list = child_str_df.navigable_parent.tolist()
-		bow_matrix = self.CS_CV.fit_transform(sents_list)
-		
-		# Tf-idf must get from Bag-of-words first
-		tfidf_matrix = self.CS_TT.fit_transform(bow_matrix)
-		
-		# Re-train the classifier
-		X = tfidf_matrix.toarray()
-		y = child_str_df.is_header.to_numpy()
-		self.CHILD_STR_CLF.fit(X, y)
-		s.store_objects(CHILD_STR_CLF=self.CHILD_STR_CLF)
-		
-		# Re-calibrate the inference engine
-		cv = CountVectorizer(vocabulary=self.CS_CV.vocabulary_)
-		cv._validate_vocabulary()
-		
-		def predict_percent_fit(navigable_parent):
-			X_test = self.CS_TT.transform(cv.transform([navigable_parent])).toarray()
-			y_predict_proba = self.CHILD_STR_CLF.predict_proba(X_test)[0][1]
+		def lda_predict_single(sent_str):
+			tokens_list = self.ha.html_regex_tokenizer(sent_str)
+			X_test = self.LDA_DICTIONARY.doc2bow(tokens_list)
+			result_list = sorted(self.TOPIC_MODEL[X_test], key=lambda x: x[1], reverse=False)
+			topic_number = result_list[0][0]
 			
-			return y_predict_proba
+			return self.topic_dict[topic_number]
 		
-		return predict_percent_fit
+		return lda_predict_single
 
+	def get_pos_count(self, verbose=False):
+		
+		# Get the parts-of-speech count to use as number of topics
+		sql_str = 'SELECT pos_symbol, pos_explanation FROM PartsOfSpeech'
+		pos_df = pd.DataFrame(self.su.get_execution_results(self.cursor, sql_str, verbose=False))
+		sql_prefix = '''
+			SELECT COUNT(*) AS row_count
+			FROM [Jobhunting].[dbo].[NavigableParents] np
+			WHERE
+				np.[is_header] = '''
+		self.pos_symbols_list = []
+		for pos_symbol in pos_df.pos_symbol:
+			if pos_symbol.startswith('H-'):
+				sql_str = sql_prefix + '1'
+			elif pos_symbol.startswith('O-'):
+				sql_str = sql_prefix + '0'
+			sql_str += ' AND\n\t\t\t\tnp.['
+			if pos_symbol.endswith('-TS'):
+				sql_str += 'is_task_scope] = 1;'
+			elif pos_symbol.endswith('-RQ'):
+				sql_str += 'is_minimum_qualification] = 1;'
+			elif pos_symbol.endswith('-PQ'):
+				sql_str += 'is_preferred_qualification] = 1;'
+			elif pos_symbol.endswith('-LN'):
+				sql_str += 'is_legal_notification] = 1;'
+			elif pos_symbol.endswith('-JT'):
+				sql_str += 'is_job_title] = 1;'
+			elif pos_symbol.endswith('-OL'):
+				sql_str += 'is_office_location] = 1;'
+			elif pos_symbol.endswith('-JD'):
+				sql_str += 'is_job_duration] = 1;'
+			elif pos_symbol.endswith('-SP'):
+				sql_str += 'is_supplemental_pay] = 1;'
+			elif pos_symbol.endswith('-ER'):
+				sql_str += 'is_educational_requirement] = 1;'
+			elif pos_symbol.endswith('-IP'):
+				sql_str += 'is_interview_procedure] = 1;'
+			elif pos_symbol.endswith('-CS'):
+				sql_str += 'is_corporate_scope] = 1;'
+			elif pos_symbol.endswith('-PD'):
+				sql_str += 'is_posting_date] = 1;'
+			elif pos_symbol.endswith('-O'):
+				sql_str += 'is_other] = 1;'
+			count_df = pd.DataFrame(self.su.get_execution_results(self.cursor, sql_str, verbose=False))
+			if count_df.row_count.squeeze() > 0:
+				self.pos_symbols_list.append(pos_symbol)
+		num_topics = len(self.pos_symbols_list)
+		
+		return num_topics
+
+class CrfUtilities(object):
+	"""Conditional Random Fields utilities class."""
+	
+	def __init__(self, ha=None, hc=None, su=None, verbose=False):
+		if ha is None:
+			self.ha = HeaderAnalysis()
+		else:
+			self.ha = ha
+		if hc is None:
+			self.hc = HeaderCategories()
+		else:
+			self.hc = hc
+		if su is None:
+			self.su = sql_utlis.SqlUtilities()
+		else:
+			self.su = su
+		
+		# Build the CRF elements
+		if s.pickle_exists('CRF'):
+			self.CRF = s.load_object('CRF')
+		else:
+			import sklearn_crfsuite
+			self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs',c1=0.1,c2=0.1,max_iterations=100,all_possible_transitions=True)
+			HEADER_PATTERN_DICT = s.load_object('HEADER_PATTERN_DICT')
+			X_train = []
+			y_train = []
+			for file_name, feature_dict_list in HEADER_PATTERN_DICT.items():
+				X_train.append(feature_dict_list)
+				pos_list = [self.hc.get_feature_tuple(feature_dict)[2] for feature_dict in feature_dict_list]
+				y_train.append(pos_list)
+			try:
+				self.CRF.fit(X_train, y_train)
+			except Exception as e:
+				print(str(e).strip())
+				with open('../saves/txt/X_train.txt', 'w', encoding='utf-8') as f:
+					print(X_train, file=f)
+				with open('../saves/txt/y_train.txt', 'w', encoding='utf-8') as f:
+					print(y_train, file=f)
+				raise
+			s.store_objects(CRF=self.CRF, verbose=verbose)
+	
+	#########################################
+	## Conditional Random Fields functions ##
+	#########################################
+	
+	
 	def word2features(self, sent, i):
 		from itertools import groupby
 		null_element = 'plaintext'
-		tag = sent[i][0]
-		child_str = sent[i][1]
-		postag = sent[i][2]
+		this_sent = sent[i]
+		tag = this_sent[0]
+		child_str = this_sent[1]
+		postag = this_sent[2]
 		
 		features = {
 			'bias': 1.0,
-			'child_str.is_header_lr': self.lr_predict_percent_is_header(child_str),
+			'child_str.lr_predict_single': self.lr_predict_single(child_str),
 			'child_str.lda': self.lda_predict_percent(child_str),
 			'position': i+1,
 			'postag': postag,
@@ -723,6 +702,190 @@ class ElementAnalysis(object):
 		
 		return [token for token, child_str, label in sent]
 
+class LrUtilities(object):
+	"""Logistic Regression utilities class."""
+	
+	def __init__(self, ha=None, hc=None, su=None, verbose=False):
+		if ha is None:
+			self.ha = HeaderAnalysis()
+		else:
+			self.ha = ha
+		if hc is None:
+			self.hc = HeaderCategories()
+		else:
+			self.hc = hc
+		if su is None:
+			self.su = sql_utlis.SqlUtilities()
+		else:
+			self.su = su
+		
+		# Build the Logistic Regression elements
+		self.conn, self.cursor = self.su.get_jh_conn_cursor()
+		self.LR_DICT = {}
+		self.PREDICT_PERCENT_FIT_DICT = {}
+		
+		# Train a model for each labeled POS symbol
+		sql_str = '''
+			SELECT
+				np.[navigable_parent],
+				pos.[pos_symbol]
+			FROM
+				[Jobhunting].[dbo].[NavigableParents] np INNER JOIN
+				[Jobhunting].[dbo].[PartsOfSpeech] pos ON
+					pos.[is_header] = np.[is_header] AND
+					pos.[is_task_scope] = np.[is_task_scope] AND
+					pos.[is_minimum_qualification] = np.[is_minimum_qualification] AND
+					pos.[is_preferred_qualification] = np.[is_preferred_qualification] AND
+					pos.[is_legal_notification] = np.[is_legal_notification] AND
+					pos.[is_job_title] = np.[is_job_title] AND
+					pos.[is_office_location] = np.[is_office_location] AND
+					pos.[is_job_duration] = np.[is_job_duration] AND
+					pos.[is_supplemental_pay] = np.[is_supplemental_pay] AND
+					pos.[is_educational_requirement] = np.[is_educational_requirement] AND
+					pos.[is_interview_procedure] = np.[is_interview_procedure] AND
+					pos.[is_corporate_scope] = np.[is_corporate_scope] AND
+					pos.[is_posting_date] = np.[is_posting_date] AND
+					pos.[is_other] = np.[is_other];'''
+		pos_df = pd.DataFrame(self.su.get_execution_results(self.cursor, sql_str, verbose=verbose))
+		
+		# The shape of the Bag-of-words count vector here should be n html strings * m unique tokens
+		sents_list = pos_df.navigable_parent.tolist()
+		pos_symbol_list = pos_df.pos_symbol.unique().tolist()
+		
+		# Re-transform the bag-of-words and tf-idf from the new manual scores
+		self.CV = CountVectorizer(analyzer='word', binary=False, decode_error='strict', lowercase=False, max_df=1.0, max_features=None,
+								  min_df=0.0, ngram_range=(1, 5), stop_words=None, strip_accents='ascii', tokenizer=self.ha.html_regex_tokenizer)
+		bow_matrix = self.CV.fit_transform(sents_list)
+		
+		# Tf-idf must get from Bag-of-words first
+		self.TT = TfidfTransformer(norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True)
+		tfidf_matrix = self.TT.fit_transform(bow_matrix)
+		X = tfidf_matrix.toarray()
+		
+		for pos_symbol in pos_symbol_list:
+			
+			# Train the classifier
+			mask_series = (pos_df.pos_symbol == pos_symbol)
+			y = mask_series.to_numpy()
+			if pos_symbol not in self.LR_DICT:
+				self.LR_DICT[pos_symbol] = LogisticRegression(C=375.0, class_weight='balanced', dual=False,
+															  fit_intercept=True, intercept_scaling=1,
+															  l1_ratio=None, max_iter=1000,
+															  multi_class='auto', n_jobs=None, penalty='l1',
+															  random_state=None, solver='liblinear',
+															  tol=0.0001, verbose=verbose, warm_start=False)
+			try:
+				self.LR_DICT[pos_symbol].fit(X, y)
+				self.PREDICT_PERCENT_FIT_DICT[pos_symbol] = self.build_lr_predict_percent(pos_symbol, verbose=verbose)
+			except ValueError as e:
+				print(f'{pos_symbol} had this error: {str(e).strip()}')
+				self.LR_DICT.pop(pos_symbol, None)
+				self.PREDICT_PERCENT_FIT_DICT.pop(pos_symbol, None)
+	
+	###################################
+	## Logistic Regression functions ##
+	###################################
+	def lr_predict_single(self, html_str, verbose=False):
+		tuple_list = []
+		for pos_symbol, predict_percent_fit in self.PREDICT_PERCENT_FIT_DICT.items():
+			if predict_percent_fit is None:
+				proba_tuple = (pos_symbol, 0.0)
+				tuple_list.append(proba_tuple)
+			else:
+				proba_tuple = (pos_symbol, predict_percent_fit(html_str))
+				tuple_list.append(proba_tuple)
+		tuple_list.sort(reverse=True, key=lambda x: x[1])
+		
+		return tuple_list[0][0]
+	
+	def build_lr_predict_percent(self, pos_symbol, verbose=False):
+		predict_percent_fit = None
+		if pos_symbol in self.LR_DICT:
+			
+			def predict_percent_fit(navigable_parent):
+				
+				# Re-calibrate the inference engine
+				cv = CountVectorizer(vocabulary=self.CV.vocabulary_)
+				cv._validate_vocabulary()
+				
+				X_test = self.TT.transform(cv.transform([navigable_parent])).toarray()
+				y_predict_proba = self.LR_DICT[pos_symbol].predict_proba(X_test)[0][1]
+
+				return y_predict_proba
+		
+		return predict_percent_fit
+	
+	def build_lr_predict_percent_is_header(self):
+		from sklearn.feature_extraction.text import CountVectorizer
+		from sklearn.feature_extraction.text import TfidfTransformer
+		from sklearn.linear_model import LogisticRegression
+		
+		# Re-transform the bag-of-words and tf-idf from the new manual scores
+		rows_list = [{'navigable_parent': navigable_parent,
+					  'is_header': is_header} for navigable_parent, is_header in self.ha.NAVIGABLE_PARENT_IS_HEADER_DICT.items()]
+		child_str_df = pd.DataFrame(rows_list)
+		child_str_df.is_header = child_str_df.is_header.astype('bool')
+		
+		# The shape of the Bag-of-words count vector here should be n sentences * m unique words
+		sents_list = child_str_df.navigable_parent.tolist()
+		bow_matrix = self.CV.fit_transform(sents_list)
+		
+		# Tf-idf must get from Bag-of-words first
+		tfidf_matrix = self.TT.fit_transform(bow_matrix)
+		
+		# Re-train the classifier
+		X = tfidf_matrix.toarray()
+		y = child_str_df.is_header.to_numpy()
+		self.CHILD_STR_CLF.fit(X, y)
+		s.store_objects(CHILD_STR_CLF=self.CHILD_STR_CLF)
+		
+		# Re-calibrate the inference engine
+		cv = CountVectorizer(vocabulary=self.CS_CV.vocabulary_)
+		cv._validate_vocabulary()
+		
+		def predict_percent_fit(navigable_parent):
+			X_test = self.TT.transform(cv.transform([navigable_parent])).toarray()
+			y_predict_proba = self.CHILD_STR_CLF.predict_proba(X_test)[0][1]
+			
+			return y_predict_proba
+		
+		return predict_percent_fit
+
+class ElementAnalysis(object):
+	"""Element analysis class."""
+	
+	def __init__(self, ha=None, hc=None):
+		if ha is None:
+			self.ha = HeaderAnalysis()
+		else:
+			self.ha = ha
+		if hc is None:
+			self.hc = HeaderCategories()
+		else:
+			self.hc = hc
+		self.document_structure_elements_set = set(['body','head','html'])
+		self.document_head_elements_set = set(['base','basefont','isindex','link','meta','object','script','style','title'])
+		self.document_body_elements_set = set(['a','abbr','acronym','address','applet','area','article','aside','audio','b','bdi','bdo','big','blockquote','br','button','canvas','caption','center','cite','code','col','colgroup','data','datalist','dd','del','dfn','dir','div','dl','dt','em','embed','fieldset','figcaption','figure','font','footer','form','h1','h2','h3','h4','h5','h6','header','hr','i','img','input','ins','isindex','kbd','keygen','label','legend','li','main','map','mark','menu','meter','nav','noscript','object','ol','optgroup','option','output','p','param','pre','progress','q','rb','rp','rt','rtc','ruby','s','samp','script','section','select','small','source','span','strike','strong','sub','sup','table','tbody','td','template','textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var','video','wbr'])
+		self.block_elements_set = set(['address','article','aside','blockquote','center','dd','del','dir','div','dl','dt','figcaption','figure','footer','h1','h2','h3','h4','h5','h6','header','hr','ins','li','main','menu','nav','noscript','ol','p','pre','script','section','ul'])
+		self.basic_text_set = set(['h1','h2','h3','h4','h5','h6','p'])
+		self.section_headings_set = set(['h1','h2','h3','h4','h5','h6'])
+		self.lists_set = set(['dd','dir','dl','dt','li','ol','ul'])
+		self.other_block_elements_set = set(['address','article','aside','blockquote','center','del','div','figcaption','figure','footer','header','hr','ins','main','menu','nav','noscript','pre','script','section'])
+		self.inline_elements_set = set(['a','abbr','acronym','b','bdi','bdo','big','br','cite','code','data','del','dfn','em','font','i','ins','kbd','mark','q','rb','rp','rt','rtc','ruby','s','samp','script','small','span','strike','strong','sub','sup','template','time','tt','u','var','wbr'])
+		self.anchor_set = set(['a'])
+		self.phrase_elements_set = set(['abbr','acronym','b','big','code','dfn','em','font','i','kbd','s','samp','small','strike','strong','tt','u','var'])
+		self.general_set = set(['abbr','acronym','dfn','em','strong'])
+		self.computer_phrase_elements_set = set(['code','kbd','samp','var'])
+		self.presentation_set = set(['b','big','font','i','s','small','strike','tt','u'])
+		self.span_set = set(['span'])
+		self.other_inline_elements_set = set(['bdi','bdo','br','cite','data','del','ins','mark','q','rb','rp','rt','rtc','ruby','script','sub','sup','template','time','wbr'])
+		self.images_and_objects_set = set(['applet','area','audio','canvas','embed','img','map','object','param','source','track','video'])
+		self.forms_set = set(['button','datalist','fieldset','form','input','isindex','keygen','label','legend','meter','optgroup','option','output','progress','select','textarea'])
+		self.tables_set = set(['caption','col','colgroup','table','tbody','td','tfoot','th','thead','tr'])
+		self.frames_set = set(['frame','frameset','iframe','noframes'])
+		self.historic_elements_set = set(['listing','nextid','plaintext','xmp'])
+		self.non_standard_elements_set = set(['blink','layer','marquee','nobr','noembed'])
+
 	def get_idx_list(self, items_list, item_str):
 		item_count = items_list.count(item_str)
 		idx_list = []
@@ -734,40 +897,27 @@ class ElementAnalysis(object):
 		return idx_list
 	
 	def find_basic_quals_section(self, child_strs_list):
-		# ha = HeaderAnalysis()
-		hc = HeaderCategories()
 		try:
 			import sql_utlis
 			su = sql_utlis.SqlUtilities()
 		except:
 			from flaskr.sql_utlis import SqlUtilities
 			su = SqlUtilities()
-		import sqlite3
-		db = sqlite3.connect(os.path.join('../', 'instance', 'flaskr.sqlite'),
-							 detect_types=sqlite3.PARSE_DECLTYPES)
-		db.row_factory = sqlite3.Row
-		# child_tags_list = ha.get_child_tags_list(child_strs_list)
 		child_tags_list = su.get_child_tags_list(db, child_strs_list)
-		# is_header_list = ha.get_is_header_list(child_strs_list)
 		is_header_list = su.get_is_header_list(db, child_strs_list)
-		# print('In ha.find_basic_quals_section:')
-		# print(f'is_header_list=>{is_header_list}')
 		
-		# feature_dict_list = hc.get_feature_dict_list(child_tags_list, is_header_list, child_strs_list)
 		feature_dict_list = su.get_feature_dict_list(db, child_tags_list, child_strs_list)
-		feature_tuple_list = [hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
+		feature_tuple_list = [self.hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
 		
 		crf_list = self.CRF.predict_single(self.sent2features(feature_tuple_list))
 		pos_list = []
 		for pos, feature_tuple, is_header in zip(crf_list, feature_tuple_list, is_header_list):
 			navigable_parent = feature_tuple[1]
 			if is_header:
-				# pos_list = hc.append_parts_of_speech_list(navigable_parent, pos_list)
 				pos_list = su.append_parts_of_speech_list(db, navigable_parent, pos_list=[])
 			else:
 				pos_list.append(pos)
 		db.close()
-		# print(f'pos_list=>{pos_list}')
 		consecutives_list = []
 		from itertools import groupby
 		for k, v in groupby(pos_list):
@@ -789,9 +939,12 @@ class ElementAnalysis(object):
 	def display_reqs_from_url(self, page_url):
 		import requests
 		from itertools import groupby
-		ha = HeaderAnalysis()
 		
 		site_page = requests.get(url=page_url)
-		body_soup = ha.get_body_soup(site_page.content)
-		child_strs_list = ha.get_navigable_children(body_soup, [])
+		body_soup = self.ha.get_body_soup(site_page.content)
+		child_strs_list = self.ha.get_navigable_children(body_soup, [])
 		self.display_basic_requirements(child_strs_list)
+	
+	#####################
+	## Other functions ##
+	#####################

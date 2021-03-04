@@ -151,7 +151,7 @@ class Storage(object):
             if sys.version_info.major == 2:
                 df.to_pickle(pickle_path, protocol=2)
             elif sys.version_info.major == 3:
-                df.to_pickle(pickle_path, protocol=pickle.HIGHEST_PROTOCOL)
+                df.to_pickle(pickle_path, protocol=min(4, pickle.HIGHEST_PROTOCOL))
         
         except Exception as e:
             os.remove(pickle_path)

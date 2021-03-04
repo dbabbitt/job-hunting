@@ -353,7 +353,6 @@ class WebScrapingUtilities(object):
 		ActionChains(driver).key_down(Keys.ENTER).perform()
 	
 	
-	
 	def log_into_indeed(self, driver, verbose=True):
 		# <input
 			# type="email"
