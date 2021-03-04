@@ -5,21 +5,24 @@
 
 # exclude everything except personal directories
 /*
-!/load_magic
-!/saves
+!.gitignore
+!/builders
+!/evaluators
 !/ipynb
-!/py
+!/load_magic
 !/ps1
+!/py
+!/saves
 !/sh
-!/tests
 !/src
 !/templates
-!.gitignore
+!/tests
+!/trainers
+!README.md
 !environment.yml
 !jupyter_notebook_config.py
 !package-lock.json
 !package.json
-!README.md
 !serverless.yml
 !workspace.json
 
