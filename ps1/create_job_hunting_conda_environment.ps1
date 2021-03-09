@@ -19,14 +19,14 @@ $EnvironmentPath = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName
 $OldPath = Get-Location
 
 # Delete environment folder
-."${PowerScriptsDirectory}\delete_conda_environment.ps1"
+# ."${PowerScriptsDirectory}\delete_conda_environment.ps1"
 
 # Create environment folder
 ."${PowerScriptsDirectory}\create_conda_environment.ps1"
 # ."${PowerScriptsDirectory}\update_conda_environment.ps1"
 
 # Bring up the workspace in Chrome
-# ."${PowerScriptsDirectory}\view_lab_in_chrome.ps1"
+."${PowerScriptsDirectory}\view_lab_in_chrome.ps1"
 
 # Bring up the flaskr app in Chrome
 # ."${PowerScriptsDirectory}\view_flaskr_in_chrome.ps1"
