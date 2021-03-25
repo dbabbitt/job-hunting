@@ -336,7 +336,7 @@ class SqlUtilities(object):
 				[Jobhunting].[dbo].[NavigableParents] t ON
 				s.[navigable_parent_id] = t.[navigable_parent_id] INNER JOIN
 				[Jobhunting].[dbo].[FileNames] f ON
-				s.[file_name_id] = f.[file_name_id]"""
+				s.[file_name_id] = f.[file_name_id];"""
 
 
 		# Parts of Speech SQL strings

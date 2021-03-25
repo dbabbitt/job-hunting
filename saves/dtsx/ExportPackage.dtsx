@@ -1,0 +1,2748 @@
+<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="3/20/2021 9:07:28 PM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="DAVEZ-ASUS-LAPT"
+  DTS:CreatorName="DAVEZ-ASUS-LAPT\dev"
+  DTS:Description="SSIS Package Description"
+  DTS:DTSID="{0978598E-AB92-4BD0-A51D-AEE19C5FA7FA}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="15.0.2000.130"
+  DTS:LocaleID="1033"
+  DTS:MaxErrorCount="0"
+  DTS:ObjectName="ExportPackage"
+  DTS:VersionGUID="{F2682A70-F136-488A-8A07-796ED82B8019}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[DestinationConnectionFlatFile]"
+      DTS:CreationName="FLATFILE"
+      DTS:DTSID="{8233E936-676C-4FFB-984B-A895812C42AE}"
+      DTS:ObjectName="DestinationConnectionFlatFile">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:Format="Delimited"
+          DTS:LocaleID="1033"
+          DTS:HeaderRowDelimiter="_x000D__x000A_"
+          DTS:ColumnNamesInFirstDataRow="True"
+          DTS:RowDelimiter=""
+          DTS:TextQualifier="_x003C_none_x003E_"
+          DTS:CodePage="1252"
+          DTS:ConnectionString="C:\Users\dev\Documents\Repositories\job-hunting\saves\csv\sql_export.csv">
+          <DTS:FlatFileColumns>
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="255"
+              DTS:DataType="129"
+              DTS:TextQualified="True"
+              DTS:ObjectName="file_name"
+              DTS:DTSID="{D5988B70-7586-4FA5-9177-E78DB30666CD}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_opportunity_application_emailed"
+              DTS:DTSID="{69637EE9-4CB8-4E7A-8740-76CC7581E923}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_remote_delivery"
+              DTS:DTSID="{15D9855E-0189-44A4-95C6-36C4E4A517BA}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:DataType="302"
+              DTS:TextQualified="True"
+              DTS:ObjectName="manager_notes"
+              DTS:DTSID="{636C6772-0414-481C-803F-B248EB7186A8}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:DataType="302"
+              DTS:TextQualified="True"
+              DTS:ObjectName="opportunity_application_email_date"
+              DTS:DTSID="{BF867F98-41BF-4704-94AD-8EE341729DB2}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="24"
+              DTS:DataType="4"
+              DTS:TextQualified="True"
+              DTS:ObjectName="percent_fit"
+              DTS:DTSID="{BAB6C774-7E31-4DB4-B7A9-FF07D2BD950E}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="11"
+              DTS:DataType="3"
+              DTS:TextQualified="True"
+              DTS:ObjectName="hts_sequence_order"
+              DTS:DTSID="{49FC1136-6613-4056-8370-885CC77378AF}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="32"
+              DTS:DataType="129"
+              DTS:TextQualified="True"
+              DTS:ObjectName="header_tag"
+              DTS:DTSID="{35C6D5B4-EE35-41F2-A80C-44928EDAB49D}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_anchor_set"
+              DTS:DTSID="{08F50802-35CE-4A77-83C1-3D4F7F4559AD}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_basic_text_set"
+              DTS:DTSID="{2B0F27DF-9CE3-4A36-9DCE-5E6CC1E21792}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_block_elements_set"
+              DTS:DTSID="{E3B1E04B-685F-4E7F-AED6-5A960D069DF7}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_computer_phrase_elements_set"
+              DTS:DTSID="{A794CEBE-90B7-4D24-8D68-43F9ACFBE7C9}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_document_body_elements_set"
+              DTS:DTSID="{B5D094C1-0868-49C3-9C9E-F579CB84CB5F}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_document_head_elements_set"
+              DTS:DTSID="{000E37F3-9048-4366-82E5-71B9626B5C3E}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_document_structure_elements_set"
+              DTS:DTSID="{6325BBBC-183F-473A-8104-3A276623A00A}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_forms_set"
+              DTS:DTSID="{BDF67DF2-8DD4-47B7-8E1F-FF61DAAEB43D}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_frames_set"
+              DTS:DTSID="{CD0ECF23-EC62-4EA5-ACB4-5C41115FB67A}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_general_set"
+              DTS:DTSID="{1CBEE0F7-05D1-4808-B8A5-D1953814F660}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_historic_elements_set"
+              DTS:DTSID="{07424220-4F04-45B6-B109-61BD35C98567}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_images_and_objects_set"
+              DTS:DTSID="{BCC72352-1D3E-4724-B333-4490016B8148}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_inline_elements_set"
+              DTS:DTSID="{C0D87EA7-DF68-4E40-A99B-E5DE603366BE}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_lists_set"
+              DTS:DTSID="{2B1035EA-26E5-4AAF-A95E-5BCCB36E142E}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_non_standard_elements_set"
+              DTS:DTSID="{6CE621FB-16A7-4C0A-BCD8-3F4FC3C0DFCD}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_other_block_elements_set"
+              DTS:DTSID="{55113AC9-A572-4BF7-8DEC-F80C363FE814}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_other_inline_elements_set"
+              DTS:DTSID="{22861DD2-CB5F-48BF-A226-E912ADC7A641}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_phrase_elements_set"
+              DTS:DTSID="{36405A8B-55EA-485D-B53B-D1AF85B716BE}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_presentation_set"
+              DTS:DTSID="{3FBE633B-43EC-412A-A151-1A9217FDBB8F}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_section_headings_set"
+              DTS:DTSID="{5D28A3F5-DB2D-4A54-8DD3-045B70EB8392}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_span_set"
+              DTS:DTSID="{56299B21-1540-4898-AB6B-9525D62F19A2}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_in_tables_set"
+              DTS:DTSID="{4DD078EB-1308-4FCD-AEDD-E2AFC5BC4C81}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:DataType="302"
+              DTS:TextQualified="True"
+              DTS:ObjectName="mrs_explanation"
+              DTS:DTSID="{19B6093C-E1A9-4258-8513-6299DA9A62AB}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="4"
+              DTS:DataType="129"
+              DTS:TextQualified="True"
+              DTS:ObjectName="mrs_symbol"
+              DTS:DTSID="{92BDFF93-492E-473B-A0ED-37A94C2177C3}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="11"
+              DTS:DataType="3"
+              DTS:TextQualified="True"
+              DTS:ObjectName="sequence_order"
+              DTS:DTSID="{FA94C321-9265-457E-AA0D-6EB4066FF05B}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_corporate_scope"
+              DTS:DTSID="{514F5CF0-D82A-4E48-BC86-2CA8F7EC5588}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_educational_requirement"
+              DTS:DTSID="{6BD54062-850C-4E3F-A874-DF25A7115FC8}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_header"
+              DTS:DTSID="{0BC1C306-3608-485F-B473-A86D4251403F}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_interview_procedure"
+              DTS:DTSID="{3E05F47E-CEBF-42F0-8A36-F0F485D27A87}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_job_duration"
+              DTS:DTSID="{2C1CC714-6EAD-4F06-8D36-082959DAAEF2}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_job_title"
+              DTS:DTSID="{7A2FB17F-0ED1-4554-90EC-73AF75827F96}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_legal_notification"
+              DTS:DTSID="{2A442CE2-552E-467E-9BB7-F95297DCCA44}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_minimum_qualification"
+              DTS:DTSID="{D804FF8A-543E-43C3-A150-9B872E27397F}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_office_location"
+              DTS:DTSID="{6A1C1608-D9E1-43D9-8143-584FA931975A}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_other"
+              DTS:DTSID="{68CEE795-A9F2-4B7A-97C9-72DEB290A485}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_posting_date"
+              DTS:DTSID="{FC21C298-3E8D-402F-9FB0-8FF4CF8FA608}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_preferred_qualification"
+              DTS:DTSID="{77325184-4B40-45E7-85D2-B2619C48F28D}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_qualification"
+              DTS:DTSID="{89538DDA-0574-4A04-BCF7-3AA8BDEC09FF}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_supplemental_pay"
+              DTS:DTSID="{110FC47A-933B-45F5-B413-3E3B19A72FF1}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="is_task_scope"
+              DTS:DTSID="{5D295172-7D3F-4E83-89B3-58FF8678CD46}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:DataType="302"
+              DTS:TextQualified="True"
+              DTS:ObjectName="navigable_parent"
+              DTS:DTSID="{B3AD4E63-91EF-4FA4-8A27-CB18EECA8BB4}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_corporate_scope"
+              DTS:DTSID="{695CF805-ACFF-4A7E-A0F9-420860C155C5}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_educational_requirement"
+              DTS:DTSID="{95A0A3DA-FE53-4021-B783-2DB3447E80C8}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_header"
+              DTS:DTSID="{BC464AA9-D2DD-4BDD-BCF3-18251AD6846E}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_interview_procedure"
+              DTS:DTSID="{BD37E970-BA68-4020-BB33-AE2D8F47BDE2}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_job_duration"
+              DTS:DTSID="{649E8A9A-7AFC-4E14-B5E5-A86003A6295C}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_job_title"
+              DTS:DTSID="{13A41DEB-0F20-4ECD-9511-8AB4FA479DC1}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_legal_notification"
+              DTS:DTSID="{3B4EEA99-8322-4FC0-BFEE-912DDD3D44B3}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_minimum_qualification"
+              DTS:DTSID="{40519B0A-1A34-4C9E-BCAD-920FE8755DB6}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_office_location"
+              DTS:DTSID="{AC9C626F-495D-44A4-AD5A-F33FC04BFF37}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_other"
+              DTS:DTSID="{3D7E8016-C9F9-4D7F-B53F-387FCA915103}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_posting_date"
+              DTS:DTSID="{7A2BECB9-12ED-4DAF-BA43-2A691356CA54}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_preferred_qualification"
+              DTS:DTSID="{8B49668D-4BA8-4C34-81EF-6E8AD972C3C4}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_supplemental_pay"
+              DTS:DTSID="{B8FE5BD0-73F6-49A3-9989-9C7D026ADF69}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:MaximumWidth="10"
+              DTS:DataType="11"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_is_task_scope"
+              DTS:DTSID="{3097A096-FA88-42D3-B19E-FE9D7A755673}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x002C_"
+              DTS:DataType="302"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_explanation"
+              DTS:DTSID="{6982A8C5-13B1-443A-8622-1312723FC633}"
+              DTS:CreationName="" />
+            <DTS:FlatFileColumn
+              DTS:ColumnType="Delimited"
+              DTS:ColumnDelimiter="_x000D__x000A_"
+              DTS:MaximumWidth="4"
+              DTS:DataType="129"
+              DTS:TextQualified="True"
+              DTS:ObjectName="pos_symbol"
+              DTS:DTSID="{E817784A-B904-4ED8-A0A3-6FF0C45033D2}"
+              DTS:CreationName="" />
+          </DTS:FlatFileColumns>
+        </DTS:ConnectionManager>
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[SourceConnectionOLEDB]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{2DF69EA1-A6A6-4D41-87D7-7641525EE394}"
+      DTS:ObjectName="SourceConnectionOLEDB">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectionString="Data Source=DAVEZ-ASUS-LAPT\MSSQLSERVER01;Initial Catalog=Jobhunting;Provider=SQLNCLI11;Integrated Security=SSPI;Auto Translate=false;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables />
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\Data Flow Task 1"
+      DTS:CreationName="Microsoft.Pipeline"
+      DTS:DTSID="{EABABCC0-1125-4922-BEC0-0096E98E8072}"
+      DTS:ExecutableType="Microsoft.Pipeline"
+      DTS:FailPackageOnFailure="True"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Data Flow Task 1"
+      DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <pipeline
+          defaultBufferSize="3145728"
+          version="1">
+          <components>
+            <component
+              refId="Package\Data Flow Task 1\Destination - sql_export_csv"
+              componentClassID="Microsoft.FlatFileDestination"
+              contactInfo="Flat File Destination;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;1"
+              description="Flat File Destination"
+              localeId="1033"
+              name="Destination - sql_export_csv"
+              version="1">
+              <properties>
+                <property
+                  dataType="System.Boolean"
+                  description="Specifies whether the data will overwrite or append to the destination file."
+                  name="Overwrite">false</property>
+                <property
+                  dataType="System.String"
+                  description="Specifies the text to write to the destination file before any data is written."
+                  expressionType="Notify"
+                  name="Header"></property>
+                <property
+                  dataType="System.Boolean"
+                  description="When text qualifier is enabled, specifies whether the text qualifier in the data written to the destination file will be escaped or not."
+                  name="EscapeQualifier">false</property>
+              </properties>
+              <connections>
+                <connection
+                  refId="Package\Data Flow Task 1\Destination - sql_export_csv.Connections[FlatFileConnection]"
+                  connectionManagerID="Package.ConnectionManagers[DestinationConnectionFlatFile]"
+                  connectionManagerRefId="Package.ConnectionManagers[DestinationConnectionFlatFile]"
+                  name="FlatFileConnection" />
+              </connections>
+              <inputs>
+                <input
+                  refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input]"
+                  hasSideEffects="true"
+                  name="Flat File Destination Input">
+                  <inputColumns>
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[file_name]"
+                      cachedCodepage="1252"
+                      cachedDataType="str"
+                      cachedLength="255"
+                      cachedName="file_name"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[file_name]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[file_name]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_opportunity_application_emailed]"
+                      cachedDataType="bool"
+                      cachedName="is_opportunity_application_emailed"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_opportunity_application_emailed]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_opportunity_application_emailed]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_remote_delivery]"
+                      cachedDataType="bool"
+                      cachedName="is_remote_delivery"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_remote_delivery]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_remote_delivery]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[manager_notes]"
+                      cachedCodepage="1252"
+                      cachedDataType="text"
+                      cachedName="manager_notes"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[manager_notes]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[manager_notes]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[opportunity_application_email_date]"
+                      cachedCodepage="1252"
+                      cachedDataType="text"
+                      cachedName="opportunity_application_email_date"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[opportunity_application_email_date]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[opportunity_application_email_date]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[percent_fit]"
+                      cachedDataType="r4"
+                      cachedName="percent_fit"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[percent_fit]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[percent_fit]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[hts_sequence_order]"
+                      cachedDataType="i4"
+                      cachedName="hts_sequence_order"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[hts_sequence_order]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[hts_sequence_order]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[header_tag]"
+                      cachedCodepage="1252"
+                      cachedDataType="str"
+                      cachedLength="32"
+                      cachedName="header_tag"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[header_tag]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[header_tag]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_anchor_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_anchor_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_anchor_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_anchor_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_basic_text_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_basic_text_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_basic_text_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_basic_text_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_block_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_block_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_block_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_block_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_computer_phrase_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_computer_phrase_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_computer_phrase_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_computer_phrase_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_document_body_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_document_body_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_document_body_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_body_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_document_head_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_document_head_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_document_head_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_head_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_document_structure_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_document_structure_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_document_structure_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_structure_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_forms_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_forms_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_forms_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_forms_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_frames_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_frames_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_frames_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_frames_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_general_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_general_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_general_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_general_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_historic_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_historic_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_historic_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_historic_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_images_and_objects_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_images_and_objects_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_images_and_objects_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_images_and_objects_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_inline_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_inline_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_inline_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_inline_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_lists_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_lists_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_lists_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_lists_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_non_standard_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_non_standard_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_non_standard_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_non_standard_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_other_block_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_other_block_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_other_block_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_other_block_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_other_inline_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_other_inline_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_other_inline_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_other_inline_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_phrase_elements_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_phrase_elements_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_phrase_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_phrase_elements_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_presentation_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_presentation_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_presentation_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_presentation_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_section_headings_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_section_headings_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_section_headings_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_section_headings_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_span_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_span_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_span_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_span_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_in_tables_set]"
+                      cachedDataType="bool"
+                      cachedName="is_in_tables_set"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_tables_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_tables_set]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[mrs_explanation]"
+                      cachedCodepage="1252"
+                      cachedDataType="text"
+                      cachedName="mrs_explanation"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[mrs_explanation]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[mrs_explanation]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[mrs_symbol]"
+                      cachedCodepage="1252"
+                      cachedDataType="str"
+                      cachedLength="4"
+                      cachedName="mrs_symbol"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[mrs_symbol]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[mrs_symbol]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[sequence_order]"
+                      cachedDataType="i4"
+                      cachedName="sequence_order"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[sequence_order]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[sequence_order]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_corporate_scope]"
+                      cachedDataType="bool"
+                      cachedName="is_corporate_scope"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_corporate_scope]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_corporate_scope]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_educational_requirement]"
+                      cachedDataType="bool"
+                      cachedName="is_educational_requirement"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_educational_requirement]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_educational_requirement]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_header]"
+                      cachedDataType="bool"
+                      cachedName="is_header"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_header]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_header]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_interview_procedure]"
+                      cachedDataType="bool"
+                      cachedName="is_interview_procedure"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_interview_procedure]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_interview_procedure]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_job_duration]"
+                      cachedDataType="bool"
+                      cachedName="is_job_duration"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_job_duration]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_job_duration]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_job_title]"
+                      cachedDataType="bool"
+                      cachedName="is_job_title"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_job_title]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_job_title]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_legal_notification]"
+                      cachedDataType="bool"
+                      cachedName="is_legal_notification"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_legal_notification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_legal_notification]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_minimum_qualification]"
+                      cachedDataType="bool"
+                      cachedName="is_minimum_qualification"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_minimum_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_minimum_qualification]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_office_location]"
+                      cachedDataType="bool"
+                      cachedName="is_office_location"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_office_location]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_office_location]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_other]"
+                      cachedDataType="bool"
+                      cachedName="is_other"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_other]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_other]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_posting_date]"
+                      cachedDataType="bool"
+                      cachedName="is_posting_date"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_posting_date]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_posting_date]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_preferred_qualification]"
+                      cachedDataType="bool"
+                      cachedName="is_preferred_qualification"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_preferred_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_preferred_qualification]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_qualification]"
+                      cachedDataType="bool"
+                      cachedName="is_qualification"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_qualification]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_supplemental_pay]"
+                      cachedDataType="bool"
+                      cachedName="is_supplemental_pay"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_supplemental_pay]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_supplemental_pay]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[is_task_scope]"
+                      cachedDataType="bool"
+                      cachedName="is_task_scope"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_task_scope]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_task_scope]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[navigable_parent]"
+                      cachedDataType="nText"
+                      cachedName="navigable_parent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[navigable_parent]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[navigable_parent]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_corporate_scope]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_corporate_scope"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_corporate_scope]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_corporate_scope]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_educational_requirement]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_educational_requirement"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_educational_requirement]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_educational_requirement]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_header]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_header"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_header]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_header]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_interview_procedure]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_interview_procedure"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_interview_procedure]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_interview_procedure]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_job_duration]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_job_duration"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_job_duration]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_job_duration]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_job_title]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_job_title"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_job_title]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_job_title]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_legal_notification]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_legal_notification"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_legal_notification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_legal_notification]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_minimum_qualification]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_minimum_qualification"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_minimum_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_minimum_qualification]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_office_location]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_office_location"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_office_location]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_office_location]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_other]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_other"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_other]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_other]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_posting_date]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_posting_date"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_posting_date]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_posting_date]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_preferred_qualification]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_preferred_qualification"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_preferred_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_preferred_qualification]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_supplemental_pay]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_supplemental_pay"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_supplemental_pay]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_supplemental_pay]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_is_task_scope]"
+                      cachedDataType="bool"
+                      cachedName="pos_is_task_scope"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_task_scope]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_task_scope]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_explanation]"
+                      cachedCodepage="1252"
+                      cachedDataType="text"
+                      cachedName="pos_explanation"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_explanation]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_explanation]" />
+                    <inputColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].Columns[pos_symbol]"
+                      cachedCodepage="1252"
+                      cachedDataType="str"
+                      cachedLength="4"
+                      cachedName="pos_symbol"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_symbol]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_symbol]" />
+                  </inputColumns>
+                  <externalMetadataColumns
+                    isUsed="True">
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[file_name]"
+                      codePage="1252"
+                      dataType="str"
+                      length="255"
+                      name="file_name" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_opportunity_application_emailed]"
+                      dataType="bool"
+                      name="is_opportunity_application_emailed" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_remote_delivery]"
+                      dataType="bool"
+                      name="is_remote_delivery" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[manager_notes]"
+                      codePage="1252"
+                      dataType="text"
+                      name="manager_notes" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[opportunity_application_email_date]"
+                      codePage="1252"
+                      dataType="text"
+                      name="opportunity_application_email_date" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[percent_fit]"
+                      dataType="r4"
+                      name="percent_fit" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[hts_sequence_order]"
+                      dataType="i4"
+                      name="hts_sequence_order" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[header_tag]"
+                      codePage="1252"
+                      dataType="str"
+                      length="32"
+                      name="header_tag" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_anchor_set]"
+                      dataType="bool"
+                      name="is_in_anchor_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_basic_text_set]"
+                      dataType="bool"
+                      name="is_in_basic_text_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_block_elements_set]"
+                      dataType="bool"
+                      name="is_in_block_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_computer_phrase_elements_set]"
+                      dataType="bool"
+                      name="is_in_computer_phrase_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_document_body_elements_set]"
+                      dataType="bool"
+                      name="is_in_document_body_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_document_head_elements_set]"
+                      dataType="bool"
+                      name="is_in_document_head_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_document_structure_elements_set]"
+                      dataType="bool"
+                      name="is_in_document_structure_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_forms_set]"
+                      dataType="bool"
+                      name="is_in_forms_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_frames_set]"
+                      dataType="bool"
+                      name="is_in_frames_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_general_set]"
+                      dataType="bool"
+                      name="is_in_general_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_historic_elements_set]"
+                      dataType="bool"
+                      name="is_in_historic_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_images_and_objects_set]"
+                      dataType="bool"
+                      name="is_in_images_and_objects_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_inline_elements_set]"
+                      dataType="bool"
+                      name="is_in_inline_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_lists_set]"
+                      dataType="bool"
+                      name="is_in_lists_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_non_standard_elements_set]"
+                      dataType="bool"
+                      name="is_in_non_standard_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_other_block_elements_set]"
+                      dataType="bool"
+                      name="is_in_other_block_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_other_inline_elements_set]"
+                      dataType="bool"
+                      name="is_in_other_inline_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_phrase_elements_set]"
+                      dataType="bool"
+                      name="is_in_phrase_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_presentation_set]"
+                      dataType="bool"
+                      name="is_in_presentation_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_section_headings_set]"
+                      dataType="bool"
+                      name="is_in_section_headings_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_span_set]"
+                      dataType="bool"
+                      name="is_in_span_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_in_tables_set]"
+                      dataType="bool"
+                      name="is_in_tables_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[mrs_explanation]"
+                      codePage="1252"
+                      dataType="text"
+                      name="mrs_explanation" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[mrs_symbol]"
+                      codePage="1252"
+                      dataType="str"
+                      length="4"
+                      name="mrs_symbol" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[sequence_order]"
+                      dataType="i4"
+                      name="sequence_order" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_corporate_scope]"
+                      dataType="bool"
+                      name="is_corporate_scope" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_educational_requirement]"
+                      dataType="bool"
+                      name="is_educational_requirement" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_header]"
+                      dataType="bool"
+                      name="is_header" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_interview_procedure]"
+                      dataType="bool"
+                      name="is_interview_procedure" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_job_duration]"
+                      dataType="bool"
+                      name="is_job_duration" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_job_title]"
+                      dataType="bool"
+                      name="is_job_title" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_legal_notification]"
+                      dataType="bool"
+                      name="is_legal_notification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_minimum_qualification]"
+                      dataType="bool"
+                      name="is_minimum_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_office_location]"
+                      dataType="bool"
+                      name="is_office_location" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_other]"
+                      dataType="bool"
+                      name="is_other" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_posting_date]"
+                      dataType="bool"
+                      name="is_posting_date" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_preferred_qualification]"
+                      dataType="bool"
+                      name="is_preferred_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_qualification]"
+                      dataType="bool"
+                      name="is_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_supplemental_pay]"
+                      dataType="bool"
+                      name="is_supplemental_pay" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[is_task_scope]"
+                      dataType="bool"
+                      name="is_task_scope" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[navigable_parent]"
+                      codePage="1252"
+                      dataType="text"
+                      name="navigable_parent" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_corporate_scope]"
+                      dataType="bool"
+                      name="pos_is_corporate_scope" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_educational_requirement]"
+                      dataType="bool"
+                      name="pos_is_educational_requirement" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_header]"
+                      dataType="bool"
+                      name="pos_is_header" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_interview_procedure]"
+                      dataType="bool"
+                      name="pos_is_interview_procedure" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_job_duration]"
+                      dataType="bool"
+                      name="pos_is_job_duration" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_job_title]"
+                      dataType="bool"
+                      name="pos_is_job_title" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_legal_notification]"
+                      dataType="bool"
+                      name="pos_is_legal_notification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_minimum_qualification]"
+                      dataType="bool"
+                      name="pos_is_minimum_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_office_location]"
+                      dataType="bool"
+                      name="pos_is_office_location" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_other]"
+                      dataType="bool"
+                      name="pos_is_other" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_posting_date]"
+                      dataType="bool"
+                      name="pos_is_posting_date" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_preferred_qualification]"
+                      dataType="bool"
+                      name="pos_is_preferred_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_supplemental_pay]"
+                      dataType="bool"
+                      name="pos_is_supplemental_pay" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_is_task_scope]"
+                      dataType="bool"
+                      name="pos_is_task_scope" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_explanation]"
+                      codePage="1252"
+                      dataType="text"
+                      name="pos_explanation" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input].ExternalColumns[pos_symbol]"
+                      codePage="1252"
+                      dataType="str"
+                      length="4"
+                      name="pos_symbol" />
+                  </externalMetadataColumns>
+                </input>
+              </inputs>
+            </component>
+            <component
+              refId="Package\Data Flow Task 1\Source - Query"
+              componentClassID="Microsoft.OLEDBSource"
+              contactInfo="OLE DB Source;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;7"
+              description="OLE DB Source"
+              name="Source - Query"
+              usesDispositions="true"
+              version="7">
+              <properties>
+                <property
+                  dataType="System.Int32"
+                  description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out."
+                  name="CommandTimeout">0</property>
+                <property
+                  dataType="System.String"
+                  description="Specifies the name of the database object used to open a rowset."
+                  name="OpenRowset"></property>
+                <property
+                  dataType="System.String"
+                  description="Specifies the variable that contains the name of the database object used to open a rowset."
+                  name="OpenRowsetVariable"></property>
+                <property
+                  dataType="System.String"
+                  description="The SQL command to be executed."
+                  name="SqlCommand"
+                  UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor">SELECT
+	dbo.FileNames.file_name,
+	dbo.FileNames.is_opportunity_application_emailed,
+	dbo.FileNames.is_remote_delivery,
+	dbo.FileNames.manager_notes,
+	dbo.FileNames.opportunity_application_email_date,
+	dbo.FileNames.percent_fit,
+	dbo.HeaderTagSequence.sequence_order AS hts_sequence_order,
+	dbo.HeaderTags.header_tag,
+	dbo.HeaderTags.is_in_anchor_set,
+	dbo.HeaderTags.is_in_basic_text_set,
+	dbo.HeaderTags.is_in_block_elements_set,
+	dbo.HeaderTags.is_in_computer_phrase_elements_set,
+	dbo.HeaderTags.is_in_document_body_elements_set,
+	dbo.HeaderTags.is_in_document_head_elements_set,
+	dbo.HeaderTags.is_in_document_structure_elements_set,
+	dbo.HeaderTags.is_in_forms_set,
+	dbo.HeaderTags.is_in_frames_set,
+	dbo.HeaderTags.is_in_general_set,
+	dbo.HeaderTags.is_in_historic_elements_set,
+	dbo.HeaderTags.is_in_images_and_objects_set,
+	dbo.HeaderTags.is_in_inline_elements_set,
+	dbo.HeaderTags.is_in_lists_set,
+	dbo.HeaderTags.is_in_non_standard_elements_set,
+	dbo.HeaderTags.is_in_other_block_elements_set,
+	dbo.HeaderTags.is_in_other_inline_elements_set,
+	dbo.HeaderTags.is_in_phrase_elements_set,
+	dbo.HeaderTags.is_in_presentation_set,
+	dbo.HeaderTags.is_in_section_headings_set,
+	dbo.HeaderTags.is_in_span_set,
+	dbo.HeaderTags.is_in_tables_set,
+	dbo.MinimumRequirementsSection.mrs_explanation,
+	dbo.MinimumRequirementsSection.mrs_symbol,
+	dbo.NavigableParentSequence.sequence_order,
+	dbo.NavigableParents.is_corporate_scope,
+	dbo.NavigableParents.is_educational_requirement,
+	dbo.NavigableParents.is_header,
+	dbo.NavigableParents.is_interview_procedure,
+	dbo.NavigableParents.is_job_duration,
+	dbo.NavigableParents.is_job_title,
+	dbo.NavigableParents.is_legal_notification,
+	dbo.NavigableParents.is_minimum_qualification,
+	dbo.NavigableParents.is_office_location,
+	dbo.NavigableParents.is_other,
+	dbo.NavigableParents.is_posting_date,
+	dbo.NavigableParents.is_preferred_qualification,
+	dbo.NavigableParents.is_qualification,
+	dbo.NavigableParents.is_supplemental_pay,
+	dbo.NavigableParents.is_task_scope,
+	dbo.NavigableParents.navigable_parent,
+	dbo.PartsOfSpeech.is_corporate_scope AS pos_is_corporate_scope,
+	dbo.PartsOfSpeech.is_educational_requirement AS pos_is_educational_requirement,
+	dbo.PartsOfSpeech.is_header AS pos_is_header,
+	dbo.PartsOfSpeech.is_interview_procedure AS pos_is_interview_procedure,
+	dbo.PartsOfSpeech.is_job_duration AS pos_is_job_duration,
+	dbo.PartsOfSpeech.is_job_title AS pos_is_job_title,
+	dbo.PartsOfSpeech.is_legal_notification AS pos_is_legal_notification,
+	dbo.PartsOfSpeech.is_minimum_qualification AS pos_is_minimum_qualification,
+	dbo.PartsOfSpeech.is_office_location AS pos_is_office_location,
+	dbo.PartsOfSpeech.is_other AS pos_is_other,
+	dbo.PartsOfSpeech.is_posting_date AS pos_is_posting_date,
+	dbo.PartsOfSpeech.is_preferred_qualification AS pos_is_preferred_qualification,
+	dbo.PartsOfSpeech.is_supplemental_pay AS pos_is_supplemental_pay,
+	dbo.PartsOfSpeech.is_task_scope AS pos_is_task_scope,
+	dbo.PartsOfSpeech.pos_explanation,
+	dbo.PartsOfSpeech.pos_symbol
+FROM
+	dbo.NavigableParents INNER JOIN
+	dbo.HeaderTags ON dbo.NavigableParents.header_tag_id = dbo.HeaderTags.header_tag_id INNER JOIN
+	dbo.NavigableParentSequence ON
+	dbo.NavigableParents.navigable_parent_id = dbo.NavigableParentSequence.navigable_parent_id INNER JOIN
+	dbo.FileNames INNER JOIN
+	dbo.HeaderTagSequence ON dbo.FileNames.file_name_id = dbo.HeaderTagSequence.file_name_id ON
+	dbo.NavigableParentSequence.file_name_id = dbo.FileNames.file_name_id AND 
+	dbo.HeaderTags.header_tag_id = dbo.HeaderTagSequence.header_tag_id INNER JOIN
+	dbo.MinimumRequirementsSection ON
+	dbo.NavigableParentSequence.mrs_id = dbo.MinimumRequirementsSection.mrs_id CROSS JOIN
+	dbo.PartsOfSpeech</property>
+                <property
+                  dataType="System.String"
+                  description="The variable that contains the SQL command to be executed."
+                  name="SqlCommandVariable"></property>
+                <property
+                  dataType="System.Int32"
+                  description="Specifies the column code page to use when code page information is unavailable from the data source."
+                  name="DefaultCodePage">1252</property>
+                <property
+                  dataType="System.Boolean"
+                  description="Forces the use of the DefaultCodePage property value when describing character data."
+                  name="AlwaysUseDefaultCodePage">false</property>
+                <property
+                  dataType="System.Int32"
+                  description="Specifies the mode used to access the database."
+                  name="AccessMode"
+                  typeConverter="AccessMode">2</property>
+                <property
+                  dataType="System.String"
+                  description="The mappings between the parameters in the SQL command and variables."
+                  name="ParameterMapping"></property>
+              </properties>
+              <connections>
+                <connection
+                  refId="Package\Data Flow Task 1\Source - Query.Connections[OleDbConnection]"
+                  connectionManagerID="Package.ConnectionManagers[SourceConnectionOLEDB]"
+                  connectionManagerRefId="Package.ConnectionManagers[SourceConnectionOLEDB]"
+                  description="The OLE DB runtime connection used to access the database."
+                  name="OleDbConnection" />
+              </connections>
+              <outputs>
+                <output
+                  refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output]"
+                  name="OLE DB Source Output">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[file_name]"
+                      codePage="1252"
+                      dataType="str"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[file_name]"
+                      length="255"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[file_name]"
+                      name="file_name"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_opportunity_application_emailed]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_opportunity_application_emailed]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_opportunity_application_emailed]"
+                      name="is_opportunity_application_emailed"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_remote_delivery]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_remote_delivery]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_remote_delivery]"
+                      name="is_remote_delivery"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[manager_notes]"
+                      codePage="1252"
+                      dataType="text"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[manager_notes]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[manager_notes]"
+                      name="manager_notes"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[opportunity_application_email_date]"
+                      codePage="1252"
+                      dataType="text"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[opportunity_application_email_date]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[opportunity_application_email_date]"
+                      name="opportunity_application_email_date"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[percent_fit]"
+                      dataType="r4"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[percent_fit]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[percent_fit]"
+                      name="percent_fit"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[hts_sequence_order]"
+                      dataType="i4"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[hts_sequence_order]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[hts_sequence_order]"
+                      name="hts_sequence_order"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[header_tag]"
+                      codePage="1252"
+                      dataType="str"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[header_tag]"
+                      length="32"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[header_tag]"
+                      name="header_tag"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_anchor_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_anchor_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_anchor_set]"
+                      name="is_in_anchor_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_basic_text_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_basic_text_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_basic_text_set]"
+                      name="is_in_basic_text_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_block_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_block_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_block_elements_set]"
+                      name="is_in_block_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_computer_phrase_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_computer_phrase_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_computer_phrase_elements_set]"
+                      name="is_in_computer_phrase_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_body_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_document_body_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_body_elements_set]"
+                      name="is_in_document_body_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_head_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_document_head_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_head_elements_set]"
+                      name="is_in_document_head_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_structure_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_document_structure_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_document_structure_elements_set]"
+                      name="is_in_document_structure_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_forms_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_forms_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_forms_set]"
+                      name="is_in_forms_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_frames_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_frames_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_frames_set]"
+                      name="is_in_frames_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_general_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_general_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_general_set]"
+                      name="is_in_general_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_historic_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_historic_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_historic_elements_set]"
+                      name="is_in_historic_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_images_and_objects_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_images_and_objects_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_images_and_objects_set]"
+                      name="is_in_images_and_objects_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_inline_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_inline_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_inline_elements_set]"
+                      name="is_in_inline_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_lists_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_lists_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_lists_set]"
+                      name="is_in_lists_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_non_standard_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_non_standard_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_non_standard_elements_set]"
+                      name="is_in_non_standard_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_other_block_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_other_block_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_other_block_elements_set]"
+                      name="is_in_other_block_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_other_inline_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_other_inline_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_other_inline_elements_set]"
+                      name="is_in_other_inline_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_phrase_elements_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_phrase_elements_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_phrase_elements_set]"
+                      name="is_in_phrase_elements_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_presentation_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_presentation_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_presentation_set]"
+                      name="is_in_presentation_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_section_headings_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_section_headings_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_section_headings_set]"
+                      name="is_in_section_headings_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_span_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_span_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_span_set]"
+                      name="is_in_span_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_tables_set]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_tables_set]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_in_tables_set]"
+                      name="is_in_tables_set"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[mrs_explanation]"
+                      codePage="1252"
+                      dataType="text"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[mrs_explanation]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[mrs_explanation]"
+                      name="mrs_explanation"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[mrs_symbol]"
+                      codePage="1252"
+                      dataType="str"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[mrs_symbol]"
+                      length="4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[mrs_symbol]"
+                      name="mrs_symbol"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[sequence_order]"
+                      dataType="i4"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[sequence_order]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[sequence_order]"
+                      name="sequence_order"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_corporate_scope]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_corporate_scope]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_corporate_scope]"
+                      name="is_corporate_scope"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_educational_requirement]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_educational_requirement]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_educational_requirement]"
+                      name="is_educational_requirement"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_header]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_header]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_header]"
+                      name="is_header"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_interview_procedure]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_interview_procedure]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_interview_procedure]"
+                      name="is_interview_procedure"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_job_duration]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_job_duration]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_job_duration]"
+                      name="is_job_duration"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_job_title]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_job_title]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_job_title]"
+                      name="is_job_title"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_legal_notification]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_legal_notification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_legal_notification]"
+                      name="is_legal_notification"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_minimum_qualification]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_minimum_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_minimum_qualification]"
+                      name="is_minimum_qualification"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_office_location]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_office_location]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_office_location]"
+                      name="is_office_location"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_other]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_other]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_other]"
+                      name="is_other"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_posting_date]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_posting_date]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_posting_date]"
+                      name="is_posting_date"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_preferred_qualification]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_preferred_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_preferred_qualification]"
+                      name="is_preferred_qualification"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_qualification]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_qualification]"
+                      name="is_qualification"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_supplemental_pay]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_supplemental_pay]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_supplemental_pay]"
+                      name="is_supplemental_pay"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_task_scope]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_task_scope]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[is_task_scope]"
+                      name="is_task_scope"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[navigable_parent]"
+                      dataType="nText"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[navigable_parent]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[navigable_parent]"
+                      name="navigable_parent"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_corporate_scope]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_corporate_scope]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_corporate_scope]"
+                      name="pos_is_corporate_scope"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_educational_requirement]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_educational_requirement]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_educational_requirement]"
+                      name="pos_is_educational_requirement"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_header]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_header]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_header]"
+                      name="pos_is_header"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_interview_procedure]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_interview_procedure]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_interview_procedure]"
+                      name="pos_is_interview_procedure"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_job_duration]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_job_duration]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_job_duration]"
+                      name="pos_is_job_duration"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_job_title]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_job_title]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_job_title]"
+                      name="pos_is_job_title"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_legal_notification]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_legal_notification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_legal_notification]"
+                      name="pos_is_legal_notification"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_minimum_qualification]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_minimum_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_minimum_qualification]"
+                      name="pos_is_minimum_qualification"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_office_location]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_office_location]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_office_location]"
+                      name="pos_is_office_location"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_other]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_other]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_other]"
+                      name="pos_is_other"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_posting_date]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_posting_date]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_posting_date]"
+                      name="pos_is_posting_date"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_preferred_qualification]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_preferred_qualification]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_preferred_qualification]"
+                      name="pos_is_preferred_qualification"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_supplemental_pay]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_supplemental_pay]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_supplemental_pay]"
+                      name="pos_is_supplemental_pay"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_task_scope]"
+                      dataType="bool"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_task_scope]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_is_task_scope]"
+                      name="pos_is_task_scope"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_explanation]"
+                      codePage="1252"
+                      dataType="text"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_explanation]"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_explanation]"
+                      name="pos_explanation"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_symbol]"
+                      codePage="1252"
+                      dataType="str"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_symbol]"
+                      length="4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].Columns[pos_symbol]"
+                      name="pos_symbol"
+                      truncationRowDisposition="FailComponent" />
+                  </outputColumns>
+                  <externalMetadataColumns
+                    isUsed="True">
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[file_name]"
+                      codePage="1252"
+                      dataType="str"
+                      length="255"
+                      name="file_name" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_opportunity_application_emailed]"
+                      dataType="bool"
+                      name="is_opportunity_application_emailed" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_remote_delivery]"
+                      dataType="bool"
+                      name="is_remote_delivery" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[manager_notes]"
+                      codePage="1252"
+                      dataType="text"
+                      name="manager_notes" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[opportunity_application_email_date]"
+                      codePage="1252"
+                      dataType="text"
+                      name="opportunity_application_email_date" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[percent_fit]"
+                      dataType="r4"
+                      name="percent_fit" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[hts_sequence_order]"
+                      dataType="i4"
+                      name="hts_sequence_order" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[header_tag]"
+                      codePage="1252"
+                      dataType="str"
+                      length="32"
+                      name="header_tag" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_anchor_set]"
+                      dataType="bool"
+                      name="is_in_anchor_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_basic_text_set]"
+                      dataType="bool"
+                      name="is_in_basic_text_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_block_elements_set]"
+                      dataType="bool"
+                      name="is_in_block_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_computer_phrase_elements_set]"
+                      dataType="bool"
+                      name="is_in_computer_phrase_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_document_body_elements_set]"
+                      dataType="bool"
+                      name="is_in_document_body_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_document_head_elements_set]"
+                      dataType="bool"
+                      name="is_in_document_head_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_document_structure_elements_set]"
+                      dataType="bool"
+                      name="is_in_document_structure_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_forms_set]"
+                      dataType="bool"
+                      name="is_in_forms_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_frames_set]"
+                      dataType="bool"
+                      name="is_in_frames_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_general_set]"
+                      dataType="bool"
+                      name="is_in_general_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_historic_elements_set]"
+                      dataType="bool"
+                      name="is_in_historic_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_images_and_objects_set]"
+                      dataType="bool"
+                      name="is_in_images_and_objects_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_inline_elements_set]"
+                      dataType="bool"
+                      name="is_in_inline_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_lists_set]"
+                      dataType="bool"
+                      name="is_in_lists_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_non_standard_elements_set]"
+                      dataType="bool"
+                      name="is_in_non_standard_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_other_block_elements_set]"
+                      dataType="bool"
+                      name="is_in_other_block_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_other_inline_elements_set]"
+                      dataType="bool"
+                      name="is_in_other_inline_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_phrase_elements_set]"
+                      dataType="bool"
+                      name="is_in_phrase_elements_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_presentation_set]"
+                      dataType="bool"
+                      name="is_in_presentation_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_section_headings_set]"
+                      dataType="bool"
+                      name="is_in_section_headings_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_span_set]"
+                      dataType="bool"
+                      name="is_in_span_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_in_tables_set]"
+                      dataType="bool"
+                      name="is_in_tables_set" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[mrs_explanation]"
+                      codePage="1252"
+                      dataType="text"
+                      name="mrs_explanation" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[mrs_symbol]"
+                      codePage="1252"
+                      dataType="str"
+                      length="4"
+                      name="mrs_symbol" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[sequence_order]"
+                      dataType="i4"
+                      name="sequence_order" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_corporate_scope]"
+                      dataType="bool"
+                      name="is_corporate_scope" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_educational_requirement]"
+                      dataType="bool"
+                      name="is_educational_requirement" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_header]"
+                      dataType="bool"
+                      name="is_header" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_interview_procedure]"
+                      dataType="bool"
+                      name="is_interview_procedure" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_job_duration]"
+                      dataType="bool"
+                      name="is_job_duration" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_job_title]"
+                      dataType="bool"
+                      name="is_job_title" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_legal_notification]"
+                      dataType="bool"
+                      name="is_legal_notification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_minimum_qualification]"
+                      dataType="bool"
+                      name="is_minimum_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_office_location]"
+                      dataType="bool"
+                      name="is_office_location" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_other]"
+                      dataType="bool"
+                      name="is_other" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_posting_date]"
+                      dataType="bool"
+                      name="is_posting_date" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_preferred_qualification]"
+                      dataType="bool"
+                      name="is_preferred_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_qualification]"
+                      dataType="bool"
+                      name="is_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_supplemental_pay]"
+                      dataType="bool"
+                      name="is_supplemental_pay" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[is_task_scope]"
+                      dataType="bool"
+                      name="is_task_scope" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[navigable_parent]"
+                      dataType="nText"
+                      name="navigable_parent" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_corporate_scope]"
+                      dataType="bool"
+                      name="pos_is_corporate_scope" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_educational_requirement]"
+                      dataType="bool"
+                      name="pos_is_educational_requirement" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_header]"
+                      dataType="bool"
+                      name="pos_is_header" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_interview_procedure]"
+                      dataType="bool"
+                      name="pos_is_interview_procedure" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_job_duration]"
+                      dataType="bool"
+                      name="pos_is_job_duration" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_job_title]"
+                      dataType="bool"
+                      name="pos_is_job_title" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_legal_notification]"
+                      dataType="bool"
+                      name="pos_is_legal_notification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_minimum_qualification]"
+                      dataType="bool"
+                      name="pos_is_minimum_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_office_location]"
+                      dataType="bool"
+                      name="pos_is_office_location" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_other]"
+                      dataType="bool"
+                      name="pos_is_other" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_posting_date]"
+                      dataType="bool"
+                      name="pos_is_posting_date" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_preferred_qualification]"
+                      dataType="bool"
+                      name="pos_is_preferred_qualification" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_supplemental_pay]"
+                      dataType="bool"
+                      name="pos_is_supplemental_pay" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_is_task_scope]"
+                      dataType="bool"
+                      name="pos_is_task_scope" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_explanation]"
+                      codePage="1252"
+                      dataType="text"
+                      name="pos_explanation" />
+                    <externalMetadataColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output].ExternalColumns[pos_symbol]"
+                      codePage="1252"
+                      dataType="str"
+                      length="4"
+                      name="pos_symbol" />
+                  </externalMetadataColumns>
+                </output>
+                <output
+                  refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output]"
+                  isErrorOut="true"
+                  name="OLE DB Source Error Output">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[file_name]"
+                      codePage="1252"
+                      dataType="str"
+                      length="255"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[file_name]"
+                      name="file_name" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_opportunity_application_emailed]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_opportunity_application_emailed]"
+                      name="is_opportunity_application_emailed" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_remote_delivery]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_remote_delivery]"
+                      name="is_remote_delivery" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[manager_notes]"
+                      codePage="1252"
+                      dataType="text"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[manager_notes]"
+                      name="manager_notes" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[opportunity_application_email_date]"
+                      codePage="1252"
+                      dataType="text"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[opportunity_application_email_date]"
+                      name="opportunity_application_email_date" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[percent_fit]"
+                      dataType="r4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[percent_fit]"
+                      name="percent_fit" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[hts_sequence_order]"
+                      dataType="i4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[hts_sequence_order]"
+                      name="hts_sequence_order" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[header_tag]"
+                      codePage="1252"
+                      dataType="str"
+                      length="32"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[header_tag]"
+                      name="header_tag" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_anchor_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_anchor_set]"
+                      name="is_in_anchor_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_basic_text_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_basic_text_set]"
+                      name="is_in_basic_text_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_block_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_block_elements_set]"
+                      name="is_in_block_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_computer_phrase_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_computer_phrase_elements_set]"
+                      name="is_in_computer_phrase_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_document_body_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_document_body_elements_set]"
+                      name="is_in_document_body_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_document_head_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_document_head_elements_set]"
+                      name="is_in_document_head_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_document_structure_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_document_structure_elements_set]"
+                      name="is_in_document_structure_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_forms_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_forms_set]"
+                      name="is_in_forms_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_frames_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_frames_set]"
+                      name="is_in_frames_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_general_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_general_set]"
+                      name="is_in_general_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_historic_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_historic_elements_set]"
+                      name="is_in_historic_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_images_and_objects_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_images_and_objects_set]"
+                      name="is_in_images_and_objects_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_inline_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_inline_elements_set]"
+                      name="is_in_inline_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_lists_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_lists_set]"
+                      name="is_in_lists_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_non_standard_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_non_standard_elements_set]"
+                      name="is_in_non_standard_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_other_block_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_other_block_elements_set]"
+                      name="is_in_other_block_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_other_inline_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_other_inline_elements_set]"
+                      name="is_in_other_inline_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_phrase_elements_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_phrase_elements_set]"
+                      name="is_in_phrase_elements_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_presentation_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_presentation_set]"
+                      name="is_in_presentation_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_section_headings_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_section_headings_set]"
+                      name="is_in_section_headings_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_span_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_span_set]"
+                      name="is_in_span_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_tables_set]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_in_tables_set]"
+                      name="is_in_tables_set" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[mrs_explanation]"
+                      codePage="1252"
+                      dataType="text"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[mrs_explanation]"
+                      name="mrs_explanation" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[mrs_symbol]"
+                      codePage="1252"
+                      dataType="str"
+                      length="4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[mrs_symbol]"
+                      name="mrs_symbol" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[sequence_order]"
+                      dataType="i4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[sequence_order]"
+                      name="sequence_order" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_corporate_scope]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_corporate_scope]"
+                      name="is_corporate_scope" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_educational_requirement]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_educational_requirement]"
+                      name="is_educational_requirement" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_header]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_header]"
+                      name="is_header" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_interview_procedure]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_interview_procedure]"
+                      name="is_interview_procedure" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_job_duration]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_job_duration]"
+                      name="is_job_duration" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_job_title]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_job_title]"
+                      name="is_job_title" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_legal_notification]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_legal_notification]"
+                      name="is_legal_notification" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_minimum_qualification]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_minimum_qualification]"
+                      name="is_minimum_qualification" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_office_location]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_office_location]"
+                      name="is_office_location" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_other]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_other]"
+                      name="is_other" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_posting_date]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_posting_date]"
+                      name="is_posting_date" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_preferred_qualification]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_preferred_qualification]"
+                      name="is_preferred_qualification" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_qualification]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_qualification]"
+                      name="is_qualification" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_supplemental_pay]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_supplemental_pay]"
+                      name="is_supplemental_pay" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_task_scope]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[is_task_scope]"
+                      name="is_task_scope" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[navigable_parent]"
+                      dataType="nText"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[navigable_parent]"
+                      name="navigable_parent" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_corporate_scope]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_corporate_scope]"
+                      name="pos_is_corporate_scope" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_educational_requirement]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_educational_requirement]"
+                      name="pos_is_educational_requirement" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_header]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_header]"
+                      name="pos_is_header" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_interview_procedure]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_interview_procedure]"
+                      name="pos_is_interview_procedure" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_job_duration]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_job_duration]"
+                      name="pos_is_job_duration" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_job_title]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_job_title]"
+                      name="pos_is_job_title" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_legal_notification]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_legal_notification]"
+                      name="pos_is_legal_notification" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_minimum_qualification]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_minimum_qualification]"
+                      name="pos_is_minimum_qualification" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_office_location]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_office_location]"
+                      name="pos_is_office_location" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_other]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_other]"
+                      name="pos_is_other" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_posting_date]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_posting_date]"
+                      name="pos_is_posting_date" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_preferred_qualification]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_preferred_qualification]"
+                      name="pos_is_preferred_qualification" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_supplemental_pay]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_supplemental_pay]"
+                      name="pos_is_supplemental_pay" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_task_scope]"
+                      dataType="bool"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_is_task_scope]"
+                      name="pos_is_task_scope" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_explanation]"
+                      codePage="1252"
+                      dataType="text"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_explanation]"
+                      name="pos_explanation" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_symbol]"
+                      codePage="1252"
+                      dataType="str"
+                      length="4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[pos_symbol]"
+                      name="pos_symbol" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
+                      dataType="i4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
+                      name="ErrorCode"
+                      specialFlags="1" />
+                    <outputColumn
+                      refId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]"
+                      dataType="i4"
+                      lineageId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]"
+                      name="ErrorColumn"
+                      specialFlags="2" />
+                  </outputColumns>
+                  <externalMetadataColumns />
+                </output>
+              </outputs>
+            </component>
+          </components>
+          <paths>
+            <path
+              refId="Package\Data Flow Task 1.Paths[OLE DB Source Output]"
+              endId="Package\Data Flow Task 1\Destination - sql_export_csv.Inputs[Flat File Destination Input]"
+              name="OLE DB Source Output"
+              startId="Package\Data Flow Task 1\Source - Query.Outputs[OLE DB Source Output]" />
+          </paths>
+        </pipeline>
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+</DTS:Executable>

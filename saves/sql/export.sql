@@ -1,0 +1,78 @@
+SELECT
+	dbo.FileNames.file_name,
+	dbo.FileNames.is_opportunity_application_emailed,
+	dbo.FileNames.is_remote_delivery,
+	dbo.FileNames.manager_notes,
+	dbo.FileNames.opportunity_application_email_date,
+	dbo.FileNames.percent_fit,
+	dbo.HeaderTagSequence.sequence_order AS hts_sequence_order,
+	dbo.HeaderTags.header_tag,
+	dbo.HeaderTags.is_in_anchor_set,
+	dbo.HeaderTags.is_in_basic_text_set,
+	dbo.HeaderTags.is_in_block_elements_set,
+	dbo.HeaderTags.is_in_computer_phrase_elements_set,
+	dbo.HeaderTags.is_in_document_body_elements_set,
+	dbo.HeaderTags.is_in_document_head_elements_set,
+	dbo.HeaderTags.is_in_document_structure_elements_set,
+	dbo.HeaderTags.is_in_forms_set,
+	dbo.HeaderTags.is_in_frames_set,
+	dbo.HeaderTags.is_in_general_set,
+	dbo.HeaderTags.is_in_historic_elements_set,
+	dbo.HeaderTags.is_in_images_and_objects_set,
+	dbo.HeaderTags.is_in_inline_elements_set,
+	dbo.HeaderTags.is_in_lists_set,
+	dbo.HeaderTags.is_in_non_standard_elements_set,
+	dbo.HeaderTags.is_in_other_block_elements_set,
+	dbo.HeaderTags.is_in_other_inline_elements_set,
+	dbo.HeaderTags.is_in_phrase_elements_set,
+	dbo.HeaderTags.is_in_presentation_set,
+	dbo.HeaderTags.is_in_section_headings_set,
+	dbo.HeaderTags.is_in_span_set,
+	dbo.HeaderTags.is_in_tables_set,
+	dbo.MinimumRequirementsSection.mrs_explanation,
+	dbo.MinimumRequirementsSection.mrs_symbol,
+	dbo.NavigableParentSequence.sequence_order,
+	dbo.NavigableParents.is_corporate_scope,
+	dbo.NavigableParents.is_educational_requirement,
+	dbo.NavigableParents.is_header,
+	dbo.NavigableParents.is_interview_procedure,
+	dbo.NavigableParents.is_job_duration,
+	dbo.NavigableParents.is_job_title,
+	dbo.NavigableParents.is_legal_notification,
+	dbo.NavigableParents.is_minimum_qualification,
+	dbo.NavigableParents.is_office_location,
+	dbo.NavigableParents.is_other,
+	dbo.NavigableParents.is_posting_date,
+	dbo.NavigableParents.is_preferred_qualification,
+	dbo.NavigableParents.is_qualification,
+	dbo.NavigableParents.is_supplemental_pay,
+	dbo.NavigableParents.is_task_scope,
+	dbo.NavigableParents.navigable_parent,
+	dbo.PartsOfSpeech.is_corporate_scope AS pos_is_corporate_scope,
+	dbo.PartsOfSpeech.is_educational_requirement AS pos_is_educational_requirement,
+	dbo.PartsOfSpeech.is_header AS pos_is_header,
+	dbo.PartsOfSpeech.is_interview_procedure AS pos_is_interview_procedure,
+	dbo.PartsOfSpeech.is_job_duration AS pos_is_job_duration,
+	dbo.PartsOfSpeech.is_job_title AS pos_is_job_title,
+	dbo.PartsOfSpeech.is_legal_notification AS pos_is_legal_notification,
+	dbo.PartsOfSpeech.is_minimum_qualification AS pos_is_minimum_qualification,
+	dbo.PartsOfSpeech.is_office_location AS pos_is_office_location,
+	dbo.PartsOfSpeech.is_other AS pos_is_other,
+	dbo.PartsOfSpeech.is_posting_date AS pos_is_posting_date,
+	dbo.PartsOfSpeech.is_preferred_qualification AS pos_is_preferred_qualification,
+	dbo.PartsOfSpeech.is_supplemental_pay AS pos_is_supplemental_pay,
+	dbo.PartsOfSpeech.is_task_scope AS pos_is_task_scope,
+	dbo.PartsOfSpeech.pos_explanation,
+	dbo.PartsOfSpeech.pos_symbol
+FROM
+	dbo.NavigableParents INNER JOIN
+	dbo.HeaderTags ON dbo.NavigableParents.header_tag_id = dbo.HeaderTags.header_tag_id INNER JOIN
+	dbo.NavigableParentSequence ON
+	dbo.NavigableParents.navigable_parent_id = dbo.NavigableParentSequence.navigable_parent_id INNER JOIN
+	dbo.FileNames INNER JOIN
+	dbo.HeaderTagSequence ON dbo.FileNames.file_name_id = dbo.HeaderTagSequence.file_name_id ON
+	dbo.NavigableParentSequence.file_name_id = dbo.FileNames.file_name_id AND 
+	dbo.HeaderTags.header_tag_id = dbo.HeaderTagSequence.header_tag_id INNER JOIN
+	dbo.MinimumRequirementsSection ON
+	dbo.NavigableParentSequence.mrs_id = dbo.MinimumRequirementsSection.mrs_id CROSS JOIN
+	dbo.PartsOfSpeech
