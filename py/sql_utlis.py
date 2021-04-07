@@ -1139,7 +1139,7 @@ class SqlUtilities(object):
 	def get_jh_conn_cursor(self):
 		conn = pyodbc.connect(
 			driver='{SQL Server}',
-			server='localhost\MSSQLSERVER01',
+			server='localhost\MSSQLSERVER',
 			database='Jobhunting',
 			trusted_connection=True
 		)
