@@ -546,20 +546,44 @@ class CrfUtilities(object):
 			self.su = sql_utlis.SqlUtilities()
 		else:
 			self.su = su
+		self.document_structure_elements_set = set(['body','head','html'])
+		self.document_head_elements_set = set(['base','basefont','isindex','link','meta','object','script','style','title'])
+		self.document_body_elements_set = set(['a','abbr','acronym','address','applet','area','article','aside','audio','b','bdi','bdo','big','blockquote','br','button','canvas','caption','center','cite','code','col','colgroup','data','datalist','dd','del','dfn','dir','div','dl','dt','em','embed','fieldset','figcaption','figure','font','footer','form','h1','h2','h3','h4','h5','h6','header','hr','i','img','input','ins','isindex','kbd','keygen','label','legend','li','main','map','mark','menu','meter','nav','noscript','object','ol','optgroup','option','output','p','param','pre','progress','q','rb','rp','rt','rtc','ruby','s','samp','script','section','select','small','source','span','strike','strong','sub','sup','table','tbody','td','template','textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var','video','wbr'])
+		self.block_elements_set = set(['address','article','aside','blockquote','center','dd','del','dir','div','dl','dt','figcaption','figure','footer','h1','h2','h3','h4','h5','h6','header','hr','ins','li','main','menu','nav','noscript','ol','p','pre','script','section','ul'])
+		self.basic_text_set = set(['h1','h2','h3','h4','h5','h6','p'])
+		self.section_headings_set = set(['h1','h2','h3','h4','h5','h6'])
+		self.lists_set = set(['dd','dir','dl','dt','li','ol','ul'])
+		self.other_block_elements_set = set(['address','article','aside','blockquote','center','del','div','figcaption','figure','footer','header','hr','ins','main','menu','nav','noscript','pre','script','section'])
+		self.inline_elements_set = set(['a','abbr','acronym','b','bdi','bdo','big','br','cite','code','data','del','dfn','em','font','i','ins','kbd','mark','q','rb','rp','rt','rtc','ruby','s','samp','script','small','span','strike','strong','sub','sup','template','time','tt','u','var','wbr'])
+		self.anchor_set = set(['a'])
+		self.phrase_elements_set = set(['abbr','acronym','b','big','code','dfn','em','font','i','kbd','s','samp','small','strike','strong','tt','u','var'])
+		self.general_set = set(['abbr','acronym','dfn','em','strong'])
+		self.computer_phrase_elements_set = set(['code','kbd','samp','var'])
+		self.presentation_set = set(['b','big','font','i','s','small','strike','tt','u'])
+		self.span_set = set(['span'])
+		self.other_inline_elements_set = set(['bdi','bdo','br','cite','data','del','ins','mark','q','rb','rp','rt','rtc','ruby','script','sub','sup','template','time','wbr'])
+		self.images_and_objects_set = set(['applet','area','audio','canvas','embed','img','map','object','param','source','track','video'])
+		self.forms_set = set(['button','datalist','fieldset','form','input','isindex','keygen','label','legend','meter','optgroup','option','output','progress','select','textarea'])
+		self.tables_set = set(['caption','col','colgroup','table','tbody','td','tfoot','th','thead','tr'])
+		self.frames_set = set(['frame','frameset','iframe','noframes'])
+		self.historic_elements_set = set(['listing','nextid','plaintext','xmp'])
+		self.non_standard_elements_set = set(['blink','layer','marquee','nobr','noembed'])
 		
 		# Build the CRF elements
+		self.conn, self.cursor = self.su.get_jh_conn_cursor()
 		if s.pickle_exists('CRF'):
 			self.CRF = s.load_object('CRF')
 		else:
 			import sklearn_crfsuite
-			self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs',c1=0.1,c2=0.1,max_iterations=100,all_possible_transitions=True)
+			self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs', c1=0.1, c2=0.1, max_iterations=100, all_possible_transitions=True)
 			HEADER_PATTERN_DICT = s.load_object('HEADER_PATTERN_DICT')
 			X_train = []
 			y_train = []
 			for file_name, feature_dict_list in HEADER_PATTERN_DICT.items():
-				X_train.append(feature_dict_list)
-				pos_list = [self.hc.get_feature_tuple(feature_dict)[2] for feature_dict in feature_dict_list]
+				feature_tuple_list = [self.hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
+				pos_list = [feature_tuple[2] for feature_tuple in feature_tuple_list]
 				y_train.append(pos_list)
+				X_train.append(self.sent2features(feature_tuple_list))
 			try:
 				self.CRF.fit(X_train, y_train)
 			except Exception as e:
@@ -863,28 +887,6 @@ class ElementAnalysis(object):
 			self.hc = HeaderCategories()
 		else:
 			self.hc = hc
-		self.document_structure_elements_set = set(['body','head','html'])
-		self.document_head_elements_set = set(['base','basefont','isindex','link','meta','object','script','style','title'])
-		self.document_body_elements_set = set(['a','abbr','acronym','address','applet','area','article','aside','audio','b','bdi','bdo','big','blockquote','br','button','canvas','caption','center','cite','code','col','colgroup','data','datalist','dd','del','dfn','dir','div','dl','dt','em','embed','fieldset','figcaption','figure','font','footer','form','h1','h2','h3','h4','h5','h6','header','hr','i','img','input','ins','isindex','kbd','keygen','label','legend','li','main','map','mark','menu','meter','nav','noscript','object','ol','optgroup','option','output','p','param','pre','progress','q','rb','rp','rt','rtc','ruby','s','samp','script','section','select','small','source','span','strike','strong','sub','sup','table','tbody','td','template','textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var','video','wbr'])
-		self.block_elements_set = set(['address','article','aside','blockquote','center','dd','del','dir','div','dl','dt','figcaption','figure','footer','h1','h2','h3','h4','h5','h6','header','hr','ins','li','main','menu','nav','noscript','ol','p','pre','script','section','ul'])
-		self.basic_text_set = set(['h1','h2','h3','h4','h5','h6','p'])
-		self.section_headings_set = set(['h1','h2','h3','h4','h5','h6'])
-		self.lists_set = set(['dd','dir','dl','dt','li','ol','ul'])
-		self.other_block_elements_set = set(['address','article','aside','blockquote','center','del','div','figcaption','figure','footer','header','hr','ins','main','menu','nav','noscript','pre','script','section'])
-		self.inline_elements_set = set(['a','abbr','acronym','b','bdi','bdo','big','br','cite','code','data','del','dfn','em','font','i','ins','kbd','mark','q','rb','rp','rt','rtc','ruby','s','samp','script','small','span','strike','strong','sub','sup','template','time','tt','u','var','wbr'])
-		self.anchor_set = set(['a'])
-		self.phrase_elements_set = set(['abbr','acronym','b','big','code','dfn','em','font','i','kbd','s','samp','small','strike','strong','tt','u','var'])
-		self.general_set = set(['abbr','acronym','dfn','em','strong'])
-		self.computer_phrase_elements_set = set(['code','kbd','samp','var'])
-		self.presentation_set = set(['b','big','font','i','s','small','strike','tt','u'])
-		self.span_set = set(['span'])
-		self.other_inline_elements_set = set(['bdi','bdo','br','cite','data','del','ins','mark','q','rb','rp','rt','rtc','ruby','script','sub','sup','template','time','wbr'])
-		self.images_and_objects_set = set(['applet','area','audio','canvas','embed','img','map','object','param','source','track','video'])
-		self.forms_set = set(['button','datalist','fieldset','form','input','isindex','keygen','label','legend','meter','optgroup','option','output','progress','select','textarea'])
-		self.tables_set = set(['caption','col','colgroup','table','tbody','td','tfoot','th','thead','tr'])
-		self.frames_set = set(['frame','frameset','iframe','noframes'])
-		self.historic_elements_set = set(['listing','nextid','plaintext','xmp'])
-		self.non_standard_elements_set = set(['blink','layer','marquee','nobr','noembed'])
 
 	def get_idx_list(self, items_list, item_str):
 		item_count = items_list.count(item_str)

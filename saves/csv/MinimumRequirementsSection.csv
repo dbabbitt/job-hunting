@@ -1,0 +1,5 @@
+mrs_id,mrs_symbol,mrs_explanation
+0,N,Not a part of the Minimum Requirements Section
+1,B,Beginning of the Minimum Requirements Section
+2,M,Middle of the Minimum Requirements Section
+3,E,End of the Minimum Requirements Section

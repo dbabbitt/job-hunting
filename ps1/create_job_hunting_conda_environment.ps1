@@ -26,7 +26,7 @@ $OldPath = Get-Location
 # ."${PowerScriptsDirectory}\update_conda_environment.ps1"
 
 # Bring up the workspace in Chrome
-# ."${PowerScriptsDirectory}\view_lab_in_chrome.ps1"
+."${PowerScriptsDirectory}\view_lab_in_chrome.ps1"
 
 # Bring up the flaskr app in Chrome
 # ."${PowerScriptsDirectory}\view_flaskr_in_chrome.ps1"

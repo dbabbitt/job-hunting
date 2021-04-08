@@ -315,16 +315,18 @@ class SqlUtilities(object):
 				navigable_parent_sequence_id INTEGER PRIMARY KEY,
 				file_name_id INTEGER NOT NULL,
 				navigable_parent_id INTEGER NOT NULL,
-				sequence_order INTEGER NOT NULL
+				sequence_order INTEGER NOT NULL,
+				mrs_id INTEGER NOT NULL
 			);"""
 		self.insert_navigableparentsequence_table_sql_str = """
 			INSERT INTO NavigableParentSequence (
 				navigable_parent_sequence_id,
 				file_name_id,
 				navigable_parent_id,
-				sequence_order
+				sequence_order,
+				mrs_id
 			)
-			VALUES (?, ?, ?, ?);"""
+			VALUES (?, ?, ?, ?, ?);"""
 		self.select_filename_isheader_sql_str = """
 			SELECT
 				RTRIM(f.[file_name]) AS file_name,
@@ -334,7 +336,7 @@ class SqlUtilities(object):
 				[Jobhunting].[dbo].[NavigableParents] t ON
 				s.[navigable_parent_id] = t.[navigable_parent_id] INNER JOIN
 				[Jobhunting].[dbo].[FileNames] f ON
-				s.[file_name_id] = f.[file_name_id]"""
+				s.[file_name_id] = f.[file_name_id];"""
 
 
 		# Parts of Speech SQL strings
@@ -379,6 +381,22 @@ class SqlUtilities(object):
 				is_other,
 				is_qualification
 			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			;"""
+
+
+		# Minimum Requirements Section SQL strings
+		self.create_table_minimumrequirementssection_sql_str = """
+			CREATE TABLE MinimumRequirementsSection(
+				mrs_id INTEGER PRIMARY KEY,
+				mrs_symbol VARCHAR(4) NOT NULL,
+				mrs_explanation TEXT NOT NULL
+			);"""
+		self.insert_into_minimumrequirementssection_sql_str = """
+			INSERT INTO MinimumRequirementsSection (
+				mrs_id,
+				mrs_symbol,
+				mrs_explanation
+			) VALUES (?, ?, ?)
 			;"""
 		
 		# Various SQL strings
@@ -733,13 +751,13 @@ class SqlUtilities(object):
 					break
 				try:
 					db.execute(self.insert_navigableparentsequence_table_sql_str,
-							   (counter, file_name_id, navigable_parent_id, sequence_order))
+							   (counter, file_name_id, navigable_parent_id, sequence_order, 0))
 					counter += 1
 				except Exception as e:
 					print(str(e).strip())
 					print(self.insert_navigableparentsequence_table_sql_str.replace('?',
 																					'{}').format(counter, file_name_id, navigable_parent_id,
-																								 sequence_order))
+																								 sequence_order, 0))
 					break
 		db.commit()
 	
@@ -795,6 +813,20 @@ class SqlUtilities(object):
 			if verbose:
 				print(sql_str)
 			db.execute(sql_str)
+		db.commit()
+	
+	
+	def create_minimumrequirementssection_table(self, db, verbose=False):
+		db.execute('DROP TABLE IF EXISTS MinimumRequirementsSection;')
+		db.execute(self.create_table_minimumrequirementssection_sql_str)
+		db.commit()
+	
+	
+	def populate_minimumrequirementssection_table(self, db, verbose=False):
+		mrs_explanation_dict = {'N': 'Not a part of the Minimum Requirements Section', 'B': 'Beginning of the Minimum Requirements Section',
+								'M': 'Middle of the Minimum Requirements Section', 'E': 'End of the Minimum Requirements Section'}
+		for count, (mrs_symbol, mrs_explanation) in enumerate(mrs_explanation_dict.items()):
+			db.execute(self.insert_into_minimumrequirementssection_sql_str, (count, mrs_symbol, mrs_explanation))
 		db.commit()
 	
 	
@@ -1107,7 +1139,7 @@ class SqlUtilities(object):
 	def get_jh_conn_cursor(self):
 		conn = pyodbc.connect(
 			driver='{SQL Server}',
-			server='localhost\MSSQLSERVER01',
+			server='localhost\MSSQLSERVER',
 			database='Jobhunting',
 			trusted_connection=True
 		)

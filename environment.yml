@@ -241,7 +241,7 @@ dependencies:
   - pywin32=228=py37h4ab8f01_0
   - pywinpty=0.5.7=py37hc8dfbb8_1
   - pyyaml=5.3.1=py37h0013d47_1
-  - pyzmq=20.0.0=py37h0d95fc2_1
+  - pyzmq
   - qt=5.12.9=hb2cf2c5_0
   - qtconsole=5.0.1=pyhd8ed1ab_0
   - qtpy=1.9.0=py_0
@@ -291,7 +291,7 @@ dependencies:
   - xz=5.2.5=h62dcd97_1
   - yaml=0.2.5=he774522_0
   - yarl=1.6.3=py37hcc03f2d_0
-  - zeromq=4.3.3=h0e60522_3
+  - zeromq
   - zfp=0.5.5=h0e60522_4
   - zipp=3.4.0=py_0
   - zlib=1.2.11=h62dcd97_1010

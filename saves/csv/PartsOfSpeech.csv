@@ -1,0 +1,27 @@
+pos_id,pos_symbol,pos_explanation,is_header,is_task_scope,is_minimum_qualification,is_preferred_qualification,is_legal_notification,is_job_title,is_office_location,is_job_duration,is_supplemental_pay,is_educational_requirement,is_interview_procedure,is_corporate_scope,is_posting_date,is_other
+0,H-TS,Task Scope Header,True,True,False,False,False,False,False,False,False,False,False,False,False,False
+1,O-TS,Task Scope Non-header,False,True,False,False,False,False,False,False,False,False,False,False,False,False
+2,H-RQ,Required Qualifications Header,True,False,True,False,False,False,False,False,False,False,False,False,False,False
+3,O-RQ,Required Qualifications Non-header,False,False,True,False,False,False,False,False,False,False,False,False,False,False
+4,H-PQ,Preferred Qualifications Header,True,False,False,True,False,False,False,False,False,False,False,False,False,False
+5,O-PQ,Preferred Qualifications Non-header,False,False,False,True,False,False,False,False,False,False,False,False,False,False
+6,H-LN,Legal Notifications Header,True,False,False,False,True,False,False,False,False,False,False,False,False,False
+7,O-LN,Legal Notifications Non-header,False,False,False,False,True,False,False,False,False,False,False,False,False,False
+8,H-JT,Job Title Header,True,False,False,False,False,True,False,False,False,False,False,False,False,False
+9,O-JT,Job Title Non-header,False,False,False,False,False,True,False,False,False,False,False,False,False,False
+10,H-OL,Office Location Header,True,False,False,False,False,False,True,False,False,False,False,False,False,False
+11,O-OL,Office Location Non-header,False,False,False,False,False,False,True,False,False,False,False,False,False,False
+12,H-JD,Job Duration Header,True,False,False,False,False,False,False,True,False,False,False,False,False,False
+13,O-JD,Job Duration Non-header,False,False,False,False,False,False,False,True,False,False,False,False,False,False
+14,H-SP,Supplemental Pay Header,True,False,False,False,False,False,False,False,True,False,False,False,False,False
+15,O-SP,Supplemental Pay Non-header,False,False,False,False,False,False,False,False,True,False,False,False,False,False
+16,H-ER,Education Requirements Header,True,False,False,False,False,False,False,False,False,True,False,False,False,False
+17,O-ER,Education Requirements Non-header,False,False,False,False,False,False,False,False,False,True,False,False,False,False
+18,H-IP,Interview Procedures Header,True,False,False,False,False,False,False,False,False,False,True,False,False,False
+19,O-IP,Interview Procedures Non-header,False,False,False,False,False,False,False,False,False,False,True,False,False,False
+20,H-CS,Corporate Scope Header,True,False,False,False,False,False,False,False,False,False,False,True,False,False
+21,O-CS,Corporate Scope Non-header,False,False,False,False,False,False,False,False,False,False,False,True,False,False
+22,H-PD,Post Date Header,True,False,False,False,False,False,False,False,False,False,False,False,True,False
+23,O-PD,Post Date Non-header,False,False,False,False,False,False,False,False,False,False,False,False,True,False
+24,H-O,Other Header,True,False,False,False,False,False,False,False,False,False,False,False,False,True
+25,O-O,Other Non-header,False,False,False,False,False,False,False,False,False,False,False,False,False,True

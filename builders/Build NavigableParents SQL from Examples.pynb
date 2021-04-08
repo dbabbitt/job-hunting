@@ -1,0 +1,254 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Pretty printing has been turned OFF\n"
+     ]
+    }
+   ],
+   "source": [
+    "\n",
+    "%pprint"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "OperationalError",
+     "evalue": "('08001', '[08001] [Microsoft][ODBC SQL Server Driver][DBNETLIB]Invalid connection. (14) (SQLDriverConnect); [08001] [Microsoft][ODBC SQL Server Driver][DBNETLIB]ConnectionOpen (ParseConnectParams()). (14)')",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[1;31mOperationalError\u001b[0m                          Traceback (most recent call last)",
+      "\u001b[1;32m<timed exec>\u001b[0m in \u001b[0;36m<module>\u001b[1;34m\u001b[0m\n",
+      "\u001b[1;32m~\\Documents\\Repositories\\job-hunting\\py\\sql_utlis.py\u001b[0m in \u001b[0;36mget_jh_conn_cursor\u001b[1;34m(self)\u001b[0m\n\u001b[0;32m   1142\u001b[0m                         \u001b[0mserver\u001b[0m\u001b[1;33m=\u001b[0m\u001b[1;34m'localhost\\MSSQLSERVER'\u001b[0m\u001b[1;33m,\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m   1143\u001b[0m                         \u001b[0mdatabase\u001b[0m\u001b[1;33m=\u001b[0m\u001b[1;34m'Jobhunting'\u001b[0m\u001b[1;33m,\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m-> 1144\u001b[1;33m                         \u001b[0mtrusted_connection\u001b[0m\u001b[1;33m=\u001b[0m\u001b[1;32mTrue\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m\u001b[0;32m   1145\u001b[0m \t\t)\n\u001b[0;32m   1146\u001b[0m                 \u001b[0mcursor\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mconn\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mcursor\u001b[0m\u001b[1;33m(\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n",
+      "\u001b[1;31mOperationalError\u001b[0m: ('08001', '[08001] [Microsoft][ODBC SQL Server Driver][DBNETLIB]Invalid connection. (14) (SQLDriverConnect); [08001] [Microsoft][ODBC SQL Server Driver][DBNETLIB]ConnectionOpen (ParseConnectParams()). (14)')"
+     ]
+    }
+   ],
+   "source": [
+    "\n",
+    "%%time\n",
+    "import re\n",
+    "import random\n",
+    "import textwrap\n",
+    "%run ../py/sql_utlis.py\n",
+    "\n",
+    "ZMQInteractiveShell_obj = get_ipython()\n",
+    "su = SqlUtilities()\n",
+    "_, CURSOR = su.get_jh_conn_cursor()"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "\n",
+    "file_path = '../saves/sql/export.sql'\n",
+    "with open(file_path, 'r') as f:\n",
+    "    sql_str = f.read()\n",
+    "export_df = pd.DataFrame(su.get_execution_results(CURSOR, sql_str, verbose=False))"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "\n",
+    "export_df.sample(3).T"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "\n",
+    "dir(su.s)"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "\n",
+    "su.s.save_dataframes(export_df=export_df, verbose=True)"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "\n",
+    "shape_tuple = export_df.shape\n",
+    "print(f'{shape_tuple[0]*shape_tuple[1]:,}')"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "\n",
+    "# SET other subtypes as 0; assume no rows affected if primary and secondary columns are the same\n",
+    "subtypes_list = ['is_task_scope', 'is_minimum_qualification', 'is_preferred_qualification',\n",
+    "                 'is_legal_notification', 'is_job_title', 'is_office_location', 'is_job_duration',\n",
+    "                 'is_supplemental_pay', 'is_educational_requirement', 'is_interview_procedure',\n",
+    "                 'is_corporate_scope', 'is_posting_date', 'is_other']\n",
+    "for primary_column in subtypes_list:\n",
+    "    for secondary_column in subtypes_list:\n",
+    "        CURSOR.execute(su.set_secondary_column0_formatted_sql_str.format(secondary_column, primary_column,\n",
+    "                                                                         secondary_column))"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "\n",
+    "# Get the incomplete child strings still in the header pattern dictionary\n",
+    "HEADER_PATTERN_DICT = s.load_object('HEADER_PATTERN_DICT')\n",
+    "child_strs_set = set()\n",
+    "for file_name, feature_dict_list in HEADER_PATTERN_DICT.items():\n",
+    "    for feature_dict in feature_dict_list:\n",
+    "        if 'is_task_scope' not in feature_dict:\n",
+    "            child_strs_set.add(feature_dict['child_str'])\n",
+    "CHILD_STRS_LIST = list(child_strs_set)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "# Get the incomplete child strings labeled in the minimum requirements column\n",
+    "sql_str = '''\n",
+    "    SELECT *\n",
+    "    FROM\n",
+    "        [Jobhunting].[dbo].[FileNames] fn INNER JOIN\n",
+    "        [Jobhunting].[dbo].[NavigableParentSequence] nps ON\n",
+    "        fn.[file_name_id] = nps.[file_name_id] INNER JOIN\n",
+    "        [Jobhunting].[dbo].[NavigableParents] np ON\n",
+    "        nps.[navigable_parent_id] = np.[navigable_parent_id];'''\n",
+    "nps_df = pd.DataFrame(su.get_execution_results(CURSOR, sql_str, verbose=False))\n",
+    "mask_series = (nps_df.mrs_id != 0)\n",
+    "file_name_ids_list = nps_df[mask_series].file_name_id.unique().tolist()\n",
+    "mask_series = nps_df.file_name_id.isin(file_name_ids_list)\n",
+    "CHILD_STRS_LIST = nps_df[mask_series].navigable_parent.tolist()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "# Get all possible unlabeled HTML strings from the database\n",
+    "SQL_STR = '''\n",
+    "    SELECT\n",
+    "        np.[navigable_parent],\n",
+    "        mrs.[mrs_explanation]\n",
+    "    FROM\n",
+    "        [Jobhunting].[dbo].[NavigableParents] np INNER JOIN\n",
+    "        [Jobhunting].[dbo].[NavigableParentSequence] nps ON\n",
+    "        nps.[navigable_parent_id] = np.[navigable_parent_id] INNER JOIN\n",
+    "        [Jobhunting].[dbo].[MinimumRequirementsSection] mrs ON\n",
+    "        nps.[mrs_id] = mrs.[mrs_id]\n",
+    "    WHERE\n",
+    "        (np.[is_task_scope] IS NULL) OR\n",
+    "        (np.[is_minimum_qualification] IS NULL) OR\n",
+    "        (np.[is_preferred_qualification] IS NULL) OR\n",
+    "        (np.[is_legal_notification] IS NULL) OR\n",
+    "        (np.[is_job_title] IS NULL) OR\n",
+    "        (np.[is_office_location] IS NULL) OR\n",
+    "        (np.[is_job_duration] IS NULL) OR\n",
+    "        (np.[is_supplemental_pay] IS NULL) OR\n",
+    "        (np.[is_educational_requirement] IS NULL) OR\n",
+    "        (np.[is_interview_procedure] IS NULL) OR\n",
+    "        (np.[is_corporate_scope] IS NULL) OR\n",
+    "        (np.[is_posting_date] IS NULL) OR\n",
+    "        (np.[is_other] IS NULL);'''"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 363,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "def get_sql_code():\n",
+    "    nonheader_quals_df = pd.DataFrame(su.get_execution_results(CURSOR, SQL_STR, verbose=False))\n",
+    "    mask_series = nonheader_quals_df.navigable_parent.isin(CHILD_STRS_LIST)\n",
+    "    output_str = ''\n",
+    "    df = nonheader_quals_df[mask_series]\n",
+    "    records_count = df.shape[0]\n",
+    "    output_str += f'\\n# Only {records_count:,} records to go\\n'\n",
+    "    if records_count:\n",
+    "        df = df.sample(1)\n",
+    "        output_str += f\"# This tag is labeled as {df.mrs_explanation.squeeze()}\\ntag_str =  '\"\n",
+    "        tag_str = df.navigable_parent.squeeze().replace(\"'\", \"\\\\'\")\n",
+    "        output_str += \"'\\ntag_str += '\".join(textwrap.wrap(tag_str, expand_tabs=False,\n",
+    "                                                           replace_whitespace=False,\n",
+    "                                                           break_long_words=False, drop_whitespace=False))\n",
+    "        output_str += \"'\\n\"\n",
+    "        output_str += 'sql_str = r\"\"\"UPDATE NavigableParents\\n'\n",
+    "        output_str += '    SET\\n        is_header = 0, is_task_scope = 0,\\n'\n",
+    "        output_str += '        is_minimum_qualification = 0, is_preferred_qualification = 0,\\n'\n",
+    "        output_str += '        is_legal_notification = 0, is_job_title = 0,\\n'\n",
+    "        output_str += '        is_office_location = 0, is_job_duration = 0,\\n'\n",
+    "        output_str += '        is_supplemental_pay = 0, is_educational_requirement = 0,\\n'\n",
+    "        output_str += '        is_interview_procedure = 0, is_corporate_scope = 0,\\n'\n",
+    "        output_str += '        is_posting_date = 0, is_other = 0\\n'\n",
+    "        output_str += '    WHERE (navigable_parent LIKE ? ESCAPE \\'\\\\\\')\"\"\"\\n'\n",
+    "        output_str += r\"cursor_obj = CURSOR.execute(sql_str, (su.wc_rgx.sub(r'\\\\\\g<1>', tag_str),))\"\n",
+    "        output_str += '\\nCURSOR.commit()'\n",
+    "    \n",
+    "    return output_str"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "ZMQInteractiveShell_obj.set_next_input(text=get_sql_code(), replace=True)"
+   ]
+  }
+ ],
+ "metadata": {
+  "anaconda-cloud": {},
+  "kernelspec": {
+   "display_name": "Job Hunting (Python 3.7.9)",
+   "language": "python",
+   "name": "jh_env"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
