@@ -6,7 +6,7 @@ If ($TokenString -Eq "") {
 	Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 	Write-Host "             Launching the Jupyter server in its own window" -ForegroundColor Green
 	Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-	$argList = "jupyter lab"
+	$argList = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-lab.exe --no-browser --config=${HomeDirectory}\.jupyter\jupyter_notebook_config.py --notebook-dir=${RepositoriesDirectory}"
 	Start-Process PowerShell -argumentlist $argList
 	Read-Host "Verify the Jupyter server is running, then press ENTER to continue..."
 }

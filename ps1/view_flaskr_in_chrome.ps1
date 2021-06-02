@@ -1,5 +1,5 @@
 
-# cd $Env:UserProfile\Documents\Repositories\job-hunting\ps1
+# cd $Env:UserProfile\Documents\GitHub\job-hunting\ps1
 # clear
 # .\view_flaskr_in_chrome.ps1
 

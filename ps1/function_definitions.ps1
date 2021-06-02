@@ -156,13 +156,13 @@ function Import-Workspace-File {
         [string]$RepositoryPath,
 		
         [Parameter(ParameterSetName = 'RepositoriesDirectory')]
-        [string]$RepositoriesDirectory = "${Env:UserProfile}\Documents\Repositories"
+        [string]$RepositoriesDirectory = "D:\Documents\GitHub"
     )
-	$CommandString = "cd ${RepositoriesDirectory}\${RepositoryPath} & jupyter-lab workspaces import workspace.json"
-	# Write-Host "CommandString = '${CommandString}'" -ForegroundColor Gray
+	$CommandString = "cd ${RepositoriesDirectory}\${RepositoryPath} & python -m jupyterlab workspaces import workspace.json"
+	# Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+	# $WorkspacePath = (jupyter-lab workspaces import workspace.json) | Out-String
 	$WorkspacePath = cmd /c $CommandString '2>&1'
 	# Write-Host "WorkspacePath = '${WorkspacePath}'" -ForegroundColor Red
-	# $WorkspacePath = (jupyter-lab workspaces import workspace.json) | Out-String
 	If ($WorkspacePath -Ne $null) {
 		$WorkspacePath = $WorkspacePath.Trim()
 		$WorkspacePath = $WorkspacePath -csplit ' '
@@ -187,7 +187,7 @@ function Add-Logos-To-Kernel-Folder {
         [string]$RepositoryPath,
 		
         [Parameter(ParameterSetName = 'RepositoriesDirectory')]
-        [string]$RepositoriesDirectory = "${Env:UserProfile}\Documents\Repositories"
+        [string]$RepositoriesDirectory = "D:\Documents\GitHub"
     )
 	$KernelFolder = "${Env:UserProfile}\AppData\Roaming\jupyter\kernels\${EnvironmentName}"
 	$LogoFolder = "${RepositoriesDirectory}\${RepositoryPath}\saves\png"
@@ -208,7 +208,7 @@ function Get-Token-String {
     .EXAMPLE
         $TokenString = Get-Token-String
     #>
-	$ListResults = (jupyter notebook list) | Out-String
+	$ListResults = (python -m jupyter notebook list) | Out-String
 	$TokenRegex = [regex] '(?m)http://localhost:8888/\?token=([^ ]+) :: '
 	$TokenString = $TokenRegex.Match($ListResults).Groups[1].Value
 	

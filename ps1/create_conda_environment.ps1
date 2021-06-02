@@ -13,11 +13,11 @@ Write-Host "--------------------------------------------------------------------
 Write-Host "                             Installing m2w64-toolchain" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 conda install m2w64-toolchain --yes #>
-Write-Host ""
+<# Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host " Installing the package for run-time control of the Intel Math Kernel Library" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-conda install -c intel mkl-service --yes
+conda install -c intel mkl-service --yes #>
 <# # You can force a re-download of your environment packages by un-commenting this out
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
@@ -55,6 +55,95 @@ Invoke-Expression $CommandString
 
 # Create the conda environment
 ."${RepositoriesDirectory}\${RepositoryPath}\ps1\update_conda_environment.ps1"
+
+# https://stackoverflow.com/questions/42563757/conda-update-condahttperror-http-none/60342954#60342954
+# From anaconda3\Library\bin copy below files and paste them in anaconda3/DLLs:
+$DllsFolder = "${EnvironmentPath}\DLLs"
+$AnacondaName = "anaconda3"
+$AnacondaFolder = "${HomeDirectory}\${AnacondaName}"
+# -   libcrypto-1_1-x64.dll
+$DllPath = "${EnvironmentPath}\Library\bin\libcrypto-1_1-x64.dll"
+If (!(Test-Path -Path $DllPath -PathType Leaf)) {
+	$DllPath = "${AnacondaFolder}\Library\bin\libcrypto-1_1-x64.dll"
+}
+# Write-Host "Copying libcrypto-1_1-x64.dll to the DLLs folder" -ForegroundColor Green
+Copy-Item $DllPath -Destination $DllsFolder
+# -   libssl-1_1-x64.dll
+$DllPath = "${EnvironmentPath}\Library\bin\libssl-1_1-x64.dll"
+If (!(Test-Path -Path $DllPath -PathType Leaf)) {
+	$DllPath = "${AnacondaFolder}\Library\bin\libssl-1_1-x64.dll"
+}
+# Write-Host "Copying libssl-1_1-x64.dll to the DLLs folder" -ForegroundColor Green
+Copy-Item $DllPath -Destination $DllsFolder
+
+# https://stackoverflow.com/questions/43916440/error-loading-jupyter-notebook-extensions
+# I solved this problem by removing jupyter-notebook, jupyter_contrib_nbextensions,
+# and jupyter_nbextensions_configurator, and starting it from scratch
+# Note: It only works on Anaconda environment
+$CommandString = "conda activate D:\Documents\GitHub\job-hunting\jh_env"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+# Uninstallation
+# For the different source of installation, you can remove these package through:
+
+$CommandString = "python -m pip uninstall jupyter --yes"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+$CommandString = "python -m pip uninstall jupyter_contrib_nbextensions --yes"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+$CommandString = "python -m pip uninstall jupyter_nbextensions_configurator --yes"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+# or
+
+$CommandString = "conda remove --force jupyter notebook --yes --prefix ${EnvironmentPath}"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+$CommandString = "conda remove --force jupyter_nbextensions_configurator --yes --prefix ${EnvironmentPath}"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+$CommandString = "conda remove --force jupyter_contrib_nbextensions --yes --prefix ${EnvironmentPath}"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+# But I'd advise you to run both of the above commands
+
+# Installation
+# It's better to install all the packages from anaconda:
+
+$CommandString = "conda install jupyter notebook --yes --prefix ${EnvironmentPath}"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+$CommandString = "conda update notebook --yes --prefix ${EnvironmentPath}"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+$CommandString = "conda install -c conda-forge jupyter_nbextensions_configurator --yes --prefix ${EnvironmentPath}"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
+
+$CommandString = "conda install -c conda-forge jupyter_contrib_nbextensions --yes --prefix ${EnvironmentPath}"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
+$ResultString = cmd /c $CommandString '2>&1'
+Write-Host "${ResultString}" -ForegroundColor Yellow
 
 # Add the kernel to the Launcher
 Write-Host ""
@@ -123,6 +212,7 @@ ForEach ($ConfigFolder in $ConfigFoldersList) {
 }
 # jupyter-lab build
 $CommandString = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-lab.exe build"
+Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
 Invoke-Expression $CommandString
 
 # Copy the favicon asset to the static directory

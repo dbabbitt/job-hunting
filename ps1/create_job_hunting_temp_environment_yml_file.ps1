@@ -1,5 +1,5 @@
 
-# cd $Env:UserProfile\Documents\Repositories\job-hunting\ps1
+# cd $Env:UserProfile\Documents\GitHub\job-hunting\ps1
 # clear
 # .\create_job_hunting_temp_environment_yml_file.ps1
 
@@ -8,7 +8,7 @@ $DisplayName = "Job Hunting"
 $RepositoryPath = "job-hunting"
 $EnvironmentName = "jh"
 $HomeDirectory = $Env:UserProfile
-$RepositoriesDirectory = "${HomeDirectory}\Documents\Repositories"
+$RepositoriesDirectory = "D:\Documents\GitHub"
 $EnvironmentPath = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}"
 
 $OldPath = Get-Location

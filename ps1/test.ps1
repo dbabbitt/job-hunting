@@ -1,5 +1,5 @@
 
-# cd $Env:UserProfile\Documents\Repositories\job-hunting\ps1
+# cd $Env:UserProfile\Documents\GitHub\job-hunting\ps1
 # clear
 # .\test.ps1
 
@@ -8,7 +8,7 @@
 # DarkYellow, Gray, DarkGray, Blue, Green, Cyan, Red, Magenta, Yellow, White
 
 [string]$HomeDirectory = "${Env:UserProfile}"
-[string]$RepositoriesDirectory = "${HomeDirectory}\Documents\Repositories"
+[string]$RepositoriesDirectory = "D:\Documents\GitHub"
 [string]$RepositoryPath = "job-hunting"
 [string]$EnvironmentName = "jh"
 

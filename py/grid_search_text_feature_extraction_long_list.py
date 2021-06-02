@@ -3,7 +3,7 @@
 # coding: utf-8
 
 # From Anaconda Prompt (anaconda3), type:
-# cd C:\Users\dev\Documents\Repositories\job-hunting\py
+# cd C:\Users\dev\Documents\GitHub\job-hunting\py
 # conda activate jh
 # clear
 # python grid_search_text_feature_extraction.py

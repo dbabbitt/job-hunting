@@ -13,7 +13,6 @@ import os
 import pandas as pd
 import pylab
 import re
-import sql_utlis
 
 try:
 	import storage
@@ -359,7 +358,7 @@ class HeaderAnalysis(object):
 class LdaUtilities(object):
 	"""Latent Dirichlet Allocation utilities class."""
 	
-	def __init__(self, ha=None, hc=None, su=None, verbose=False):
+	def __init__(self, ha=None, hc=None, cu=None, verbose=False):
 		if ha is None:
 			self.ha = HeaderAnalysis()
 		else:
@@ -368,15 +367,15 @@ class LdaUtilities(object):
 			self.hc = HeaderCategories()
 		else:
 			self.hc = hc
-		if su is None:
-			self.su = sql_utlis.SqlUtilities()
+		if cu is None:
+			import cypher_utlis
+			self.cu = cypher_utlis.CypherUtilities()
 		else:
-			self.su = su
+			self.cu = cu
 		
 		# Build the LDA elements
-		self.conn, self.cursor = self.su.get_jh_conn_cursor()
 		if not s.pickle_exists('NAVIGABLE_PARENT_IS_HEADER_DICT'):
-			self.su.build_child_strs_list_dictionary(self.cursor, verbose=verbose)
+			self.cu.build_child_strs_list_dictionary(verbose=verbose)
 		self.NAVIGABLE_PARENT_IS_HEADER_DICT = s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
 		self.stopwords_list = ['U', 'A', 'S', 'a', '1', 'u', 's', 'to', 'my', 'by', 'an', 'we', '00', 'or', 'as', 're', 'in', 'be', 'on', 'of', 'do', 'is', '19', 'any', 'out', 'for', 'the', 'are', 'and', 'long', 'each', 'have', 'with', 'more', 'will', 'into', 'that', 'this', 'your', 'from', 'their', 'class', 'about', 'other', 'place', '.']
 		self.tokenized_sents_list = self.get_tokenized_sents_list()
@@ -445,17 +444,15 @@ class LdaUtilities(object):
 		# Get ratio of headers to non-headers
 		if alpha is None:
 			import numpy as np
-			sql_str = '''
-				SELECT COUNT(np.[navigable_parent]) AS header_count
-				FROM [Jobhunting].[dbo].[NavigableParents] np
-				WHERE np.[is_header] = 1'''
-			is_header_df = pd.DataFrame(this.su.get_execution_results(this.cursor, sql_str))
+			cypher_str = """
+				MATCH (np:NavigableParents {is_header: 'True'})
+				RETURN COUNT(np.navigable_parent) AS header_count;"""
+			is_header_df = pd.DataFrame(self.cu.get_execution_results(self.cursor, cypher_str))
 			header_count = is_header_df.header_count.squeeze()
-			sql_str = '''
-				SELECT COUNT(np.[navigable_parent]) AS nonheader_count
-				FROM [Jobhunting].[dbo].[NavigableParents] np
-				WHERE np.[is_header] = 0'''
-			is_nonheader_df = pd.DataFrame(this.su.get_execution_results(this.cursor, sql_str))
+			cypher_str = """
+				MATCH (np:NavigableParents {is_header: 'False'})
+				RETURN COUNT(np.navigable_parent) AS nonheader_count;"""
+			is_nonheader_df = pd.DataFrame(self.cu.get_execution_results(self.cursor, cypher_str))
 			nonheader_count = is_nonheader_df.nonheader_count.squeeze()
 			nonheader_fraction = nonheader_count/(header_count + nonheader_count)
 			header_fraction = header_count/(header_count + nonheader_count)
@@ -483,47 +480,44 @@ class LdaUtilities(object):
 	def get_pos_count(self, verbose=False):
 		
 		# Get the parts-of-speech count to use as number of topics
-		sql_str = 'SELECT pos_symbol, pos_explanation FROM PartsOfSpeech'
-		pos_df = pd.DataFrame(self.su.get_execution_results(self.cursor, sql_str, verbose=False))
-		sql_prefix = '''
-			SELECT COUNT(*) AS row_count
-			FROM [Jobhunting].[dbo].[NavigableParents] np
-			WHERE
-				np.[is_header] = '''
+		cypher_str = 'SELECT pos_symbol, pos_explanation FROM PartsOfSpeech'
+		pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=False))
+		cypher_prefix = """
+				MATCH (np:NavigableParents {is_header: '"""
 		self.pos_symbols_list = []
 		for pos_symbol in pos_df.pos_symbol:
 			if pos_symbol.startswith('H-'):
-				sql_str = sql_prefix + '1'
+				cypher_str = cypher_prefix + "True', "
 			elif pos_symbol.startswith('O-'):
-				sql_str = sql_prefix + '0'
-			sql_str += ' AND\n\t\t\t\tnp.['
+				cypher_str = cypher_prefix + "False', "
 			if pos_symbol.endswith('-TS'):
-				sql_str += 'is_task_scope] = 1;'
+				cypher_str += "is_task_scope: 'True'"
 			elif pos_symbol.endswith('-RQ'):
-				sql_str += 'is_minimum_qualification] = 1;'
+				cypher_str += "is_minimum_qualification]: 'True'"
 			elif pos_symbol.endswith('-PQ'):
-				sql_str += 'is_preferred_qualification] = 1;'
+				cypher_str += "is_preferred_qualification]: 'True'"
 			elif pos_symbol.endswith('-LN'):
-				sql_str += 'is_legal_notification] = 1;'
+				cypher_str += "is_legal_notification]: 'True'"
 			elif pos_symbol.endswith('-JT'):
-				sql_str += 'is_job_title] = 1;'
+				cypher_str += "is_job_title]: 'True'"
 			elif pos_symbol.endswith('-OL'):
-				sql_str += 'is_office_location] = 1;'
+				cypher_str += "is_office_location]: 'True'"
 			elif pos_symbol.endswith('-JD'):
-				sql_str += 'is_job_duration] = 1;'
+				cypher_str += "is_job_duration]: 'True'"
 			elif pos_symbol.endswith('-SP'):
-				sql_str += 'is_supplemental_pay] = 1;'
+				cypher_str += "is_supplemental_pay]: 'True'"
 			elif pos_symbol.endswith('-ER'):
-				sql_str += 'is_educational_requirement] = 1;'
+				cypher_str += "is_educational_requirement]: 'True'"
 			elif pos_symbol.endswith('-IP'):
-				sql_str += 'is_interview_procedure] = 1;'
+				cypher_str += "is_interview_procedure]: 'True'"
 			elif pos_symbol.endswith('-CS'):
-				sql_str += 'is_corporate_scope] = 1;'
+				cypher_str += "is_corporate_scope]: 'True'"
 			elif pos_symbol.endswith('-PD'):
-				sql_str += 'is_posting_date] = 1;'
+				cypher_str += "is_posting_date]: 'True'"
 			elif pos_symbol.endswith('-O'):
-				sql_str += 'is_other] = 1;'
-			count_df = pd.DataFrame(self.su.get_execution_results(self.cursor, sql_str, verbose=False))
+				cypher_str += "is_other]: 'True'"
+			cypher_str += '})\nRETURN COUNT(np) AS row_count'
+			count_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=False))
 			if count_df.row_count.squeeze() > 0:
 				self.pos_symbols_list.append(pos_symbol)
 		num_topics = len(self.pos_symbols_list)
@@ -533,7 +527,7 @@ class LdaUtilities(object):
 class CrfUtilities(object):
 	"""Conditional Random Fields utilities class."""
 	
-	def __init__(self, ha=None, hc=None, su=None, verbose=False):
+	def __init__(self, ha=None, hc=None, cu=None, verbose=False):
 		if ha is None:
 			self.ha = HeaderAnalysis()
 		else:
@@ -542,10 +536,11 @@ class CrfUtilities(object):
 			self.hc = HeaderCategories()
 		else:
 			self.hc = hc
-		if su is None:
-			self.su = sql_utlis.SqlUtilities()
+		if cu is None:
+			import cypher_utlis
+			self.cu = cypher_utlis.CypherUtilities()
 		else:
-			self.su = su
+			self.cu = cu
 		self.document_structure_elements_set = set(['body','head','html'])
 		self.document_head_elements_set = set(['base','basefont','isindex','link','meta','object','script','style','title'])
 		self.document_body_elements_set = set(['a','abbr','acronym','address','applet','area','article','aside','audio','b','bdi','bdo','big','blockquote','br','button','canvas','caption','center','cite','code','col','colgroup','data','datalist','dd','del','dfn','dir','div','dl','dt','em','embed','fieldset','figcaption','figure','font','footer','form','h1','h2','h3','h4','h5','h6','header','hr','i','img','input','ins','isindex','kbd','keygen','label','legend','li','main','map','mark','menu','meter','nav','noscript','object','ol','optgroup','option','output','p','param','pre','progress','q','rb','rp','rt','rtc','ruby','s','samp','script','section','select','small','source','span','strike','strong','sub','sup','table','tbody','td','template','textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var','video','wbr'])
@@ -570,7 +565,6 @@ class CrfUtilities(object):
 		self.non_standard_elements_set = set(['blink','layer','marquee','nobr','noembed'])
 		
 		# Build the CRF elements
-		self.conn, self.cursor = self.su.get_jh_conn_cursor()
 		if s.pickle_exists('CRF'):
 			self.CRF = s.load_object('CRF')
 		else:
@@ -729,7 +723,7 @@ class CrfUtilities(object):
 class LrUtilities(object):
 	"""Logistic Regression utilities class."""
 	
-	def __init__(self, ha=None, hc=None, su=None, verbose=False):
+	def __init__(self, ha=None, hc=None, cu=None, verbose=False):
 		if ha is None:
 			self.ha = HeaderAnalysis()
 		else:
@@ -738,39 +732,23 @@ class LrUtilities(object):
 			self.hc = HeaderCategories()
 		else:
 			self.hc = hc
-		if su is None:
-			self.su = sql_utlis.SqlUtilities()
+		if cu is None:
+			import cypher_utlis
+			self.cu = cypher_utlis.CypherUtilities()
 		else:
-			self.su = su
+			self.cu = cu
 		
 		# Build the Logistic Regression elements
-		self.conn, self.cursor = self.su.get_jh_conn_cursor()
 		self.LR_DICT = {}
 		self.PREDICT_PERCENT_FIT_DICT = {}
 		
 		# Train a model for each labeled POS symbol
-		sql_str = '''
-			SELECT
-				np.[navigable_parent],
-				pos.[pos_symbol]
-			FROM
-				[Jobhunting].[dbo].[NavigableParents] np INNER JOIN
-				[Jobhunting].[dbo].[PartsOfSpeech] pos ON
-					pos.[is_header] = np.[is_header] AND
-					pos.[is_task_scope] = np.[is_task_scope] AND
-					pos.[is_minimum_qualification] = np.[is_minimum_qualification] AND
-					pos.[is_preferred_qualification] = np.[is_preferred_qualification] AND
-					pos.[is_legal_notification] = np.[is_legal_notification] AND
-					pos.[is_job_title] = np.[is_job_title] AND
-					pos.[is_office_location] = np.[is_office_location] AND
-					pos.[is_job_duration] = np.[is_job_duration] AND
-					pos.[is_supplemental_pay] = np.[is_supplemental_pay] AND
-					pos.[is_educational_requirement] = np.[is_educational_requirement] AND
-					pos.[is_interview_procedure] = np.[is_interview_procedure] AND
-					pos.[is_corporate_scope] = np.[is_corporate_scope] AND
-					pos.[is_posting_date] = np.[is_posting_date] AND
-					pos.[is_other] = np.[is_other];'''
-		pos_df = pd.DataFrame(self.su.get_execution_results(self.cursor, sql_str, verbose=verbose))
+		cypher_str = """
+			MATCH (pos:PartsOfSpeech)-r:SUMMARIZES->(np:NavigableParents)
+			RETURN
+				np.navigable_parent,
+				pos.pos_symbol;"""
+		pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
 		
 		# The shape of the Bag-of-words count vector here should be n html strings * m unique tokens
 		sents_list = pos_df.navigable_parent.tolist()
@@ -900,15 +878,15 @@ class ElementAnalysis(object):
 	
 	def find_basic_quals_section(self, child_strs_list):
 		try:
-			import sql_utlis
-			su = sql_utlis.SqlUtilities()
+			import cypher_utlis
+			cu = cypher_utlis.CypherUtilities()
 		except:
-			from flaskr.sql_utlis import SqlUtilities
-			su = SqlUtilities()
-		child_tags_list = su.get_child_tags_list(db, child_strs_list)
-		is_header_list = su.get_is_header_list(db, child_strs_list)
+			from flaskr.cypher_utlis import CypherUtilities
+			cu = CypherUtilities()
+		child_tags_list = cu.get_child_tags_list(db, child_strs_list)
+		is_header_list = cu.get_is_header_list(db, child_strs_list)
 		
-		feature_dict_list = su.get_feature_dict_list(db, child_tags_list, child_strs_list)
+		feature_dict_list = cu.get_feature_dict_list(db, child_tags_list, child_strs_list)
 		feature_tuple_list = [self.hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
 		
 		crf_list = self.CRF.predict_single(self.sent2features(feature_tuple_list))
@@ -916,7 +894,7 @@ class ElementAnalysis(object):
 		for pos, feature_tuple, is_header in zip(crf_list, feature_tuple_list, is_header_list):
 			navigable_parent = feature_tuple[1]
 			if is_header:
-				pos_list = su.append_parts_of_speech_list(db, navigable_parent, pos_list=[])
+				pos_list = cu.append_parts_of_speech_list(db, navigable_parent, pos_list=[])
 			else:
 				pos_list.append(pos)
 		db.close()

@@ -3,8 +3,8 @@
 # coding: utf-8
 
 # From Anaconda Prompt (anaconda3), type:
-# conda activate C:\Users\dev\Documents\Repositories\job-hunting\jh
-# cd C:\Users\dev\Documents\Repositories\job-hunting\py
+# conda activate C:\Users\dev\Documents\GitHub\job-hunting\jh
+# cd C:\Users\dev\Documents\GitHub\job-hunting\py
 # cls
 # python evaluate_crf.py
 

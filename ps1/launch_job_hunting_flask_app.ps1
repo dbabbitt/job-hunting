@@ -1,5 +1,5 @@
 
-# cd $Env:UserProfile\Documents\Repositories\job-hunting\ps1
+# cd $Env:UserProfile\Documents\GitHub\job-hunting\ps1
 # clear
 # .\launch_job_hunting_flask_app.ps1
 # 
@@ -11,7 +11,7 @@
 $RepositoryPath = "job-hunting"
 $EnvironmentName = "jh"
 $HomeDirectory = $Env:UserProfile
-$RepositoriesDirectory = "${HomeDirectory}\Documents\Repositories"
+$RepositoriesDirectory = "D:\Documents\GitHub"
 
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
