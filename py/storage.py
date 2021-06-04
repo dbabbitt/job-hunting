@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import pickle5 as pickle
+try:
+    import pickle5 as pickle
+except:
+    import pickle
 import pandas as pd
 import os
 import sys

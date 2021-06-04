@@ -1,5 +1,5 @@
 
-# C:\Users\dev\.jupyter\jupyter_notebook_config.py
+# C:\Users\DaveBabbitt\.jupyter\jupyter_notebook_config.py
 
 import os
 
@@ -10,8 +10,7 @@ import os
 # Make sure that the path to your repositories and anaconda installation is correct
 environ_dict = dict(os.environ)
 home_dir = environ_dict['USERPROFILE']
-#repo_dir = os.path.join(home_dir, 'Documents', 'Repositories')
-repo_dir = r'D:\Documents\GitHub'
+repo_dir = os.path.join(home_dir, 'Documents', 'GitHub')
 if 'CONDA_PREFIX' in environ_dict:
 	anaconda_dir = environ_dict['CONDA_PREFIX']
 else:
@@ -37,8 +36,9 @@ c.ServerApp.port = 8888
 c.ServerApp.ip = 'localhost'
 
 # The directory to use for notebooks and kernels –
-# 'notebook_dir' – has moved from NotebookApp to ServerApp
 # notebook_dir is deprecated, use root_dir
+c.ServerApp.notebook_dir = repo_dir
+# 'notebook_dir' – has moved from NotebookApp to ServerApp
 c.ServerApp.root_dir = repo_dir
 
 # The 'min_open_files_limit' trait of a ServerApp
