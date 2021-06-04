@@ -1,5 +1,5 @@
 
-# C:\Users\dev\Documents\repositories\job-hunting\.gitignore
+# D:\Documents\GitHub\job-hunting\.gitignore
 
 # Ignore files that contain harddrive-specific information
 
@@ -49,6 +49,8 @@ saves/txt
 # Ignore big files (GitHub will warn you when pushing files larger than 50 MB. You will not be allowed to
 # push files larger than 100 MB.) Tip: If you regularly push large files to GitHub, consider introducing
 # Git Large File Storage (Git LFS) as part of your workflow.
+saves/csv/export_df.csv
+saves/csv/mrc_df.csv
 
 # Exclude executables
 *.exe
@@ -57,7 +59,11 @@ saves/txt
 **/json/*_secrets.json
 
 # Exclude pickles
-*.pickle
+#*.pickle
+saves/pickle/estimators_list.pickle
+saves/pickle/FIT_ESTIMATORS_DICT.pickle
+saves/pickle/fit_estimators_list.pickle
+saves/pickle/GN300_MODEL.pickle
 
 # Exclude Mac, Jupyter, R, and Octave admin files
 **/octave-workspace
@@ -205,5 +211,3 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
-saves/csv/export_df.csv
-saves/csv/mrc_df.csv
