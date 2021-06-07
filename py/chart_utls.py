@@ -29,10 +29,10 @@ class ChartUtilities(object):
 			self.POS_DICT = self.s.load_object('POS_DICT')
 		else:
 			cypher_str = """
-				MATCH (pos:PartsOfSpeech)-r:SUMMARIZES->(np:NavigableParents)
+				MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
                 RETURN
-					np.navigable_parent as navigable_parent,
-					pos.pos_symbol as pos_symbol;"""
+					np.navigable_parent AS navigable_parent,
+					pos.pos_symbol AS pos_symbol;"""
 			pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
 			self.POS_DICT = pos_df.set_index('navigable_parent').pos_symbol.to_dict()
 			self.s.store_objects(POS_DICT=self.POS_DICT, verbose=verbose)

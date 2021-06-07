@@ -596,6 +596,8 @@ class CrfUtilities(object):
 	
 	def word2features(self, sent, i):
 		from itertools import groupby
+		if not hasattr(self, 'lu'):
+			self.lu = LrUtilities()
 		null_element = 'plaintext'
 		this_sent = sent[i]
 		tag = this_sent[0]
@@ -604,8 +606,8 @@ class CrfUtilities(object):
 		
 		features = {
 			'bias': 1.0,
-			'child_str.lr_predict_single': self.lr_predict_single(child_str),
-			'child_str.lda': self.lda_predict_percent(child_str),
+			'child_str.lr_predict_single': self.lu.lr_predict_single(child_str),
+			'child_str.lda': self.lu.lda_predict_percent(child_str),
 			'position': i+1,
 			'postag': postag,
 			'tag.basic_text_set': tag in self.basic_text_set,
@@ -744,10 +746,10 @@ class LrUtilities(object):
 		
 		# Train a model for each labeled POS symbol
 		cypher_str = """
-			MATCH (pos:PartsOfSpeech)-r:SUMMARIZES->(np:NavigableParents)
+			MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
 			RETURN
-				np.navigable_parent,
-				pos.pos_symbol;"""
+				np.navigable_parent AS navigable_parent,
+				pos.pos_symbol AS pos_symbol;"""
 		pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
 		
 		# The shape of the Bag-of-words count vector here should be n html strings * m unique tokens
