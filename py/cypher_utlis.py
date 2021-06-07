@@ -17,7 +17,7 @@ except:
 
 class CypherUtilities(object):
 	"""CYPHER class."""
-
+	
 	def __init__(self, uri=None, user=None, password=None, driver=None, s=None, ha=None):
 		if uri is None:
 			self.uri = 'bolt://localhost:7687'
@@ -47,7 +47,6 @@ class CypherUtilities(object):
 			self.ha = html_analysis.HeaderAnalysis()
 		else:
 			self.ha = ha
-		self.wc_rgx = re.compile(r'([%_\[^\-\\])')
 
 		# File Names Table CYPHER
 		# The email date is in the form of ISO8601 strings ("YYYY-MM-DD HH:MM:SS.SSS")
@@ -167,6 +166,45 @@ class CypherUtilities(object):
 
 		# Navigable Parents CYPHER strings
 		self.create_navigableparents_table_cypher_str = """
+			LOAD CSV WITH HEADERS FROM 'file:///NavigableParents.csv' AS row
+			WITH
+				toInteger(row.navigable_parent_id) AS navigable_parent_id,
+				toInteger(row.header_tag_id) AS header_tag_id,
+				row.navigable_parent AS navigable_parent,
+				row.is_header AS is_header,
+				row.is_task_scope AS is_task_scope,
+				row.is_minimum_qualification AS is_minimum_qualification,
+				row.is_preferred_qualification AS is_preferred_qualification,
+				row.is_legal_notification AS is_legal_notification,
+				row.is_job_title AS is_job_title,
+				row.is_office_location AS is_office_location,
+				row.is_job_duration AS is_job_duration,
+				row.is_supplemental_pay AS is_supplemental_pay,
+				row.is_educational_requirement AS is_educational_requirement,
+				row.is_interview_procedure AS is_interview_procedure,
+				row.is_corporate_scope AS is_corporate_scope,
+				row.is_posting_date AS is_posting_date,
+				row.is_other AS is_other,
+				row.is_qualification AS is_qualification
+			MERGE (x:NavigableParents {navigable_parent_id: navigable_parent_id}) SET
+				x.header_tag_id = header_tag_id,
+				x.navigable_parent = navigable_parent,
+				x.is_header = is_header,
+				x.is_task_scope = is_task_scope,
+				x.is_minimum_qualification = is_minimum_qualification,
+				x.is_preferred_qualification = is_preferred_qualification,
+				x.is_legal_notification = is_legal_notification,
+				x.is_job_title = is_job_title,
+				x.is_office_location = is_office_location,
+				x.is_job_duration = is_job_duration,
+				x.is_supplemental_pay = is_supplemental_pay,
+				x.is_educational_requirement = is_educational_requirement,
+				x.is_interview_procedure = is_interview_procedure,
+				x.is_corporate_scope = is_corporate_scope,
+				x.is_posting_date = is_posting_date,
+				x.is_other = is_other,
+				x.is_qualification = is_qualification;"""
+		self.insert_into_navigableparents_table_cypher_str = """
 			CREATE ({}:NavigableParents {{
 				navigable_parent_id: '{}',
 				navigable_parent: '{}',
@@ -327,10 +365,15 @@ class CypherUtilities(object):
 				mrs_id: '{}'
 				}});"""
 		self.select_filename_isheader_cypher_str = """
-			MATCH (fn:FileNames)<--(nps:NavigableParentSequence)<--(np:NavigableParents)
+			MATCH (np:NavigableParents)-[ipo:IS_PART_OF]->(nps:NavigableParentSequence)-[ici:IS_CONTAINED_IN]->(fn:FileNames)
 			RETURN
+				np.navigable_parent AS navigable_parent,
+				np.is_header AS is_header,
+				nps.sequence_order AS sequence_order,
+				fn.file_name AS file_name
+			ORDER BY
 				fn.file_name,
-				np.is_header;"""
+				nps.sequence_order;"""
 
 
 		# Parts of Speech CYPHER strings
@@ -573,7 +616,7 @@ class CypherUtilities(object):
 		for i, (child_str, child_tag) in enumerate(zip(child_strs_list, child_tags_list)):
 			header_tag_id = self.get_headertag_id(child_tag, verbose=verbose)
 			cypher_str = f"""
-                MERGE (np:NavigableParents {{navigable_parent_id: '{i}', navigable_parent: '{child_str}', header_tag_id: '{header_tag_id}'}});"""
+				MERGE (np:NavigableParents {{navigable_parent_id: '{i}', navigable_parent: '{child_str}', header_tag_id: '{header_tag_id}'}});"""
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -1104,7 +1147,7 @@ class CypherUtilities(object):
 		cypher_str = """
 			MATCH (np:NavigableParents)
 			WHERE EXISTS(np.is_qualification)
-            RETURN
+			RETURN
 				np.navigable_parent,
 				np.is_qualification;"""
 		is_qualification_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
@@ -1298,8 +1341,8 @@ class CypherUtilities(object):
 		cypher_str = """
 			MATCH (np:NavigableParents)
 			WHERE
-                EXISTS(np.is_minimum_qualification) AND
-                EXISTS(np.is_header)
+				EXISTS(np.is_minimum_qualification) AND
+				EXISTS(np.is_header)
 			RETURN
 				np.navigable_parent,
 				np.is_minimum_qualification,
@@ -1326,8 +1369,8 @@ class CypherUtilities(object):
 		cypher_str = """
 			MATCH (np:NavigableParents)
 			WHERE
-                EXISTS(np.is_minimum_qualification) AND
-                EXISTS(np.is_header)
+				EXISTS(np.is_minimum_qualification) AND
+				EXISTS(np.is_header)
 			RETURN
 				np.navigable_parent,
 				np.is_minimum_qualification,
