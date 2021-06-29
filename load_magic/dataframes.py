@@ -13,6 +13,7 @@ filepath_regex = re.compile(r'\b[c-d]:\\(?:[^\\/:*?"<>|\x00-\x1F]{0,254}[^.\\/:*
 
 def get_page_tables(tables_url_or_filepath, verbose=True):
     '''
+    %run ../../load_magic/dataframes.py
     tables_url = 'https://en.wikipedia.org/wiki/Provinces_of_Afghanistan'
     page_tables_list = get_page_tables(tables_url)
     '''
