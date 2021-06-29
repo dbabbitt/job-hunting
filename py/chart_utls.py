@@ -81,7 +81,6 @@ class ChartUtilities(object):
 			child_tags_list = self.cu.get_child_tags_list(child_strs_list)
 			feature_dict_list = self.cu.get_feature_dict_list(child_tags_list, child_strs_list)
 		# feature_tuple_list = self.hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list
-		# y_pred = self.crf.CRF.predict_single(self.ea.sent2features(feature_tuple_list))
 		y_pred = self.crf.CRF.predict_single(xseq=feature_dict_list)
 		rgba_dict = self.get_pos_color_dictionary(verbose=verbose)
 		html_str = ''

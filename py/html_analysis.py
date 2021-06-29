@@ -607,7 +607,6 @@ class CrfUtilities(object):
 		features = {
 			'bias': 1.0,
 			'child_str.lr_predict_single': self.lu.lr_predict_single(child_str),
-			'child_str.lda': self.lu.lda_predict_percent(child_str),
 			'position': i+1,
 			'postag': postag,
 			'tag.basic_text_set': tag in self.basic_text_set,
@@ -878,7 +877,7 @@ class ElementAnalysis(object):
 
 		return idx_list
 	
-	def find_basic_quals_section(self, child_strs_list):
+	def find_basic_quals_section(self, child_strs_list, verbose=False):
 		try:
 			import cypher_utlis
 			cu = cypher_utlis.CypherUtilities()
@@ -891,7 +890,8 @@ class ElementAnalysis(object):
 		feature_dict_list = cu.get_feature_dict_list(db, child_tags_list, child_strs_list)
 		feature_tuple_list = [self.hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
 		
-		crf_list = self.CRF.predict_single(self.sent2features(feature_tuple_list))
+		crf = html_analysis.CrfUtilities(ha=None, hc=None, cu=cu, verbose=verbose)
+		crf_list = crf.CRF.predict_single(crf.sent2features(feature_tuple_list))
 		pos_list = []
 		for pos, feature_tuple, is_header in zip(crf_list, feature_tuple_list, is_header_list):
 			navigable_parent = feature_tuple[1]

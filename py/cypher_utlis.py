@@ -157,11 +157,14 @@ class CypherUtilities(object):
 				is_in_non_standard_elements_set: '{}'
 				}});"""
 		self.select_header_tag_id_where_header_tag_cypher_str = """
-			MATCH (ht:HeaderTags {header_tag: '{}'})
-			RETURN ht.header_tag_id;"""
+			MATCH (ht:HeaderTags {{header_tag: '{}'}})
+			RETURN ht.header_tag_id AS header_tag_id;"""
 		self.select_header_tag_where_header_tag_id_cypher_str = """
-			MATCH (ht:HeaderTags {header_tag_id: '{}'})
-			RETURN ht.header_tag;"""
+			MATCH (ht:HeaderTags {{header_tag_id: '{}'}})
+			RETURN ht.header_tag AS header_tag;"""
+		self.select_header_tag_where_navigable_parent_cypher_str = """
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})<-[s:SUMMARIZES]-(ht)
+			RETURN ht.header_tag AS header_tag;"""
 
 
 		# Navigable Parents CYPHER strings
@@ -226,7 +229,7 @@ class CypherUtilities(object):
 				is_qualification: '{}'
 				}});"""
 		self.select_navigableparentid_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			RETURN np.navigable_parent_id;"""
 		self.select_navigable_parent_by_file_name_cypher_str = """
 			MATCH (fn:FileNames)<--(nps:NavigableParentSequence)<--(np:NavigableParents)
@@ -234,78 +237,78 @@ class CypherUtilities(object):
 			RETURN np.navigable_parent as navigable_parent
 			ORDER BY nps.sequence_order;"""
 		self.set_is_corporate_scope1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_corporate_scope = 'True';"""
 		self.set_is_header1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True';"""
 		self.set_is_header0_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'False';"""
 		self.set_is_qualification1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_qualification = 'True';"""
 		self.set_is_qualification0_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_qualification = 'False';"""
 		self.set_is_task_scope1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_task_scope = 'True';"""
 		self.set_is_office_location1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_office_location = 'True';"""
 		self.set_is_minimum_qualification1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_minimum_qualification = 'True', np.is_qualification = 'True';"""
 		self.set_is_supplemental_pay1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_supplemental_pay = 'True';"""
 		self.set_nonheader_is_supplemental_pay1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'False', np.is_supplemental_pay = 'True';"""
 		self.set_is_preferred_qualification1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_preferred_qualification = 'True';"""
 		self.set_is_legal_notification1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_legal_notification = 'True';"""
 		self.set_is_other1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_other = 'True';"""
 		self.set_is_educational_requirement1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_educational_requirement = 'True';"""
 		self.set_is_interview_procedure1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_interview_procedure = 'True';"""
 		self.set_is_posting_date1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_posting_date = 'True';"""
 		self.set_is_job_duration1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_job_duration = 'True';"""
 		self.set_is_job_title1_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			SET np.is_header = 'True', np.is_job_title = 'True';"""
 		self.select_is_from_navigableparents_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			RETURN
-				np.is_header,
-				np.is_task_scope,
-				np.is_minimum_qualification,
-				np.is_preferred_qualification,
-				np.is_legal_notification,
-				np.is_job_title,
-				np.is_office_location,
-				np.is_job_duration,
-				np.is_supplemental_pay,
-				np.is_educational_requirement,
-				np.is_interview_procedure,
-				np.is_corporate_scope,
-				np.is_posting_date,
-				np.is_other;"""
+				np.is_header AS is_header,
+				np.is_task_scope AS is_task_scope,
+				np.is_minimum_qualification AS is_minimum_qualification,
+				np.is_preferred_qualification AS is_preferred_qualification,
+				np.is_legal_notification AS is_legal_notification,
+				np.is_job_title AS is_job_title,
+				np.is_office_location AS is_office_location,
+				np.is_job_duration AS is_job_duration,
+				np.is_supplemental_pay AS is_supplemental_pay,
+				np.is_educational_requirement AS is_educational_requirement,
+				np.is_interview_procedure AS is_interview_procedure,
+				np.is_corporate_scope AS is_corporate_scope,
+				np.is_posting_date AS is_posting_date,
+				np.is_other AS is_other;"""
 		self.select_navigable_parent_id_where_navigable_parent_cypher_str = """
-			MATCH (np:NavigableParents {navigable_parent: '{}'})
+			MATCH (np:NavigableParents {{navigable_parent: '{}'}})
 			RETURN
 				np.navigable_parent_id,
 				np.is_minimum_qualification;"""
@@ -453,6 +456,8 @@ class CypherUtilities(object):
 		
 		# Various CYPHER strings
 		self.SAVES_HTML_FOLDER = os.path.join(self.s.saves_folder, 'html')
+		self.BACKSLASH = chr(92)
+		self.APOSTROPHE = chr(39)
 	
 	
 	
@@ -476,6 +481,11 @@ class CypherUtilities(object):
 			row_objs_list = []
 
 		return row_objs_list
+	def clean_text(self, dirty_text):
+		clean_text = dirty_text.replace(self.APOSTROPHE, self.BACKSLASH + self.APOSTROPHE)
+		clean_text = clean_text.replace(self.BACKSLASH + self.BACKSLASH + self.APOSTROPHE, self.BACKSLASH + self.APOSTROPHE)
+		
+		return clean_text
 	
 	
 	
@@ -584,12 +594,12 @@ class CypherUtilities(object):
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
 	def get_headertag_id(self, header_tag, verbose=False):
-		row_objs_list = self.get_execution_results(self.select_header_tag_id_where_header_tag_cypher_str, verbose=verbose)
+		row_objs_list = self.get_execution_results(self.select_header_tag_id_where_header_tag_cypher_str.format(header_tag), verbose=False)
 		header_tag_id = [row_obj['header_tag_id'] for row_obj in row_objs_list][0]
 		
 		return header_tag_id
 	def get_headertag(self, header_tag_id, verbose=False):
-		row_objs_list = self.get_execution_results(self.select_header_tag_where_header_tag_id_cypher_str, verbose=verbose)
+		row_objs_list = self.get_execution_results(self.select_header_tag_where_header_tag_id_cypher_str.format(header_tag_id), verbose=verbose)
 		header_tag = [row_obj['header_tag'] for row_obj in row_objs_list][0]
 		
 		return header_tag
@@ -623,6 +633,7 @@ class CypherUtilities(object):
 		# Set the Corporate Scope is_header
 		corp_scope_headers_list = self.s.load_object('corp_scope_headers_list')
 		for navigable_parent in corp_scope_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_corporate_scope1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -630,6 +641,7 @@ class CypherUtilities(object):
 		# Set the basic tags is_header
 		NAVIGABLE_PARENT_IS_HEADER_DICT = self.s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
 		for navigable_parent, is_header in NAVIGABLE_PARENT_IS_HEADER_DICT.items():
+			navigable_parent = self.clean_text(navigable_parent)
 			if is_header:
 				cypher_str = self.set_is_header1_cypher_str.format(navigable_parent)
 				with self.driver.session() as session:
@@ -642,6 +654,7 @@ class CypherUtilities(object):
 		# Set the basic tags is_qual
 		NAVIGABLE_PARENT_IS_QUAL_DICT = self.s.load_object('NAVIGABLE_PARENT_IS_QUAL_DICT')
 		for navigable_parent, is_qualification in NAVIGABLE_PARENT_IS_QUAL_DICT.items():
+			navigable_parent = self.clean_text(navigable_parent)
 			if is_qualification:
 				cypher_str = self.set_is_qualification1_cypher_str.format(navigable_parent)
 				with self.driver.session() as session:
@@ -654,6 +667,7 @@ class CypherUtilities(object):
 		# Set the Task Scope is_header
 		task_scope_headers_list = self.s.load_object('task_scope_headers_list')
 		for navigable_parent in task_scope_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_task_scope1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -661,6 +675,7 @@ class CypherUtilities(object):
 		# Set the Office Location is_header
 		office_loc_headers_list = self.s.load_object('office_loc_headers_list')
 		for navigable_parent in office_loc_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_office_location1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -668,6 +683,7 @@ class CypherUtilities(object):
 		# Set the Minimum Quals is_header
 		req_quals_headers_list = self.s.load_object('req_quals_headers_list')
 		for navigable_parent in req_quals_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_minimum_qualification1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -701,6 +717,7 @@ class CypherUtilities(object):
 		# Set the Supplemental Pay is_header
 		supp_pay_headers_list = self.s.load_object('supp_pay_headers_list')
 		for navigable_parent in supp_pay_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_supplemental_pay1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -708,6 +725,7 @@ class CypherUtilities(object):
 		# Set the Supplemental Pay non-header
 		supp_pay_nonheaders_list = self.s.load_object('supp_pay_nonheaders_list')
 		for navigable_parent in supp_pay_nonheaders_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_nonheader_is_supplemental_pay1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -715,6 +733,7 @@ class CypherUtilities(object):
 		# Set the Preferred Quals is_header
 		preff_quals_headers_list = self.s.load_object('preff_quals_headers_list')
 		for navigable_parent in preff_quals_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_preferred_qualification1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -722,6 +741,7 @@ class CypherUtilities(object):
 		# Set the Legal Notifications is_header
 		legal_notifs_headers_list = self.s.load_object('legal_notifs_headers_list')
 		for navigable_parent in legal_notifs_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_legal_notification1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -729,6 +749,7 @@ class CypherUtilities(object):
 		# Set the Other is_header
 		other_headers_list = self.s.load_object('other_headers_list')
 		for navigable_parent in other_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_other1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -736,6 +757,7 @@ class CypherUtilities(object):
 		# Set the Education Requirements is_header
 		educ_reqs_headers_list = self.s.load_object('educ_reqs_headers_list')
 		for navigable_parent in educ_reqs_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_educational_requirement1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -743,6 +765,7 @@ class CypherUtilities(object):
 		# Set the Interview Process is_header
 		interv_proc_headers_list = self.s.load_object('interv_proc_headers_list')
 		for navigable_parent in interv_proc_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_interview_procedure1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -750,6 +773,7 @@ class CypherUtilities(object):
 		# Set the Posting Date is_header
 		post_date_headers_list = self.s.load_object('post_date_headers_list')
 		for navigable_parent in post_date_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_posting_date1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -757,6 +781,7 @@ class CypherUtilities(object):
 		# Set the Job Duration is_header
 		job_duration_headers_list = self.s.load_object('job_duration_headers_list')
 		for navigable_parent in job_duration_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_job_duration1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -764,6 +789,7 @@ class CypherUtilities(object):
 		# Set the Job Title is_header
 		job_title_headers_list = self.s.load_object('job_title_headers_list')
 		for navigable_parent in job_title_headers_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.set_is_job_title1_cypher_str.format(navigable_parent)
 			with self.driver.session() as session:
 				session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -784,6 +810,7 @@ class CypherUtilities(object):
 		with self.driver.session() as session:
 			session.write_transaction(self.do_cypher_tx, cypher_str)
 	def get_navigableparent_id(self, navigable_parent, verbose=False):
+		navigable_parent = self.clean_text(navigable_parent)
 		row_objs_list = self.get_execution_results(self.select_navigableparentid_cypher_str, verbose=verbose)
 		navigable_parent_id = [row_obj['navigable_parent_id'] for row_obj in row_objs_list][0]
 		
@@ -949,6 +976,7 @@ class CypherUtilities(object):
 	def get_is_header_list(self, child_strs_list, verbose=False):
 		is_header_list = []
 		for navigable_parent in child_strs_list:
+			navigable_parent = self.clean_text(navigable_parent)
 			cypher_str = self.select_is_from_navigableparents_cypher_str.format(navigable_parent)
 			row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
 			is_header = pd.DataFrame(row_objs_list).is_header.squeeze()
@@ -970,8 +998,9 @@ class CypherUtilities(object):
 	def get_child_tags_list(self, child_strs_list, verbose=False):
 		child_tags_list = []
 		for navigable_parent in child_strs_list:
-			header_tag_id = self.get_headertag_id(navigable_parent, verbose=verbose)
-			header_tag = self.get_headertag(header_tag_id, verbose=verbose)
+			navigable_parent = self.clean_text(navigable_parent)
+			row_objs_list = self.get_execution_results(self.select_header_tag_where_navigable_parent_cypher_str.format(navigable_parent), verbose=verbose)
+			header_tag = [row_obj['header_tag'] for row_obj in row_objs_list][0]
 			child_tags_list.append(header_tag)
 
 		return child_tags_list
@@ -984,6 +1013,7 @@ class CypherUtilities(object):
 		for tag, child_str in zip(child_tags_list, child_strs_list):
 			feature_dict = {}
 			feature_dict['initial_tag'] = tag
+			child_str = child_str.replace(self.APOSTROPHE, self.BACKSLASH + self.APOSTROPHE)
 			cypher_str = self.select_is_from_navigableparents_cypher_str.format(child_str)
 			if verbose:
 				print(cypher_str)
@@ -1026,6 +1056,7 @@ class CypherUtilities(object):
 
 
 	def append_parts_of_speech_list(self, navigable_parent, pos_list=[], verbose=False):
+		navigable_parent = self.clean_text(navigable_parent)
 		row_objs_list = self.get_execution_results(self.select_is_from_navigableparents_cypher_str.format(navigable_parent, verbose=verbose))
 		params_dict = pd.DataFrame(row_objs_list).squeeze().to_dict()
 		if params_dict['is_header']:
@@ -1114,17 +1145,18 @@ class CypherUtilities(object):
 			self.s.store_objects(HEADER_PATTERN_DICT=HEADER_PATTERN_DICT, verbose=verbose)
 	
 	
-	def find_basic_quals_section(self, child_strs_list, hc=None, ea=None):
+	def find_basic_quals_section(self, child_strs_list, hc=None, ea=None, verbose=False):
 		if hc is None:
 			hc = html_analysis.HeaderCategories()
 		if ea is None:
 			ea = html_analysis.ElementAnalysis()
 		child_tags_list = self.get_child_tags_list(child_strs_list)
 		is_header_list = self.get_is_header_list(child_strs_list)
-		feature_dict_list = self.get_feature_dict_list(child_tags_list, child_strs_list)
+		feature_dict_list = self.get_feature_dict_list(child_tags_list, child_strs_list, verbose=False)
 		feature_tuple_list = [hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
 		
-		crf_list = ea.CRF.predict_single(ea.sent2features(feature_tuple_list))
+		crf = html_analysis.CrfUtilities(ha=None, hc=hc, cu=self, verbose=verbose)
+		crf_list = crf.CRF.predict_single(crf.sent2features(feature_tuple_list))
 		pos_list = []
 		for pos, feature_tuple, is_header in zip(crf_list, feature_tuple_list, is_header_list):
 			navigable_parent = feature_tuple[1]
