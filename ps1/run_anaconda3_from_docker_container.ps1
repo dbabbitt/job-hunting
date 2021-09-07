@@ -5,13 +5,12 @@
 # D:
 # cd D:\Documents\GitHub\job-hunting\ps1
 # cls
-# .\run_neo4j_from_docker_container.ps1
+# .\run_anaconda3_from_docker_container.ps1
 
 # Set up global variables
-$DbmsConnectorHttpListenAddress = "7474"
-$DbmsConnectorBoltListenAddress = "7687"
-$DataVolume = "$HOME/neo4j/data"
-$ImportVolume = "$HOME/neo4j/import"
+$HostPort = "8888"
+$ContainerPort = "8888"
+$RepositoriesDirectory = "D:\Documents\GitHub"
 
 $OldPath = Get-Location
 
@@ -19,6 +18,6 @@ Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                         Running Neo4j from Docker" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-docker run --publish=${DbmsConnectorHttpListenAddress}:${DbmsConnectorHttpListenAddress} --publish=${DbmsConnectorBoltListenAddress}:${DbmsConnectorBoltListenAddress} --volume=${DataVolume}:/data --volume=${ImportVolume}:/var/lib/neo4j/import neo4j
+docker run --name=anaconda3 -i -t -v ${RepositoriesDirectory}:/opt/notebooks -p ${HostPort}:${ContainerPort} continuumio/anaconda3 /bin/bash -c "conda install jupyter -y --quiet && mkdir -p /opt/notebooks && jupyter notebook --notebook-dir=/opt/notebooks --ip='*' --port=${ContainerPort} --no-browser --allow-root"
 
 cd $OldPath

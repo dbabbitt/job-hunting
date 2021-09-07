@@ -752,6 +752,7 @@ class LrUtilities(object):
 		pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
 		
 		# The shape of the Bag-of-words count vector here should be n html strings * m unique tokens
+		print(f'pos_df.columns = {pos_df.columns}')
 		sents_list = pos_df.navigable_parent.tolist()
 		pos_symbol_list = pos_df.pos_symbol.unique().tolist()
 		

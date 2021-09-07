@@ -28,7 +28,7 @@ class CypherUtilities(object):
 		else:
 			self.user = user
 		if password is None:
-			self.password = 'Genesis11'
+			self.password = 'neo4j@WSXcde3'
 		else:
 			self.password = password
 		if driver is None:
@@ -923,8 +923,8 @@ class CypherUtilities(object):
 		cypher_str = """
 			MATCH (pos:PartsOfSpeech)
 			RETURN
-				pos.pos_symbol,
-				pos.pos_explanation;"""
+				pos.pos_symbol AS pos_symbol,
+				pos.pos_explanation AS pos_explanation;"""
 		row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
 		pos_df = pd.DataFrame(row_objs_list)
 		pos_df['is_header'] = pos_df.pos_symbol.map(lambda x: 'H-' in x)
@@ -945,7 +945,7 @@ class CypherUtilities(object):
 			cypher_str = f"""
 				MERGE (pos:PartsOfSpeech {{pos_symbol: '{row_series.pos_symbol}'}}) SET
 					"""
-			set_list = [f'{cn} = {int(cv)}' for cn, cv in row_series.iteritems() if cn not in ['pos_symbol', 'pos_explanation']]
+			set_list = [f'pos.{cn} = "{bool(cv)}"' for cn, cv in row_series.iteritems() if cn not in ['pos_symbol', 'pos_explanation']]
 			cypher_str += """,
 					""".join(set_list)
 			cypher_str += ';'
