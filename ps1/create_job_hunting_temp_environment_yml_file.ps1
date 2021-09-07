@@ -1,6 +1,6 @@
 
 # cd $Env:UserProfile\Documents\GitHub\job-hunting\ps1
-# clear
+# cls
 # .\create_job_hunting_temp_environment_yml_file.ps1
 
 # Set up global variables
