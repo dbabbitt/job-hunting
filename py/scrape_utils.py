@@ -84,7 +84,7 @@ class WebScrapingUtilities(object):
 	
 	
 	
-	def conjunctify_list(self, noun_list):
+	def conjunctify_nouns(self, noun_list):
 		if len(noun_list) > 2:
 			last_noun_str = noun_list[-1]
 			but_last_nouns_str = ', '.join(noun_list[:-1])

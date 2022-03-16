@@ -60,11 +60,11 @@ saves/csv/mrc_df.csv
 **/json/*_secrets.json
 
 # Exclude pickles
-#*.pickle
-saves/pickle/estimators_list.pickle
-saves/pickle/FIT_ESTIMATORS_DICT.pickle
-saves/pickle/fit_estimators_list.pickle
-saves/pickle/GN300_MODEL.pickle
+#*.pkl
+saves/pkl/estimators_list.pkl
+saves/pkl/FIT_ESTIMATORS_DICT.pkl
+saves/pkl/fit_estimators_list.pkl
+saves/pkl/GN300_MODEL.pkl
 
 # Exclude Mac, Jupyter, R, and Octave admin files
 **/octave-workspace
