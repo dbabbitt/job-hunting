@@ -3,8 +3,7 @@
 # Run this in a PowerShell window:
 # 
 # conda activate base
-# D:
-# cd D:\Documents\GitHub\job-hunting\ps1
+# cd C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\ps1
 # cls
 # .\run_neo4j_as_console_application.ps1
 #

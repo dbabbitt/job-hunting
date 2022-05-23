@@ -212,3 +212,4 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
+*.bak

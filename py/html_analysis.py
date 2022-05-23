@@ -316,9 +316,14 @@ class HeaderAnalysis(object):
         child_strs_list = []
         file_path = os.path.join(self.SAVES_HTML_FOLDER, file_name)
         with open(file_path, 'r', encoding='utf-8') as f:
-            html_str = f.read()
-            body_soup = self.get_body_soup(html_str)
-            child_strs_list = self.get_navigable_children(body_soup, [])
+            try:
+                html_str = f.read()
+                body_soup = self.get_body_soup(html_str)
+                child_strs_list = self.get_navigable_children(body_soup, [])
+            except UnicodeDecodeError as e:
+                print(f'UnicodeDecodeError error in {file_path}: {str(e).strip()}')
+            except Exception as e:
+                print(f'{e.__class__} error in {file_path}: {str(e).strip()}')
 
         return child_strs_list
 
@@ -541,6 +546,7 @@ class CrfUtilities(object):
             self.cu = cypher_utlis.CypherUtilities()
         else:
             self.cu = cu
+        self.verbose = verbose
         self.document_structure_elements_set = set(['body','head','html'])
         self.document_head_elements_set = set(['base','basefont','isindex','link','meta','object','script','style','title'])
         self.document_body_elements_set = set(['a','abbr','acronym','address','applet','area','article','aside','audio','b','bdi','bdo','big','blockquote','br','button','canvas','caption','center','cite','code','col','colgroup','data','datalist','dd','del','dfn','dir','div','dl','dt','em','embed','fieldset','figcaption','figure','font','footer','form','h1','h2','h3','h4','h5','h6','header','hr','i','img','input','ins','isindex','kbd','keygen','label','legend','li','main','map','mark','menu','meter','nav','noscript','object','ol','optgroup','option','output','p','param','pre','progress','q','rb','rp','rt','rtc','ruby','s','samp','script','section','select','small','source','span','strike','strong','sub','sup','table','tbody','td','template','textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var','video','wbr'])
@@ -597,7 +603,7 @@ class CrfUtilities(object):
     def word2features(self, sent, i):
         from itertools import groupby
         if not hasattr(self, 'lu'):
-            self.lu = LrUtilities()
+            self.lu = LrUtilities(ha=self.ha, hc=self.hc, cu=self.cu, verbose=self.verbose)
         null_element = 'plaintext'
         this_sent = sent[i]
         tag = this_sent[0]
@@ -752,7 +758,8 @@ class LrUtilities(object):
         pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
 
         # The shape of the Bag-of-words count vector here should be n html strings * m unique tokens
-        print(f'pos_df.columns = {pos_df.columns}')
+        if verbose:
+            print(f'pos_df.columns = {pos_df.columns}')
         sents_list = pos_df.navigable_parent.tolist()
         pos_symbol_list = pos_df.pos_symbol.unique().tolist()
 
@@ -885,8 +892,8 @@ class ElementAnalysis(object):
         except:
             from flaskr.cypher_utils import CypherUtilities
             cu = CypherUtilities()
-        child_tags_list = cu.get_child_tags_list(db, child_strs_list)
-        is_header_list = cu.get_is_header_list(db, child_strs_list)
+        child_tags_list = self.get_child_tags_list(child_strs_list)
+        is_header_list = self.get_is_header_list(child_strs_list)
 
         feature_dict_list = cu.get_feature_dict_list(db, child_tags_list, child_strs_list)
         feature_tuple_list = [self.hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
