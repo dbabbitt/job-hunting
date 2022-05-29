@@ -19,7 +19,7 @@ import hashlib
 class CypherUtilities(object):
     """CYPHER class."""
 
-    def __init__(self, uri=None, user=None, password=None, driver=None, s=None, ha=None):
+    def __init__(self, uri=None, user=None, password=None, driver=None, s=None, ha=None, verbose=False):
         if uri is None:
             self.uri = 'bolt://localhost:7687'
         else:
@@ -48,203 +48,34 @@ class CypherUtilities(object):
             self.ha = html_analysis.HeaderAnalysis()
         else:
             self.ha = ha
+        self.verbose = verbose
 
         # File Names Table CYPHER
-        # The email date is in the form of ISO8601 strings ("YYYY-MM-DD HH:MM:SS.SSS")
-        self.create_filenames_table_cypher_str = """
-            LOAD CSV WITH HEADERS FROM 'file:///FileNames.csv' AS row
-            WITH
-                toInteger(row.file_name_id) AS file_name_id,
-                row.file_name AS file_name,
-                row.percent_fit AS percent_fit,
-                row.is_opportunity_application_emailed AS is_opportunity_application_emailed,
-                row.opportunity_application_email_date AS opportunity_application_email_date,
-                row.is_remote_delivery AS is_remote_delivery,
-                row.manager_notes AS manager_notes
-            MERGE (fn:FileNames {file_name_id: file_name_id}) SET
-                fn.file_name = file_name,
-                fn.percent_fit = percent_fit,
-                fn.is_opportunity_application_emailed = is_opportunity_application_emailed,
-                fn.opportunity_application_email_date = opportunity_application_email_date,
-                fn.is_remote_delivery = is_remote_delivery,
-                fn.manager_notes = manager_notes;"""
-        self.select_file_names_cypher_str = """
-            MATCH (fn:FileNames)
-            RETURN fn;"""
         self.select_file_name_where_is_qualification_cypher_str = """
-            MATCH (fn:FileNames)<--(nps:NavigableParentSequence)<--(np:NavigableParents)
+            // Get all possible paths
+            MATCH path = (np:NavigableParents)-[rels:NEXT*]->(np2:NavigableParents)
+            
+            // Check that the property is uniform and the first node is a minqual header
             WHERE
                 np.is_minimum_qualification = 'True' AND
-                np.is_header = 'True'
-            RETURN fn.file_name;"""
+                np.is_header = 'True' AND
+                ALL(r in rels WHERE rels[0]['file_name'] = r.file_name)
+            
+            RETURN rels[0]['file_name'] AS file_name;"""
 
 
         # Header Tags Table CYPHER
-        self.create_headertags_table_cypher_str = """
-            LOAD CSV WITH HEADERS FROM 'file:///HeaderTags.csv' AS row
-            WITH
-                toInteger(row.header_tag_id) AS header_tag_id,
-                row.is_in_document_structure_elements_set AS is_in_document_structure_elements_set,
-                row.is_in_document_head_elements_set AS is_in_document_head_elements_set,
-                row.is_in_document_body_elements_set AS is_in_document_body_elements_set,
-                row.is_in_block_elements_set AS is_in_block_elements_set,
-                row.is_in_basic_text_set AS is_in_basic_text_set,
-                row.is_in_section_headings_set AS is_in_section_headings_set,
-                row.is_in_lists_set AS is_in_lists_set,
-                row.is_in_other_block_elements_set AS is_in_other_block_elements_set,
-                row.is_in_inline_elements_set AS is_in_inline_elements_set,
-                row.is_in_anchor_set AS is_in_anchor_set,
-                row.is_in_phrase_elements_set AS is_in_phrase_elements_set,
-                row.is_in_general_set AS is_in_general_set,
-                row.is_in_computer_phrase_elements_set AS is_in_computer_phrase_elements_set,
-                row.is_in_presentation_set AS is_in_presentation_set,
-                row.is_in_span_set AS is_in_span_set,
-                row.is_in_other_inline_elements_set AS is_in_other_inline_elements_set,
-                row.is_in_images_and_objects_set AS is_in_images_and_objects_set,
-                row.is_in_forms_set AS is_in_forms_set,
-                row.is_in_tables_set AS is_in_tables_set,
-                row.is_in_frames_set AS is_in_frames_set,
-                row.is_in_historic_elements_set AS is_in_historic_elements_set,
-                row.is_in_non_standard_elements_set AS is_in_non_standard_elements_set,
-                row.header_tag AS header_tag
-            MERGE (ht:HeaderTags {header_tag_id: header_tag_id}) SET
-                ht.is_in_document_structure_elements_set = is_in_document_structure_elements_set,
-                ht.is_in_document_head_elements_set = is_in_document_head_elements_set,
-                ht.is_in_document_body_elements_set = is_in_document_body_elements_set,
-                ht.is_in_block_elements_set = is_in_block_elements_set,
-                ht.is_in_basic_text_set = is_in_basic_text_set,
-                ht.is_in_section_headings_set = is_in_section_headings_set,
-                ht.is_in_lists_set = is_in_lists_set,
-                ht.is_in_other_block_elements_set = is_in_other_block_elements_set,
-                ht.is_in_inline_elements_set = is_in_inline_elements_set,
-                ht.is_in_anchor_set = is_in_anchor_set,
-                ht.is_in_phrase_elements_set = is_in_phrase_elements_set,
-                ht.is_in_general_set = is_in_general_set,
-                ht.is_in_computer_phrase_elements_set = is_in_computer_phrase_elements_set,
-                ht.is_in_presentation_set = is_in_presentation_set,
-                ht.is_in_span_set = is_in_span_set,
-                ht.is_in_other_inline_elements_set = is_in_other_inline_elements_set,
-                ht.is_in_images_and_objects_set = is_in_images_and_objects_set,
-                ht.is_in_forms_set = is_in_forms_set,
-                ht.is_in_tables_set = is_in_tables_set,
-                ht.is_in_frames_set = is_in_frames_set,
-                ht.is_in_historic_elements_set = is_in_historic_elements_set,
-                ht.is_in_non_standard_elements_set = is_in_non_standard_elements_set,
-                ht.header_tag = header_tag;"""
-        self.insert_into_headertags_cypher_str = """
-            CREATE ({}:HeaderTags {{
-                header_tag: '{}',
-                is_in_document_structure_elements_set: '{}',
-                is_in_document_head_elements_set: '{}',
-                is_in_document_body_elements_set: '{}',
-                is_in_block_elements_set: '{}',
-                is_in_basic_text_set: '{}',
-                is_in_section_headings_set: '{}',
-                is_in_lists_set: '{}',
-                is_in_other_block_elements_set: '{}',
-                is_in_inline_elements_set: '{}',
-                is_in_anchor_set: '{}',
-                is_in_phrase_elements_set: '{}',
-                is_in_general_set: '{}',
-                is_in_computer_phrase_elements_set: '{}',
-                is_in_presentation_set: '{}',
-                is_in_span_set: '{}',
-                is_in_other_inline_elements_set: '{}',
-                is_in_images_and_objects_set: '{}',
-                is_in_forms_set: '{}',
-                is_in_tables_set: '{}',
-                is_in_frames_set: '{}',
-                is_in_historic_elements_set: '{}',
-                is_in_non_standard_elements_set: '{}'
-                }});"""
-        self.select_header_tag_id_where_header_tag_cypher_str = """
-            MATCH (ht:HeaderTags {{header_tag: '{}'}})
-            RETURN ht.header_tag_id AS header_tag_id;"""
-        self.select_header_tag_where_header_tag_id_cypher_str = """
-            MATCH (ht:HeaderTags {{header_tag_id: '{}'}})
-            RETURN ht.header_tag AS header_tag;"""
-        self.select_header_tag_where_navigable_parent_cypher_str = """
-            MATCH (np:NavigableParents {{navigable_parent: '{}'}})<-[s:SUMMARIZES]-(ht)
-            RETURN ht.header_tag AS header_tag;"""
 
 
         # Navigable Parents CYPHER strings
-        self.create_navigableparents_table_cypher_str = """
-            LOAD CSV WITH HEADERS FROM 'file:///NavigableParents.csv' AS row
-            WITH
-                toInteger(row.navigable_parent_id) AS navigable_parent_id,
-                toInteger(row.header_tag_id) AS header_tag_id,
-                row.navigable_parent AS navigable_parent,
-                row.is_header AS is_header,
-                row.is_task_scope AS is_task_scope,
-                row.is_minimum_qualification AS is_minimum_qualification,
-                row.is_preferred_qualification AS is_preferred_qualification,
-                row.is_legal_notification AS is_legal_notification,
-                row.is_job_title AS is_job_title,
-                row.is_office_location AS is_office_location,
-                row.is_job_duration AS is_job_duration,
-                row.is_supplemental_pay AS is_supplemental_pay,
-                row.is_educational_requirement AS is_educational_requirement,
-                row.is_interview_procedure AS is_interview_procedure,
-                row.is_corporate_scope AS is_corporate_scope,
-                row.is_posting_date AS is_posting_date,
-                row.is_other AS is_other,
-                row.is_qualification AS is_qualification
-            MERGE (x:NavigableParents {navigable_parent_id: navigable_parent_id}) SET
-                x.header_tag_id = header_tag_id,
-                x.navigable_parent = navigable_parent,
-                x.is_header = is_header,
-                x.is_task_scope = is_task_scope,
-                x.is_minimum_qualification = is_minimum_qualification,
-                x.is_preferred_qualification = is_preferred_qualification,
-                x.is_legal_notification = is_legal_notification,
-                x.is_job_title = is_job_title,
-                x.is_office_location = is_office_location,
-                x.is_job_duration = is_job_duration,
-                x.is_supplemental_pay = is_supplemental_pay,
-                x.is_educational_requirement = is_educational_requirement,
-                x.is_interview_procedure = is_interview_procedure,
-                x.is_corporate_scope = is_corporate_scope,
-                x.is_posting_date = is_posting_date,
-                x.is_other = is_other,
-                x.is_qualification = is_qualification;"""
-        self.insert_into_navigableparents_table_cypher_str = """
-            CREATE ({}:NavigableParents {{
-                navigable_parent_id: '{}',
-                navigable_parent: '{}',
-                header_tag_id: '{}',
-                is_header: '{}',
-                is_task_scope: '{}',
-                is_minimum_qualification: '{}',
-                is_preferred_qualification: '{}',
-                is_legal_notification: '{}',
-                is_job_title: '{}',
-                is_office_location: '{}',
-                is_job_duration: '{}',
-                is_supplemental_pay: '{}',
-                is_educational_requirement: '{}',
-                is_interview_procedure: '{}',
-                is_corporate_scope: '{}',
-                is_posting_date: '{}',
-                is_other: '{}',
-                is_qualification: '{}'
-                }});"""
         self.select_navigableparentid_cypher_str = """
             MATCH (np:NavigableParents {{navigable_parent: '{}'}})
             RETURN np.navigable_parent_id;"""
-        self.select_navigable_parent_by_file_name_cypher_str = '''
-            MATCH (fn:FileNames)<--(nps:NavigableParentSequence)<--(np:NavigableParents)
-            WHERE fn.file_name = "{}"
-            RETURN np.navigable_parent as navigable_parent
-            ORDER BY nps.sequence_order;'''
-        self.set_is_corporate_scope1_cypher_str = """
-            MATCH (np:NavigableParents {{navigable_parent: '{}'}})
-            SET np.is_header = 'True', np.is_corporate_scope = 'True';"""
         self.set_is_header1_cypher_str = """
-            MATCH (np:NavigableParents {{navigable_parent: '{}'}})
+            MERGE (np:NavigableParents {{navigable_parent: '{}'}})
             SET np.is_header = 'True';"""
         self.set_is_header0_cypher_str = """
-            MATCH (np:NavigableParents {{navigable_parent: '{}'}})
+            MERGE (np:NavigableParents {{navigable_parent: '{}'}})
             SET np.is_header = 'False';"""
         self.set_is_qualification1_cypher_str = """
             MATCH (np:NavigableParents {{navigable_parent: '{}'}})
@@ -313,173 +144,20 @@ class CypherUtilities(object):
             RETURN
                 np.navigable_parent_id,
                 np.is_minimum_qualification;"""
-        self.set_secondary_column0_formatted_cypher_str = """
-            MATCH (np:NavigableParents {{{}: 'True'}})
-            WHERE NOT EXISTS(np.{})
-            SET np.{} = 'False';"""
-        self.set_is_qualification1_or_cypher_str = """
-            MATCH (np:NavigableParents)
-            WHERE
-                np.is_minimum_qualification = 'True' OR
-                np.is_preferred_qualification = 'True'
-            SET np.is_qualification = 'True';"""
 
 
         # Header Tags Sequence CYPHER strings
-        self.create_headertagsequence_table_cypher_str = """
-            LOAD CSV WITH HEADERS FROM 'file:///HeaderTagSequence.csv' AS row
-            WITH
-                toInteger(row.header_tag_sequence_id) AS header_tag_sequence_id,
-                toInteger(row.file_name_id) AS file_name_id,
-                toInteger(row.header_tag_id) AS header_tag_id,
-                toInteger(row.sequence_order) AS sequence_order
-            MERGE (hts:HeaderTagSequence {header_tag_sequence_id: header_tag_sequence_id}) SET
-                hts.file_name_id = file_name_id,
-                hts.header_tag_id = header_tag_id,
-                hts.sequence_order = sequence_order;"""
-        self.insert_header_tag_sequence_str = """
-            CREATE (HeaderTagSequence {{
-                header_tag_sequence_id: '{}',
-                file_name_id: '{}',
-                header_tag_id: '{}',
-                sequence_order: '{}'
-                }});"""
 
 
         # Navigable Parents Sequence CYPHER strings
-        self.create_navigableparentsequence_table_cypher_str = """
-            LOAD CSV WITH HEADERS FROM 'file:///NavigableParentSequence.csv' AS row
-            WITH
-                toInteger(row.navigable_parent_sequence_id) AS navigable_parent_sequence_id,
-                toInteger(row.file_name_id) AS file_name_id,
-                toInteger(row.navigable_parent_id) AS navigable_parent_id,
-                toInteger(row.sequence_order) AS sequence_order,
-                toInteger(row.mrs_id) AS mrs_id
-            MERGE (nps:NavigableParentSequence {navigable_parent_sequence_id: navigable_parent_sequence_id}) SET
-                nps.file_name_id = file_name_id,
-                nps.navigable_parent_id = navigable_parent_id,
-                nps.sequence_order = sequence_order,
-                nps.mrs_id = mrs_id;"""
-        self.insert_navigableparentsequence_table_cypher_str = """
-            CREATE (NavigableParentSequence {{
-                navigable_parent_sequence_id: '{}',
-                file_name_id: '{}',
-                navigable_parent_id: '{}',
-                sequence_order: '{}',
-                mrs_id: '{}'
-                }});"""
-        self.select_filename_isheader_cypher_str = """
-            MATCH (np:NavigableParents)-[ipo:IS_PART_OF]->(nps:NavigableParentSequence)-[ici:IS_CONTAINED_IN]->(fn:FileNames)
-            RETURN
-                np.navigable_parent AS navigable_parent,
-                np.is_header AS is_header,
-                nps.sequence_order AS sequence_order,
-                fn.file_name AS file_name
-            ORDER BY
-                fn.file_name,
-                nps.sequence_order;"""
 
 
         # Parts of Speech CYPHER strings
-        self.create_table_partsofspeech_cypher_str = """
-            LOAD CSV WITH HEADERS FROM 'file:///PartsOfSpeech.csv' AS row
-            WITH
-                toInteger(row.pos_id) AS pos_id,
-                row.is_header AS is_header,
-                row.is_task_scope AS is_task_scope,
-                row.is_minimum_qualification AS is_minimum_qualification,
-                row.is_preferred_qualification AS is_preferred_qualification,
-                row.is_legal_notification AS is_legal_notification,
-                row.is_job_title AS is_job_title,
-                row.is_office_location AS is_office_location,
-                row.is_job_duration AS is_job_duration,
-                row.is_supplemental_pay AS is_supplemental_pay,
-                row.is_educational_requirement AS is_educational_requirement,
-                row.is_interview_procedure AS is_interview_procedure,
-                row.is_corporate_scope AS is_corporate_scope,
-                row.is_posting_date AS is_posting_date,
-                row.is_other AS is_other,
-                row.pos_symbol AS pos_symbol,
-                row.pos_explanation AS pos_explanation
-            MERGE (pos:PartsOfSpeech {pos_id: pos_id}) SET
-                pos.is_header = is_header,
-                pos.is_task_scope = is_task_scope,
-                pos.is_minimum_qualification = is_minimum_qualification,
-                pos.is_preferred_qualification = is_preferred_qualification,
-                pos.is_legal_notification = is_legal_notification,
-                pos.is_job_title = is_job_title,
-                pos.is_office_location = is_office_location,
-                pos.is_job_duration = is_job_duration,
-                pos.is_supplemental_pay = is_supplemental_pay,
-                pos.is_educational_requirement = is_educational_requirement,
-                pos.is_interview_procedure = is_interview_procedure,
-                pos.is_corporate_scope = is_corporate_scope,
-                pos.is_posting_date = is_posting_date,
-                pos.is_other = is_other,
-                pos.pos_symbol = pos_symbol,
-                pos.pos_explanation = pos_explanation;"""
-        self.insert_into_partsofspeech_cypher_str = """
-            CREATE ({}:PartsOfSpeech {{
-                pos_id: '{}',
-                pos_symbol: '{}',
-                pos_explanation: '{}',
-                is_header: '{}',
-                is_task_scope: '{}',
-                is_minimum_qualification: '{}',
-                is_preferred_qualification: '{}',
-                is_legal_notification: '{}',
-                is_job_title: '{}',
-                is_office_location: '{}',
-                is_job_duration: '{}',
-                is_supplemental_pay: '{}',
-                is_educational_requirement: '{}',
-                is_interview_procedure: '{}',
-                is_corporate_scope: '{}',
-                is_posting_date: '{}',
-                is_other: '{}',
-                is_qualification: '{}'
-                }});"""
 
 
         # Minimum Requirements Section CYPHER strings
-        self.create_table_minimumrequirementssection_cypher_str = """
-            CREATE TABLE MinimumRequirementsSection(
-                mrs_id: '{}',
-                mrs_symbol: '{}',
-                mrs_explanation: '{}',
-            );"""
-        self.insert_into_minimumrequirementssection_cypher_str = """
-            CREATE ({}:MinimumRequirementsSection {{
-                mrs_id: '{}',
-                mrs_symbol: '{}',
-                mrs_explanation: '{}',
-                }});"""
 
         # CYPHER strings for Various Relationships
-        self.create_relationship_filenames_headertagsequence_cypher_str = """
-            MATCH (a:FileNames), (b:HeaderTagSequence)
-               WHERE a.file_name_id = b.file_name_id
-            CREATE (b)-[r: IS_CONTAINED_IN]->(a);"""
-        self.create_relationship_filenames_navigableparentsequence_cypher_str = """
-            MATCH (a:FileNames), (b:NavigableParentSequence)
-               WHERE a.file_name_id = b.file_name_id
-            MERGE (b)-[r: IS_CONTAINED_IN]->(a);"""
-        self.create_relationship_navigableparents_navigableparentsequence_cypher_str = """
-            MATCH (a:NavigableParents), (b:NavigableParentSequence)
-               WHERE a.navigable_parent_id = b.navigable_parent_id
-            MERGE (a)-[r: IS_PART_OF]->(b);"""
-        self.create_relationship_headertags_headertagsequence_cypher_str = """
-            MATCH (a:HeaderTags), (b:HeaderTagSequence)
-               WHERE a.header_tag_id = b.header_tag_id
-            CREATE (a)-[r: IS_PART_OF]->(b);"""
-        self.create_relationship_headertags_navigableparents_cypher_str = """
-            MATCH (a:HeaderTags), (b:NavigableParents)
-               WHERE a.header_tag_id = b.header_tag_id
-            CREATE (a)-[r: SUMMARIZES]->(b);"""
-        self.create_relationship_minimumrequirementssection_navigableparentsequence_cypher_str = """
-            MATCH (a:MinimumRequirementsSection), (b:NavigableParentSequence) 
-               WHERE a.mrs_id = b.mrs_id
-            CREATE (a)-[r: SUMMARIZES]->(b);"""
 
         # Various CYPHER strings
         self.SAVES_HTML_FOLDER = os.path.join(self.s.saves_folder, 'html')
@@ -527,24 +205,51 @@ class CypherUtilities(object):
 
 
     # File Names Table functions
+    
     def create_filenames_table(self, verbose=False):
         cypher_str = """
             MATCH (fn:FileNames)
             DETACH DELETE fn;"""
+        
+        # The email date is in the form of ISO8601 strings ("YYYY-MM-DD HH:MM:SS.SSS")
+        create_filenames_table_cypher_str = """
+            LOAD CSV WITH HEADERS FROM 'file:///FileNames.csv' AS row
+            WITH
+                row.file_name_id AS file_name_id,
+                row.file_name AS file_name,
+                row.percent_fit AS percent_fit,
+                row.is_opportunity_application_emailed AS is_opportunity_application_emailed,
+                row.opportunity_application_email_date AS opportunity_application_email_date,
+                row.is_remote_delivery AS is_remote_delivery,
+                row.manager_notes AS manager_notes
+            MERGE (fn:FileNames {file_name: file_name}) SET
+                fn.file_name_id = file_name_id,
+                fn.percent_fit = percent_fit,
+                fn.is_opportunity_application_emailed = is_opportunity_application_emailed,
+                fn.opportunity_application_email_date = opportunity_application_email_date,
+                fn.is_remote_delivery = is_remote_delivery,
+                fn.manager_notes = manager_notes;"""
+        
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_filenames_table_cypher_str)
+            session.write_transaction(self.do_cypher_tx, create_filenames_table_cypher_str)
+    
     def populate_filenames_table(self, verbose=False):
         files_list = sorted([fn for fn in os.listdir(self.SAVES_HTML_FOLDER) if fn.endswith('.html')])
         for file_name in files_list:
             cypher_str = f'''MERGE (fn:FileNames {{file_name: "{file_name}"}})'''
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
+    
     def get_files_list(self, verbose=False):
-        row_objs_list = self.get_execution_results(self.select_file_names_cypher_str, verbose=verbose)
+        select_file_names_cypher_str = """
+            MATCH (fn:FileNames)
+            RETURN fn;"""
+        row_objs_list = self.get_execution_results(select_file_names_cypher_str, verbose=verbose)
         files_list = [row_obj['fn'].get('file_name', '').strip() for row_obj in row_objs_list]
 
         return files_list
+    
     def get_filename_id(self, file_name, verbose=False):
         file_name = self.clean_text(file_name)
         cypher_str = f'''MERGE (fn:FileNames {{file_name: "{file_name}"}})
@@ -567,6 +272,7 @@ class CypherUtilities(object):
             file_name_id = row_objs_list[0]['fn.file_name_id']
 
         return file_name_id
+    
     def get_all_filenames(self, verbose=False):
         cypher_str = f"""
             MATCH (fn:FileNames)
@@ -576,6 +282,14 @@ class CypherUtilities(object):
         row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
 
         return row_objs_list
+    
+    def ensure_filename(self, file_name, verbose=False):
+        file_name = self.clean_text(file_name)
+        cypher_str = f'''MERGE (:FileNames {{file_name: "{file_name}"}});'''
+        if verbose:
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
 
 
 
@@ -584,33 +298,128 @@ class CypherUtilities(object):
         cypher_str = """
             MATCH (ht:HeaderTags)
             DETACH DELETE ht;"""
+        create_headertags_table_cypher_str = """
+            LOAD CSV WITH HEADERS FROM 'file:///HeaderTags.csv' AS row
+            WITH
+                row.header_tag_id AS header_tag_id,
+                row.is_in_document_structure_elements_set AS is_in_document_structure_elements_set,
+                row.is_in_document_head_elements_set AS is_in_document_head_elements_set,
+                row.is_in_document_body_elements_set AS is_in_document_body_elements_set,
+                row.is_in_block_elements_set AS is_in_block_elements_set,
+                row.is_in_basic_text_set AS is_in_basic_text_set,
+                row.is_in_section_headings_set AS is_in_section_headings_set,
+                row.is_in_lists_set AS is_in_lists_set,
+                row.is_in_other_block_elements_set AS is_in_other_block_elements_set,
+                row.is_in_inline_elements_set AS is_in_inline_elements_set,
+                row.is_in_anchor_set AS is_in_anchor_set,
+                row.is_in_phrase_elements_set AS is_in_phrase_elements_set,
+                row.is_in_general_set AS is_in_general_set,
+                row.is_in_computer_phrase_elements_set AS is_in_computer_phrase_elements_set,
+                row.is_in_presentation_set AS is_in_presentation_set,
+                row.is_in_span_set AS is_in_span_set,
+                row.is_in_other_inline_elements_set AS is_in_other_inline_elements_set,
+                row.is_in_images_and_objects_set AS is_in_images_and_objects_set,
+                row.is_in_forms_set AS is_in_forms_set,
+                row.is_in_tables_set AS is_in_tables_set,
+                row.is_in_frames_set AS is_in_frames_set,
+                row.is_in_historic_elements_set AS is_in_historic_elements_set,
+                row.is_in_non_standard_elements_set AS is_in_non_standard_elements_set,
+                row.header_tag AS header_tag
+            MERGE (ht:HeaderTags {header_tag_id: header_tag_id}) SET
+                ht.is_in_document_structure_elements_set = is_in_document_structure_elements_set,
+                ht.is_in_document_head_elements_set = is_in_document_head_elements_set,
+                ht.is_in_document_body_elements_set = is_in_document_body_elements_set,
+                ht.is_in_block_elements_set = is_in_block_elements_set,
+                ht.is_in_basic_text_set = is_in_basic_text_set,
+                ht.is_in_section_headings_set = is_in_section_headings_set,
+                ht.is_in_lists_set = is_in_lists_set,
+                ht.is_in_other_block_elements_set = is_in_other_block_elements_set,
+                ht.is_in_inline_elements_set = is_in_inline_elements_set,
+                ht.is_in_anchor_set = is_in_anchor_set,
+                ht.is_in_phrase_elements_set = is_in_phrase_elements_set,
+                ht.is_in_general_set = is_in_general_set,
+                ht.is_in_computer_phrase_elements_set = is_in_computer_phrase_elements_set,
+                ht.is_in_presentation_set = is_in_presentation_set,
+                ht.is_in_span_set = is_in_span_set,
+                ht.is_in_other_inline_elements_set = is_in_other_inline_elements_set,
+                ht.is_in_images_and_objects_set = is_in_images_and_objects_set,
+                ht.is_in_forms_set = is_in_forms_set,
+                ht.is_in_tables_set = is_in_tables_set,
+                ht.is_in_frames_set = is_in_frames_set,
+                ht.is_in_historic_elements_set = is_in_historic_elements_set,
+                ht.is_in_non_standard_elements_set = is_in_non_standard_elements_set,
+                ht.header_tag = header_tag;"""
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_headertags_table_cypher_str)
+            session.write_transaction(self.do_cypher_tx, create_headertags_table_cypher_str)
     def populate_headertags_table(self, verbose=False):
-        document_structure_elements_set = set(['body','head','html'])
-        document_head_elements_set = set(['base','basefont','isindex','link','meta','object','script','style','title'])
-        document_body_elements_set = set(['a','abbr','acronym','address','applet','area','article','aside','audio','b','bdi','bdo','big','blockquote','br','button','canvas','caption','center','cite','code','col','colgroup','data','datalist','dd','del','dfn','dir','div','dl','dt','em','embed','fieldset','figcaption','figure','font','footer','form','h1','h2','h3','h4','h5','h6','header','hr','i','img','input','ins','isindex','kbd','keygen','label','legend','li','main','map','mark','menu','meter','nav','noscript','object','ol','optgroup','option','output','p','param','pre','progress','q','rb','rp','rt','rtc','ruby','s','samp','script','section','select','small','source','span','strike','strong','sub','sup','table','tbody','td','template','textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var','video','wbr'])
-        block_elements_set = set(['address','article','aside','blockquote','center','dd','del','dir','div','dl','dt','figcaption','figure','footer','h1','h2','h3','h4','h5','h6','header','hr','ins','li','main','menu','nav','noscript','ol','p','pre','script','section','ul'])
-        basic_text_set = set(['h1','h2','h3','h4','h5','h6','p'])
-        section_headings_set = set(['h1','h2','h3','h4','h5','h6'])
-        lists_set = set(['dd','dir','dl','dt','li','ol','ul'])
-        other_block_elements_set = set(['address','article','aside','blockquote','center','del','div','figcaption','figure','footer','header','hr','ins','main','menu','nav','noscript','pre','script','section'])
-        inline_elements_set = set(['a','abbr','acronym','b','bdi','bdo','big','br','cite','code','data','del','dfn','em','font','i','ins','kbd','mark','q','rb','rp','rt','rtc','ruby','s','samp','script','small','span','strike','strong','sub','sup','template','time','tt','u','var','wbr'])
+        insert_into_headertags_cypher_str = """
+            CREATE (:HeaderTags {{
+                header_tag: '{}',
+                is_in_document_structure_elements_set: '{}',
+                is_in_document_head_elements_set: '{}',
+                is_in_document_body_elements_set: '{}',
+                is_in_block_elements_set: '{}',
+                is_in_basic_text_set: '{}',
+                is_in_section_headings_set: '{}',
+                is_in_lists_set: '{}',
+                is_in_other_block_elements_set: '{}',
+                is_in_inline_elements_set: '{}',
+                is_in_anchor_set: '{}',
+                is_in_phrase_elements_set: '{}',
+                is_in_general_set: '{}',
+                is_in_computer_phrase_elements_set: '{}',
+                is_in_presentation_set: '{}',
+                is_in_span_set: '{}',
+                is_in_other_inline_elements_set: '{}',
+                is_in_images_and_objects_set: '{}',
+                is_in_forms_set: '{}',
+                is_in_tables_set: '{}',
+                is_in_frames_set: '{}',
+                is_in_historic_elements_set: '{}',
+                is_in_non_standard_elements_set: '{}'
+                }});"""
+        document_structure_elements_set = set(['body', 'head', 'html'])
+        document_head_elements_set = set(['base', 'basefont', 'isindex', 'link', 'meta', 'object', 'script', 'style', 'title'])
+        document_body_elements_set = set(['a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blockquote',
+                                          'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'dd', 'del', 'dfn',
+                                          'dir', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3',
+                                          'h4', 'h5', 'h6', 'header', 'hr', 'i', 'img', 'input', 'ins', 'isindex', 'kbd', 'keygen', 'label', 'legend', 'li',
+                                          'main', 'map', 'mark', 'menu', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param',
+                                          'pre', 'progress', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source',
+                                          'span', 'strike', 'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time',
+                                          'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr'])
+        block_elements_set = set(['address', 'article', 'aside', 'blockquote', 'center', 'dd', 'del', 'dir', 'div', 'dl', 'dt', 'figcaption', 'figure', 'footer',
+                                  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'ins', 'li', 'main', 'menu', 'nav', 'noscript', 'ol', 'p', 'pre', 'script',
+                                  'section', 'ul'])
+        basic_text_set = set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'])
+        section_headings_set = set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+        lists_set = set(['dd', 'dir', 'dl', 'dt', 'li', 'ol', 'ul'])
+        other_block_elements_set = set(['address', 'article', 'aside', 'blockquote', 'center', 'del', 'div', 'figcaption', 'figure', 'footer', 'header', 'hr',
+                                        'ins', 'main', 'menu', 'nav', 'noscript', 'pre', 'script', 'section'])
+        inline_elements_set = set(['a', 'abbr', 'acronym', 'b', 'bdi', 'bdo', 'big', 'br', 'cite', 'code', 'data', 'del', 'dfn', 'em', 'font', 'i', 'ins', 'kbd',
+                                   'mark', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'small', 'span', 'strike', 'strong', 'sub', 'sup',
+                                   'template', 'time', 'tt', 'u', 'var', 'wbr'])
         anchor_set = set(['a'])
-        phrase_elements_set = set(['abbr','acronym','b','big','code','dfn','em','font','i','kbd','s','samp','small','strike','strong','tt','u','var'])
-        general_set = set(['abbr','acronym','dfn','em','strong'])
-        computer_phrase_elements_set = set(['code','kbd','samp','var'])
-        presentation_set = set(['b','big','font','i','s','small','strike','tt','u'])
+        phrase_elements_set = set(['abbr', 'acronym', 'b', 'big', 'code', 'dfn', 'em', 'font', 'i', 'kbd', 's', 'samp', 'small', 'strike', 'strong', 'tt', 'u',
+                                   'var'])
+        general_set = set(['abbr', 'acronym', 'dfn', 'em', 'strong'])
+        computer_phrase_elements_set = set(['code', 'kbd', 'samp', 'var'])
+        presentation_set = set(['b', 'big', 'font', 'i', 's', 'small', 'strike', 'tt', 'u'])
         span_set = set(['span'])
-        other_inline_elements_set = set(['bdi','bdo','br','cite','data','del','ins','mark','q','rb','rp','rt','rtc','ruby','script','sub','sup','template','time','wbr'])
-        images_and_objects_set = set(['applet','area','audio','canvas','embed','img','map','object','param','source','track','video'])
-        forms_set = set(['button','datalist','fieldset','form','input','isindex','keygen','label','legend','meter','optgroup','option','output','progress','select','textarea'])
-        tables_set = set(['caption','col','colgroup','table','tbody','td','tfoot','th','thead','tr'])
-        frames_set = set(['frame','frameset','iframe','noframes'])
-        historic_elements_set = set(['listing','nextid','plaintext','xmp'])
-        non_standard_elements_set = set(['blink','layer','marquee','nobr','noembed'])
-        union_set = set().union(document_structure_elements_set, document_head_elements_set, document_body_elements_set, block_elements_set, basic_text_set, section_headings_set, lists_set, other_block_elements_set, inline_elements_set, anchor_set, phrase_elements_set, general_set, computer_phrase_elements_set, presentation_set, span_set, other_inline_elements_set, images_and_objects_set, forms_set, tables_set, frames_set, historic_elements_set, non_standard_elements_set)
+        other_inline_elements_set = set(['bdi', 'bdo', 'br', 'cite', 'data', 'del', 'ins', 'mark', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 'script', 'sub', 'sup',
+                                         'template', 'time', 'wbr'])
+        images_and_objects_set = set(['applet', 'area', 'audio', 'canvas', 'embed', 'img', 'map', 'object', 'param', 'source', 'track', 'video'])
+        forms_set = set(['button', 'datalist', 'fieldset', 'form', 'input', 'isindex', 'keygen', 'label', 'legend',
+                         'meter', 'optgroup', 'option', 'output', 'progress', 'select', 'textarea'])
+        tables_set = set(['caption', 'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr'])
+        frames_set = set(['frame', 'frameset', 'iframe', 'noframes'])
+        historic_elements_set = set(['listing', 'nextid', 'plaintext', 'xmp'])
+        non_standard_elements_set = set(['blink', 'layer', 'marquee', 'nobr', 'noembed'])
+        union_set = set().union(document_structure_elements_set, document_head_elements_set, document_body_elements_set, block_elements_set, basic_text_set,
+                                section_headings_set, lists_set, other_block_elements_set, inline_elements_set, anchor_set, phrase_elements_set, general_set,
+                                computer_phrase_elements_set, presentation_set, span_set, other_inline_elements_set, images_and_objects_set, forms_set, tables_set,
+                                frames_set, historic_elements_set, non_standard_elements_set)
         child_tags_list = sorted(union_set)
         for i, child_tag in enumerate(child_tags_list):
             is_in_document_structure_elements_set = (child_tag in document_structure_elements_set)
@@ -635,36 +444,100 @@ class CypherUtilities(object):
             is_in_frames_set = (child_tag in frames_set)
             is_in_historic_elements_set = (child_tag in historic_elements_set)
             is_in_non_standard_elements_set = (child_tag in non_standard_elements_set)
-            cypher_str = self.insert_into_headertags_cypher_str.format(child_tag, child_tag, is_in_document_structure_elements_set, is_in_document_head_elements_set,
-                                                                   is_in_document_body_elements_set, is_in_block_elements_set, is_in_basic_text_set,
-                                                                   is_in_section_headings_set, is_in_lists_set, is_in_other_block_elements_set,
-                                                                   is_in_inline_elements_set, is_in_anchor_set, is_in_phrase_elements_set,
-                                                                   is_in_general_set, is_in_computer_phrase_elements_set, is_in_presentation_set,
-                                                                   is_in_span_set, is_in_other_inline_elements_set, is_in_images_and_objects_set, is_in_forms_set,
-                                                                   is_in_tables_set, is_in_frames_set, is_in_historic_elements_set, is_in_non_standard_elements_set)
+            cypher_str = insert_into_headertags_cypher_str.format(child_tag, is_in_document_structure_elements_set, is_in_document_head_elements_set,
+                                                                  is_in_document_body_elements_set, is_in_block_elements_set, is_in_basic_text_set,
+                                                                  is_in_section_headings_set, is_in_lists_set, is_in_other_block_elements_set,
+                                                                  is_in_inline_elements_set, is_in_anchor_set, is_in_phrase_elements_set,
+                                                                  is_in_general_set, is_in_computer_phrase_elements_set, is_in_presentation_set,
+                                                                  is_in_span_set, is_in_other_inline_elements_set, is_in_images_and_objects_set,
+                                                                  is_in_forms_set, is_in_tables_set, is_in_frames_set, is_in_historic_elements_set,
+                                                                  is_in_non_standard_elements_set)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
     def get_headertag_id(self, header_tag, verbose=False):
-        row_objs_list = self.get_execution_results(self.select_header_tag_id_where_header_tag_cypher_str.format(header_tag), verbose=False)
+        select_header_tag_id_where_header_tag_cypher_str = """
+            MATCH (ht:HeaderTags {{header_tag: '{}'}})
+            RETURN ht.header_tag_id AS header_tag_id;"""
+        row_objs_list = self.get_execution_results(select_header_tag_id_where_header_tag_cypher_str.format(header_tag), verbose=False)
         header_tag_id = [row_obj.get('header_tag_id') for row_obj in row_objs_list][0]
 
         return header_tag_id
     def get_headertag(self, header_tag_id, verbose=False):
-        row_objs_list = self.get_execution_results(self.select_header_tag_where_header_tag_id_cypher_str.format(header_tag_id), verbose=verbose)
+        select_header_tag_where_header_tag_id_cypher_str = """
+            MATCH (ht:HeaderTags {{header_tag_id: '{}'}})
+            RETURN ht.header_tag AS header_tag;"""
+        row_objs_list = self.get_execution_results(select_header_tag_where_header_tag_id_cypher_str.format(header_tag_id), verbose=verbose)
         header_tag = [row_obj['fn'].get('header_tag') for row_obj in row_objs_list][0]
 
         return header_tag
+    def ensure_headertag(self, header_tag, verbose=False):
+        header_tag = self.clean_text(header_tag)
+        cypher_str = f'''MERGE (ht:HeaderTags {{header_tag: "{header_tag}"}});'''
+        if verbose:
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+    def ensure_headertag_navigableparent_relationship(self, header_tag, navigable_parent, verbose=False):
+        navigable_parent = self.clean_text(navigable_parent)
+        cypher_str = f'''MATCH
+            (np:NavigableParents {{navigable_parent: "{navigable_parent}"}}),
+            (ht:HeaderTags {{header_tag: "{header_tag}"}})
+            MERGE (ht)-[r:SUMMARIZES]->(np);'''
+        if verbose:
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
 
 
 
     # Navigable Parents Table functions
+    
     def create_navigableparents_table(self, verbose=False):
         cypher_str = """
             MATCH (np:NavigableParents)
             DETACH DELETE np;"""
+        create_navigableparents_table_cypher_str = """
+            LOAD CSV WITH HEADERS FROM 'file:///NavigableParents.csv' AS row
+            WITH
+                row.navigable_parent_id AS navigable_parent_id,
+                row.header_tag_id AS header_tag_id,
+                row.navigable_parent AS navigable_parent,
+                row.is_header AS is_header,
+                row.is_task_scope AS is_task_scope,
+                row.is_minimum_qualification AS is_minimum_qualification,
+                row.is_preferred_qualification AS is_preferred_qualification,
+                row.is_legal_notification AS is_legal_notification,
+                row.is_job_title AS is_job_title,
+                row.is_office_location AS is_office_location,
+                row.is_job_duration AS is_job_duration,
+                row.is_supplemental_pay AS is_supplemental_pay,
+                row.is_educational_requirement AS is_educational_requirement,
+                row.is_interview_procedure AS is_interview_procedure,
+                row.is_corporate_scope AS is_corporate_scope,
+                row.is_posting_date AS is_posting_date,
+                row.is_other AS is_other,
+                row.is_qualification AS is_qualification
+            MERGE (np:NavigableParents {navigable_parent: navigable_parent}) SET
+                np.navigable_parent_id = navigable_parent_id,
+                np.header_tag_id = header_tag_id,
+                np.is_header = is_header,
+                np.is_task_scope = is_task_scope,
+                np.is_minimum_qualification = is_minimum_qualification,
+                np.is_preferred_qualification = is_preferred_qualification,
+                np.is_legal_notification = is_legal_notification,
+                np.is_job_title = is_job_title,
+                np.is_office_location = is_office_location,
+                np.is_job_duration = is_job_duration,
+                np.is_supplemental_pay = is_supplemental_pay,
+                np.is_educational_requirement = is_educational_requirement,
+                np.is_interview_procedure = is_interview_procedure,
+                np.is_corporate_scope = is_corporate_scope,
+                np.is_posting_date = is_posting_date,
+                np.is_other = is_other,
+                np.is_qualification = is_qualification;"""
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_navigableparents_table_cypher_str)
+            session.write_transaction(self.do_cypher_tx, create_navigableparents_table_cypher_str)
     def populate_navigableparents_table(self, verbose=False):
         files_list = self.get_files_list(verbose=verbose)
         navigable_parent_set = set()
@@ -683,10 +556,13 @@ class CypherUtilities(object):
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
         # Set the Corporate Scope is_header
+        set_is_corporate_scope1_cypher_str = """
+            MATCH (np:NavigableParents {{navigable_parent: '{}'}})
+            SET np.is_header = 'True', np.is_corporate_scope = 'True';"""
         corp_scope_headers_list = self.s.load_object('corp_scope_headers_list')
         for navigable_parent in corp_scope_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_corporate_scope1_cypher_str.format(navigable_parent)
+            cypher_str = set_is_corporate_scope1_cypher_str.format(navigable_parent)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -842,41 +718,52 @@ class CypherUtilities(object):
                          'is_job_title', 'is_office_location', 'is_job_duration', 'is_supplemental_pay',
                          'is_educational_requirement', 'is_interview_procedure', 'is_corporate_scope', 'is_posting_date',
                          'is_other']
+        set_secondary_column0_formatted_cypher_str = """
+            MATCH (np:NavigableParents {{{}: 'True'}})
+            WHERE NOT EXISTS(np.{})
+            SET np.{} = 'False';"""
         for primary_column in subtypes_list:
             for secondary_column in subtypes_list:
-                cypher_str = self.set_secondary_column0_formatted_cypher_str.format(secondary_column, primary_column, secondary_column)
+                cypher_str = set_secondary_column0_formatted_cypher_str.format(secondary_column, primary_column, secondary_column)
                 if verbose:
                     print(cypher_str)
                 with self.driver.session() as session:
                     session.write_transaction(self.do_cypher_tx, cypher_str)
 
         # Set the is_qualification if the other qual columns are set
-        cypher_str = self.set_is_qualification1_or_cypher_str
+        cypher_str = """
+            MATCH (np:NavigableParents)
+            WHERE
+                np.is_minimum_qualification = 'True' OR
+                np.is_preferred_qualification = 'True'
+            SET np.is_qualification = 'True';"""
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
     
-    def get_navigableparent_id(self, navigable_parent, verbose=False):
+    def ensure_navigableparent(self, navigable_parent, verbose=False):
         navigable_parent = self.clean_text(navigable_parent)
-        cypher_str = f'''MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent}"}})
-            RETURN np.navigable_parent_id;'''
+        cypher_str = f'''MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent}"}});'''
         if verbose:
             print(cypher_str)
         with self.driver.session() as session:
-            row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
-        navigable_parent_id = row_objs_list[0]['np.navigable_parent_id']
-        if navigable_parent_id is None:
-            navigable_parent_id = self.convert_str_to_hash(navigable_parent)
-            cypher_str = f'''
-                MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent}"}}) SET
-                    np.navigable_parent_id = "{navigable_parent_id}"
-                RETURN np.navigable_parent_id;'''
-            if verbose:
-                print(cypher_str)
-            with self.driver.session() as session:
-                row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
-            navigable_parent_id = row_objs_list[0]['np.navigable_parent_id']
-
-        return navigable_parent_id
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+    
+    def ensure_navigableparents_relationship(self, navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=False):
+        navigable_parent1 = self.clean_text(navigable_parent1)
+        navigable_parent2 = self.clean_text(navigable_parent2)
+        file_name = self.clean_text(file_name)
+        cypher_str = f'''MERGE (np1:NavigableParents {{
+                navigable_parent: "{navigable_parent1}"
+            }})-[r:NEXT {{
+                file_name: "{file_name}",
+                sequence_order: "{str(sequence_order).zfill(4)}"
+            }}]->(np2:NavigableParents {{
+                navigable_parent: "{navigable_parent2}"
+            }});'''
+        if verbose:
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
 
 
 
@@ -887,29 +774,47 @@ class CypherUtilities(object):
             DETACH DELETE hts;"""
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-        cypher_str = self.create_headertagsequence_table_cypher_str
+        cypher_str = """
+            LOAD CSV WITH HEADERS FROM 'file:///HeaderTagSequence.csv' AS row
+            WITH
+                row.header_tag_sequence_id AS header_tag_sequence_id,
+                row.file_name AS file_name,
+                row.header_tag_id AS header_tag_id,
+                row.sequence_order AS sequence_order
+            MERGE (hts:HeaderTagSequence {header_tag_sequence_id: header_tag_sequence_id}) SET
+                hts.file_name = file_name,
+                hts.header_tag_id = header_tag_id,
+                hts.sequence_order = sequence_order;"""
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
     def populate_headertagsequence_table(self, verbose=False):
+        insert_header_tag_sequence_str = """
+            CREATE (HeaderTagSequence {{
+                header_tag_sequence_id: '{}',
+                file_name: '{}',
+                header_tag_id: '{}',
+                sequence_order: '{}'
+                }});"""
         files_list = self.get_files_list(verbose=verbose)
         for file_name in files_list:
-            file_name = file_name.strip()
-            file_name_id = self.get_filename_id(file_name, verbose=verbose)
             child_strs_list = self.ha.get_child_strs_from_file(file_name)
+            file_name = self.clean_text(file_name)
             child_tags_list = self.ha.get_child_tags_list(child_strs_list)
             for sequence_order, header_tag in enumerate(child_tags_list):
                 header_tag_id = self.get_headertag_id(header_tag, verbose=verbose)
-                cypher_str = self.insert_header_tag_sequence_str.format(header_tag_id, sequence_order,
-                                                                        file_name_id, header_tag_id, sequence_order)
+                unhashed_str = str(file_name) + str(header_tag_id) + str(sequence_order)
+                header_tag_sequence_id = self.convert_str_to_hash(unhashed_str)
+                cypher_str = insert_header_tag_sequence_str.format(header_tag_sequence_id, file_name,
+                                                                        header_tag_id, sequence_order)
                 if verbose:
                     print(cypher_str)
                 with self.driver.session() as session:
                     session.write_transaction(self.do_cypher_tx, cypher_str)
-    def get_child_tags_list(self, file_name_id, verbose=False):
+    def get_child_tags_list(self, file_name, verbose=False):
 
         # Get the child tags list for the file
         cypher_str = f"""
-            MATCH (ht:HeaderTags) --> (hts:HeaderTagSequence {{file_name_id: {file_name_id}}})
+            MATCH (ht:HeaderTags) --> (hts:HeaderTagSequence {{file_name: '{file_name}'}})
             RETURN
                 ht.header_tag,
                 hts.sequence_order;"""
@@ -918,94 +823,98 @@ class CypherUtilities(object):
         child_tags_list = [x.strip() for x in df.header_tag.tolist()]
 
         return child_tags_list
-    def populate_header_tag_sequence_table(self, verbose=False):
-
-        # Create the navigable html strings dataset
-        header_tag_sequence_table_df = self.create_header_tag_sequence_table_dataframe(verbose=verbose)
-
-        # Insert Dataframe into CYPHER Server:
-        for row_index, row_series in header_tag_sequence_table_df.iterrows():
-            cypher_str = self.insert_header_tag_sequence_str.format(row_series.header_tag,
-                                                                    row_series.sequence_order, row_series.file_name.strip(),
-                                                                    row_series.header_tag, row_series.sequence_order)
-            if verbose:
-                print(cypher_str)
-            with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
-
-
-
-    # Navigable Parent Sequence Table functions
-    def create_navigableparentsequence_table(self, verbose=False):
-        cypher_str = """
-            MATCH (np:NavigableParentSequence)
-            DETACH DELETE np;"""
-        with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_navigableparentsequence_table_cypher_str)
-    
-    def populate_navigableparentsequence_table(self, verbose=False):
-        files_list = self.get_files_list(verbose=verbose)
-        counter = 0
-        for file_name in files_list:
-            file_name = file_name.strip()
-            file_name_id = self.get_filename_id(file_name, verbose=verbose)
-            child_strs_list = self.ha.get_child_strs_from_file(file_name)
-            for sequence_order, navigable_parent in enumerate(child_strs_list):
-                navigable_parent_id = self.get_navigableparent_id(navigable_parent, verbose=verbose)
-                cypher_str = self.insert_navigableparentsequence_table_cypher_str.format(counter, file_name_id, navigable_parent_id, sequence_order, 0)
-                if verbose:
-                    print(cypher_str)
-                with self.driver.session() as session:
-                    session.write_transaction(self.do_cypher_tx, cypher_str)
-                counter += 1
-    
-    def get_navigableparentsequence_id(self, file_name_id, navigable_parent_id, sequence_order, verbose=False):
-        cypher_str = f'''MERGE (nps:NavigableParentSequence {{
-                file_name_id: "{file_name_id}",
-                navigable_parent_id: "{navigable_parent_id}",
-                sequence_order: "{sequence_order}"}})
-            RETURN nps.navigable_parent_sequence_id;'''
+    def get_headertagsequence_id(self, file_name, header_tag_id, sequence_order, verbose=False):
+        cypher_str = f'''MERGE (hts:HeaderTagSequence {{
+                file_name: "{file_name}",
+                header_tag_id: "{header_tag_id}",
+                sequence_order: "{str(sequence_order).zfill(4)}"}})
+            RETURN hts.header_tag_sequence_id;'''
         if verbose:
             print(cypher_str)
         with self.driver.session() as session:
             row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
-        navigable_parent_sequence_id = row_objs_list[0]['nps.navigable_parent_sequence_id']
-        if navigable_parent_sequence_id is None:
-            unhashed_str = str(file_name_id) + str(navigable_parent_id) + str(sequence_order)
-            navigable_parent_sequence_id = self.convert_str_to_hash(unhashed_str)
+        header_tag_sequence_id = row_objs_list[0]['hts.header_tag_sequence_id']
+        if header_tag_sequence_id is None:
+            unhashed_str = str(file_name) + str(header_tag_id) + str(sequence_order)
+            header_tag_sequence_id = self.convert_str_to_hash(unhashed_str)
             cypher_str = f'''
-                MERGE (nps:NavigableParentSequence {{
-                    file_name_id: "{file_name_id}",
-                    navigable_parent_id: "{navigable_parent_id}",
-                    sequence_order: "{sequence_order}"}}) SET
-                    nps.navigable_parent_sequence_id = "{navigable_parent_sequence_id}"
-                RETURN nps.navigable_parent_sequence_id;'''
+                MERGE (hts:HeaderTagSequence {{
+                    file_name: "{file_name}",
+                    header_tag_id: "{header_tag_id}",
+                    sequence_order: "{str(sequence_order).zfill(4)}"}}) SET
+                    hts.header_tag_sequence_id = "{header_tag_sequence_id}"
+                RETURN hts.header_tag_sequence_id;'''
             if verbose:
                 print(cypher_str)
             with self.driver.session() as session:
                 row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
-            navigable_parent_sequence_id = row_objs_list[0]['nps.navigable_parent_sequence_id']
+            header_tag_sequence_id = row_objs_list[0]['hts.header_tag_sequence_id']
         
-        return navigable_parent_sequence_id
-    
-    def ensure_navigableparentsequence_filename_relationship(self, file_name_id, verbose=False):
-        cypher_str = f'''MATCH (fn:FileNames {{file_name_id: "{file_name_id}"}}), (nps:NavigableParentSequence {{file_name_id: "{file_name_id}"}})
-            MERGE (nps)-[r:IS_CONTAINED_IN]->(fn);'''
+        return header_tag_sequence_id
+    def ensure_headertagsequence_filename_relationship(self, file_name, verbose=False):
+        cypher_str = f'''MATCH (fn:FileNames {{file_name: "{file_name}"}}), (hts:HeaderTagSequence {{file_name: "{file_name}"}})
+            MERGE (hts)-[r:IS_CONTAINED_IN]->(fn);'''
         if verbose:
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-    
-    def ensure_navigableparentsequence_navigableparent_relationship(self, navigable_parent_id, verbose=False):
+    def ensure_headertagsequence_headertag_relationship(self, header_tag_id, verbose=False):
         cypher_str = f'''MATCH
-            (np:NavigableParents {{navigable_parent_id: "{navigable_parent_id}"}}),
-            (nps:NavigableParentSequence {{navigable_parent_id: "{navigable_parent_id}"}})
-            MERGE (np)-[r:IS_PART_OF]->(nps);'''
+            (ht:HeaderTags {{header_tag_id: "{header_tag_id}"}}),
+            (hts:HeaderTagSequence {{header_tag_id: "{header_tag_id}"}})
+            MERGE (ht)-[r:IS_PART_OF]->(hts);'''
         if verbose:
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
+    def ensure_headertags_relationship(self, header_tag1, header_tag2, file_name, sequence_order, verbose=False):
+        header_tag1 = self.clean_text(header_tag1)
+        header_tag2 = self.clean_text(header_tag2)
+        file_name = self.clean_text(file_name)
+        cypher_str = f'''MERGE (ht1:HeaderTags {{
+                header_tag: "{header_tag1}"
+            }})-[r:NEXT {{
+                file_name: "{file_name}",
+                sequence_order: "{str(sequence_order).zfill(4)}"
+            }}]->(ht2:HeaderTags {{
+                header_tag: "{header_tag2}"
+            }});'''
+        if verbose:
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+
+
+
+    # Navigable Parent Sequence Table functions
+    def delete_navigableparentsequence_nodes(self, verbose=False):
+        with self.driver.session() as session:
+            cypher_str = """
+                MATCH (:NavigableParentSequence)-[r]-()
+                DELETE r;"""
+            if verbose:
+                print(cypher_str)
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+            cypher_str = """
+                MATCH (nps:NavigableParentSequence)
+                DETACH DELETE nps;"""
+            if verbose:
+                print(cypher_str)
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+    
+    def populate_navigableparent_sequences(self, verbose=False):
+        files_list = self.get_files_list(verbose=verbose)
+        for file_name in files_list:
+            file_name = file_name.strip()
+            child_strs_list = self.ha.get_child_strs_from_file(file_name)
+            for sequence_order, (navigable_parent1, navigable_parent2) in enumerate(zip(child_strs_list[:-1], child_strs_list[1:])):
+                self.ensure_navigableparent(navigable_parent1, verbose=verbose)
+                self.ensure_navigableparent(navigable_parent2, verbose=verbose)
+                self.ensure_navigableparents_relationship(navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=verbose)
+            
+            # Add a fake relationship at the end
+            self.ensure_navigableparent('END', verbose=verbose)
+            self.ensure_navigableparents_relationship(navigable_parent2, 'END', file_name, sequence_order+1, verbose=verbose)
 
 
 
@@ -1014,9 +923,46 @@ class CypherUtilities(object):
         cypher_str = """
             MATCH (pos:PartsOfSpeech)
             DETACH DELETE pos;"""
+        create_table_partsofspeech_cypher_str = """
+            LOAD CSV WITH HEADERS FROM 'file:///PartsOfSpeech.csv' AS row
+            WITH
+                row.pos_id AS pos_id,
+                row.is_header AS is_header,
+                row.is_task_scope AS is_task_scope,
+                row.is_minimum_qualification AS is_minimum_qualification,
+                row.is_preferred_qualification AS is_preferred_qualification,
+                row.is_legal_notification AS is_legal_notification,
+                row.is_job_title AS is_job_title,
+                row.is_office_location AS is_office_location,
+                row.is_job_duration AS is_job_duration,
+                row.is_supplemental_pay AS is_supplemental_pay,
+                row.is_educational_requirement AS is_educational_requirement,
+                row.is_interview_procedure AS is_interview_procedure,
+                row.is_corporate_scope AS is_corporate_scope,
+                row.is_posting_date AS is_posting_date,
+                row.is_other AS is_other,
+                row.pos_symbol AS pos_symbol,
+                row.pos_explanation AS pos_explanation
+            MERGE (pos:PartsOfSpeech {pos_id: pos_id}) SET
+                pos.is_header = is_header,
+                pos.is_task_scope = is_task_scope,
+                pos.is_minimum_qualification = is_minimum_qualification,
+                pos.is_preferred_qualification = is_preferred_qualification,
+                pos.is_legal_notification = is_legal_notification,
+                pos.is_job_title = is_job_title,
+                pos.is_office_location = is_office_location,
+                pos.is_job_duration = is_job_duration,
+                pos.is_supplemental_pay = is_supplemental_pay,
+                pos.is_educational_requirement = is_educational_requirement,
+                pos.is_interview_procedure = is_interview_procedure,
+                pos.is_corporate_scope = is_corporate_scope,
+                pos.is_posting_date = is_posting_date,
+                pos.is_other = is_other,
+                pos.pos_symbol = pos_symbol,
+                pos.pos_explanation = pos_explanation;"""
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_table_partsofspeech_cypher_str)
+            session.write_transaction(self.do_cypher_tx, create_table_partsofspeech_cypher_str)
     def populate_partsofspeech_table(self, verbose=False):
         pos_explanation_dict = self.s.load_object('pos_explanation_dict')
         count = 0
@@ -1069,16 +1015,21 @@ class CypherUtilities(object):
 
 
     # Minimum Requirements Section Table functions
-    def create_minimumrequirementssection_table(self, verbose=False):
+    def delete_minimumrequirementssection_nodes(self, verbose=False):
         cypher_str = """
             MATCH (mrs:MinimumRequirementsSection)
             DETACH DELETE mrs;"""
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_table_minimumrequirementssection_cypher_str)
     def populate_minimumrequirementssection_table(self, verbose=False):
         mrs_explanation_dict = {'N': 'Not a part of the Minimum Requirements Section', 'B': 'Beginning of the Minimum Requirements Section',
                                 'M': 'Middle of the Minimum Requirements Section', 'E': 'End of the Minimum Requirements Section'}
+        self.insert_into_minimumrequirementssection_cypher_str = """
+            CREATE (mrs:MinimumRequirementsSection {{
+                mrs_id: '{}',
+                mrs_symbol: '{}',
+                mrs_explanation: '{}',
+                }});"""
         for count, (mrs_symbol, mrs_explanation) in enumerate(mrs_explanation_dict.items()):
             cypher_str = self.insert_into_minimumrequirementssection_cypher_str.format(count, mrs_symbol, mrs_explanation)
             with self.driver.session() as session:
@@ -1091,23 +1042,36 @@ class CypherUtilities(object):
         cypher_str = """
             MATCH ()-[r]->()
             DETACH DELETE r;"""
+        if verbose:
+            print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_relationship_filenames_headertagsequence_cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_relationship_filenames_navigableparentsequence_cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_relationship_headertags_headertagsequence_cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_relationship_headertags_navigableparents_cypher_str)
-            session.write_transaction(self.do_cypher_tx, self.create_relationship_minimumrequirementssection_navigableparentsequence_cypher_str)
+            create_relationship_filenames_headertagsequence_cypher_str = """
+                MATCH (fn:FileNames), (hts:HeaderTagSequence)
+                   WHERE fn.file_name = hts.file_name
+                CREATE (hts)-[r: IS_CONTAINED_IN]->(fn);"""
+            session.write_transaction(self.do_cypher_tx, create_relationship_filenames_headertagsequence_cypher_str)
+            create_relationship_headertags_headertagsequence_cypher_str = """
+                MATCH (ht:HeaderTags), (hts:HeaderTagSequence)
+                   WHERE ht.header_tag_id = hts.header_tag_id
+                CREATE (ht)-[r: IS_PART_OF]->(hts);"""
+            session.write_transaction(self.do_cypher_tx, create_relationship_headertags_headertagsequence_cypher_str)
+            create_relationship_headertags_navigableparents_cypher_str = """
+                MATCH (ht:HeaderTags), (np:NavigableParents)
+                   WHERE ht.header_tag_id = np.header_tag_id
+                CREATE (ht)-[r: SUMMARIZES]->(np);"""
+            session.write_transaction(self.do_cypher_tx, create_relationship_headertags_navigableparents_cypher_str)
             for a in ['True', 'False']:
                 for b in ['is_task_scope', 'is_minimum_qualification', 'is_preferred_qualification', 'is_legal_notification', 'is_job_title',
                           'is_office_location', 'is_job_duration', 'is_supplemental_pay', 'is_educational_requirement', 'is_interview_procedure',
                           'is_corporate_scope', 'is_posting_date', 'is_other']:
                     cypher_str = f"""
                         MATCH (pos:PartsOfSpeech {{is_header: '{a}', {b}: 'True'}}), (np:NavigableParents {{is_header: '{a}', {b}: 'True'}})
-                        CREATE (pos)-[r: SUMMARIZES]->(np);"""
+                        MERGE (pos)-[r: SUMMARIZES]->(np);"""
                     if verbose:
                         print(cypher_str)
                     session.write_transaction(self.do_cypher_tx, cypher_str)
+        self.populate_navigableparent_sequences(verbose=verbose)
 
 
     def get_is_header_list(self, child_strs_list, verbose=False):
@@ -1124,7 +1088,15 @@ class CypherUtilities(object):
 
 
     def get_child_strs_from_file(self, file_name, verbose=False):
-        cypher_str = self.select_navigable_parent_by_file_name_cypher_str.format(file_name.strip())
+        select_navigable_parent_by_file_name_cypher_str = '''
+            // Get file name paths
+            MATCH path = (np:NavigableParents)-[rels:NEXT {{file_name: "{}"}}]->(np2:NavigableParents)
+            
+            // Get an array of names
+            RETURN REDUCE(acc = [], n in nodes(path) | acc + [n.navigable_parent]) AS navigable_parents_list
+            
+            ORDER BY rels.sequence_order;'''
+        cypher_str = select_navigable_parent_by_file_name_cypher_str.format(file_name.strip())
         row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
         child_strs_list = [row_obj.get('np.navigable_parent') for row_obj in row_objs_list]
 
@@ -1134,9 +1106,12 @@ class CypherUtilities(object):
 
     def get_child_tags_list(self, child_strs_list, verbose=False):
         child_tags_list = []
+        select_header_tag_where_navigable_parent_cypher_str = """
+            MATCH (np:NavigableParents {{navigable_parent: '{}'}})<-[s:SUMMARIZES]-(ht)
+            RETURN ht.header_tag AS header_tag;"""
         for navigable_parent in child_strs_list:
             navigable_parent = self.clean_text(navigable_parent)
-            row_objs_list = self.get_execution_results(self.select_header_tag_where_navigable_parent_cypher_str.format(navigable_parent), verbose=verbose)
+            row_objs_list = self.get_execution_results(select_header_tag_where_navigable_parent_cypher_str.format(navigable_parent), verbose=verbose)
             header_tag = [row_obj['fn'].get('header_tag') for row_obj in row_objs_list][0]
             child_tags_list.append(header_tag)
 
@@ -1238,7 +1213,17 @@ class CypherUtilities(object):
             mask_series = df.is_header.isnull()
 
             return df[mask_series].shape[0]
-        isheaders_df = pd.DataFrame(self.get_execution_results(self.select_filename_isheader_cypher_str, verbose=verbose))
+        select_filename_isheader_cypher_str = """
+            MATCH (np:NavigableParents)-[rels:NEXT]->(np2:NavigableParents)
+            RETURN
+                np.navigable_parent AS navigable_parent,
+                np.is_header AS is_header,
+                rels.sequence_order AS sequence_order,
+                rels.file_name AS file_name
+            ORDER BY
+                rels.file_name,
+                rels.sequence_order;"""
+        isheaders_df = pd.DataFrame(self.get_execution_results(select_filename_isheader_cypher_str, verbose=verbose))
         isheaders_series = isheaders_df.groupby('file_name').apply(f).sort_values()
         files_list = isheaders_series[isheaders_series==0].index.tolist()
         for file_name in files_list:
@@ -1261,19 +1246,19 @@ class CypherUtilities(object):
         # Initialize and populate the header pattern dictionary
         HEADER_PATTERN_DICT = {}
         for row_index, row_series in filenames_df[mask_series].iterrows():
-            file_name_id = row_series.file_name_id
+            file_name = row_series.file_name
             file_name = row_series.file_name.strip()
 
             # Get the child strings list for the file
-            cypher_str = """
-                MATCH (nps:NavigableParentSequence {{file_name_id: {}}})<--(np:NavigableParents)
+            cypher_str = f"""
+                MATCH (np1:NavigableParents)-[n:NEXT {{file_name: {file_name}}}]->(np2:NavigableParents)
                 RETURN
-                    np.navigable_parent,
-                    nps.sequence_order;""".format(file_name_id)
+                    np1.navigable_parent,
+                    n.sequence_order;"""
             child_strs_list = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose)).navigable_parent.tolist()
 
             # Get the child tags list for the file
-            child_tags_list = self.get_child_tags_list(file_name_id, verbose=verbose)
+            child_tags_list = self.get_child_tags_list(file_name, verbose=verbose)
 
             # Assume the is_header feature for each item in the sequence is not None
             item_sequence = self.get_feature_dict_list(child_tags_list, child_strs_list)
@@ -1282,17 +1267,21 @@ class CypherUtilities(object):
             self.s.store_objects(HEADER_PATTERN_DICT=HEADER_PATTERN_DICT, verbose=verbose)
 
 
-    def find_basic_quals_section(self, child_strs_list, hc=None, ea=None, verbose=False):
+    def find_basic_quals_section(self, child_strs_list, hc=None, ea=None, crf=None, verbose=False):
         if hc is None:
-            hc = html_analysis.HeaderCategories()
+            from html_analysis import HeaderCategories
+            hc = HeaderCategories(verbose=verbose)
         if ea is None:
-            ea = html_analysis.ElementAnalysis()
+            from html_analysis import ElementAnalysis
+            ea = ElementAnalysis(ha=None, hc=hc, verbose=verbose)
+        if crf is None:
+            from html_analysis import CrfUtilities
+            crf = CrfUtilities(ha=None, hc=hc, cu=None, verbose=verbose)
         child_tags_list = self.get_child_tags_list(child_strs_list)
         is_header_list = self.get_is_header_list(child_strs_list)
         feature_dict_list = self.get_feature_dict_list(child_tags_list, child_strs_list, verbose=False)
         feature_tuple_list = [hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
-
-        crf = html_analysis.CrfUtilities(ha=None, hc=hc, cu=self, verbose=verbose)
+        
         crf_list = crf.CRF.predict_single(crf.sent2features(feature_tuple_list))
         pos_list = []
         for pos, feature_tuple, is_header in zip(crf_list, feature_tuple_list, is_header_list):

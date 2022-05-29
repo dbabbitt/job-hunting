@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import random
-import cypher_utlis
+import cypher_utils
 import storage
 
 class ChartUtilities(object):
@@ -19,7 +19,7 @@ class ChartUtilities(object):
 	def __init__(self, cu=None, verbose=False):
 		self.s = storage.Storage()
 		if cu is None:
-			self.cu = cypher_utlis.CypherUtilities()
+			self.cu = cypher_utils.CypherUtilities()
 		else:
 			self.cu = cu
 		# self.ea = html_analysis.ElementAnalysis()
