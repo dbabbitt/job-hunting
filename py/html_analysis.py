@@ -24,74 +24,237 @@ except:
 class HeaderCategories(object):
     """Header categories class."""
     
-    def __init__(self, verbose=False):
+    def __init__(self, cu=None, verbose=False):
+        if cu is None:
+            import cypher_utils
+            self.cu = cypher_utils.CypherUtilities()
+        else:
+            self.cu = cu
         self.verbose = verbose
-        if s.pickle_exists('TASK_SCOPE_HEADERS_LIST'):
+
+        # Get the task scope headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_task_scope: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the task scope list
+        self.TASK_SCOPE_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.TASK_SCOPE_HEADERS_LIST):
+            s.store_objects(TASK_SCOPE_HEADERS_LIST=self.TASK_SCOPE_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('TASK_SCOPE_HEADERS_LIST'):
             self.TASK_SCOPE_HEADERS_LIST = s.load_object('TASK_SCOPE_HEADERS_LIST')
         else:
             self.TASK_SCOPE_HEADERS_LIST = ['<b>Where You Come In:</b>', '<b>Responsibilities:</b>', '<b>Primary Responsibilities:</b>', '<h2 class="jobsearch-JobDescriptionSection-jobDescriptionTitle icl-u-xs-my--md" id="jobDescriptionTitle">Full Job Description</h2>', '<b>What will you do?</b>', '<b>What does your success look like in the first 90 days?</b>', '<b>Job Summary</b>', '<b>Core Responsibilities</b>', '<b>Duties included but not limited to:</b>', 'Translate / Interpret:', 'Measure / Quantify / Expand:', 'Explore / Enlighten:', '<b>Responsibilities</b>', '<div>Key responsibilities in this role include:</div>', 'Overview:', 'Responsibilities:', '<b>This means you will:</b>', '<b>ROLE SUMMARY</b>', '<b>ROLE RESPONSIBILITIES</b>', '<b>Key Responsibilities</b>', '<b>Description</b>', '<b>Overview</b>', '<b>Summary</b>', '<b>Principal Duties &amp; Responsibilities</b>']
-            s.store_objects(TASK_SCOPE_HEADERS_LIST=self.TASK_SCOPE_HEADERS_LIST)
-        if s.pickle_exists('REQ_QUALS_HEADERS_LIST'):
+            s.store_objects(TASK_SCOPE_HEADERS_LIST=self.TASK_SCOPE_HEADERS_LIST, verbose=verbose)
+
+        # Get the req quals headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_minimum_qualification: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the req quals list
+        self.REQ_QUALS_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.REQ_QUALS_HEADERS_LIST):
+            s.store_objects(REQ_QUALS_HEADERS_LIST=self.REQ_QUALS_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('REQ_QUALS_HEADERS_LIST'):
             self.REQ_QUALS_HEADERS_LIST = s.load_object('REQ_QUALS_HEADERS_LIST')
         else:
             self.REQ_QUALS_HEADERS_LIST = ['<b>What it Takes to Succeed:</b>', '<b>A candidate must:</b>', '<b>Position Requirements:</b>', '<p>Experience:</p>', '<b>Qualifications:</b>', '<b>Required Qualifications:</b>', '<b>What skills, experiences, and education are required?</b>', '<b>Qualifying Experience</b>', '<b>Requirements:</b>', '<b>Qualifications</b>', 'Qualifications:', 'Minimum Skill Qualifications', '<b>To do that, this mean you have:</b>', '<b>QUALIFICATIONS</b>', '<b>Job Qualifications</b>', '<b>Work Experience</b>', '<b>License and Certifications</b>', '<b>Skills, Abilities &amp; Competencies</b>']
-            s.store_objects(REQ_QUALS_HEADERS_LIST=self.REQ_QUALS_HEADERS_LIST)
-        if s.pickle_exists('PREFF_QUALS_HEADERS_LIST'):
+            s.store_objects(REQ_QUALS_HEADERS_LIST=self.REQ_QUALS_HEADERS_LIST, verbose=verbose)
+
+        # Get the preff quals headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_preferred_qualification: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the preff quals list
+        self.PREFF_QUALS_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.PREFF_QUALS_HEADERS_LIST):
+            s.store_objects(PREFF_QUALS_HEADERS_LIST=self.PREFF_QUALS_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('PREFF_QUALS_HEADERS_LIST'):
             self.PREFF_QUALS_HEADERS_LIST = s.load_object('PREFF_QUALS_HEADERS_LIST')
         else:
             self.PREFF_QUALS_HEADERS_LIST = ['<b>Preferred Qualifications:</b>', '<b>What are we looking for?</b>', '<b>The Ideal Candidate will:</b>', '<p>You are...</p>', '<b>And we love people who:</b>', '<b>A strong candidate will also have</b>']
-            s.store_objects(PREFF_QUALS_HEADERS_LIST=self.PREFF_QUALS_HEADERS_LIST)
-        if s.pickle_exists('LEGAL_NOTIFS_HEADERS_LIST'):
+            s.store_objects(PREFF_QUALS_HEADERS_LIST=self.PREFF_QUALS_HEADERS_LIST, verbose=verbose)
+
+        # Get the legal notifs headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_legal_notification: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the legal notifs list
+        self.LEGAL_NOTIFS_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.LEGAL_NOTIFS_HEADERS_LIST):
+            s.store_objects(LEGAL_NOTIFS_HEADERS_LIST=self.LEGAL_NOTIFS_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('LEGAL_NOTIFS_HEADERS_LIST'):
             self.LEGAL_NOTIFS_HEADERS_LIST = s.load_object('LEGAL_NOTIFS_HEADERS_LIST')
         else:
             self.LEGAL_NOTIFS_HEADERS_LIST = ['<div>CCPA Privacy Notice</div>', '<p>Application Question:</p>', '<b>EOE Statement:</b>', '<b>Sunshine Act</b>', '<b>EEO &amp; Employment Eligibility</b>', '<b>EEO Statement</b>']
-            s.store_objects(LEGAL_NOTIFS_HEADERS_LIST=self.LEGAL_NOTIFS_HEADERS_LIST)
-        if s.pickle_exists('JOB_TITLE_HEADERS_LIST'):
+            s.store_objects(LEGAL_NOTIFS_HEADERS_LIST=self.LEGAL_NOTIFS_HEADERS_LIST, verbose=verbose)
+
+        # Get the job title headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_job_title: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the job title list
+        self.JOB_TITLE_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.JOB_TITLE_HEADERS_LIST):
+            s.store_objects(JOB_TITLE_HEADERS_LIST=self.JOB_TITLE_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('JOB_TITLE_HEADERS_LIST'):
             self.JOB_TITLE_HEADERS_LIST = s.load_object('JOB_TITLE_HEADERS_LIST')
         else:
             self.JOB_TITLE_HEADERS_LIST = ['<b>Position</b>']
-            s.store_objects(JOB_TITLE_HEADERS_LIST=self.JOB_TITLE_HEADERS_LIST)
+            s.store_objects(JOB_TITLE_HEADERS_LIST=self.JOB_TITLE_HEADERS_LIST, verbose=verbose)
+
+        # Get the office loc headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_office_location: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the office location list
+        self.OFFICE_LOC_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.OFFICE_LOC_HEADERS_LIST):
+            s.store_objects(OFFICE_LOC_HEADERS_LIST=self.OFFICE_LOC_HEADERS_LIST, verbose=verbose)
         if s.pickle_exists('OFFICE_LOC_HEADERS_LIST'):
             self.OFFICE_LOC_HEADERS_LIST = s.load_object('OFFICE_LOC_HEADERS_LIST')
         else:
             self.OFFICE_LOC_HEADERS_LIST = ['<b>Location</b>', '<p>Work Remotely:</p>', '<p>Work Location:</p>', '<b>Location and Travel:</b>', '<b>Travel :</b>', '<b>Working Conditions</b>', '<b>Primary Location</b>', '<b>Work Locations</b>']
-            s.store_objects(OFFICE_LOC_HEADERS_LIST=self.OFFICE_LOC_HEADERS_LIST)
-        if s.pickle_exists('JOB_DURATION_HEADERS_LIST'):
+            s.store_objects(OFFICE_LOC_HEADERS_LIST=self.OFFICE_LOC_HEADERS_LIST, verbose=verbose)
+
+        # Get the job duration headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_job_duration: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the job duration list
+        self.JOB_DURATION_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.JOB_DURATION_HEADERS_LIST):
+            s.store_objects(JOB_DURATION_HEADERS_LIST=self.JOB_DURATION_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('JOB_DURATION_HEADERS_LIST'):
             self.JOB_DURATION_HEADERS_LIST = s.load_object('JOB_DURATION_HEADERS_LIST')
         else:
             self.JOB_DURATION_HEADERS_LIST = ['<b>Duration</b>', '<p>Schedule:</p>', '<b>Employee Status :</b>', '<b>Shift :</b>']
-            s.store_objects(JOB_DURATION_HEADERS_LIST=self.JOB_DURATION_HEADERS_LIST)
-        if s.pickle_exists('SUPP_PAY_HEADERS_LIST'):
+            s.store_objects(JOB_DURATION_HEADERS_LIST=self.JOB_DURATION_HEADERS_LIST, verbose=verbose)
+
+        # Get the supp pay headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_supplemental_pay: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the supplemental pay list
+        self.SUPP_PAY_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.SUPP_PAY_HEADERS_LIST):
+            s.store_objects(SUPP_PAY_HEADERS_LIST=self.SUPP_PAY_HEADERS_LIST, verbose=verbose)
+        elif len(self.SUPP_PAY_HEADERS_LIST):
+            s.store_objects(SUPP_PAY_HEADERS_LIST=self.SUPP_PAY_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('SUPP_PAY_HEADERS_LIST'):
             self.SUPP_PAY_HEADERS_LIST = s.load_object('SUPP_PAY_HEADERS_LIST')
         else:
             self.SUPP_PAY_HEADERS_LIST = ['<b>Benefits</b>', '<p>Supplemental Pay:</p>', '<p>Benefit Conditions:</p>', '<b>Options</b>', '<p>Our Benefits Include:</p>', '<p>Benefits:</p>']
-            s.store_objects(SUPP_PAY_HEADERS_LIST=self.SUPP_PAY_HEADERS_LIST)
-        if s.pickle_exists('EDUC_REQS_HEADERS_LIST'):
+            s.store_objects(SUPP_PAY_HEADERS_LIST=self.SUPP_PAY_HEADERS_LIST, verbose=verbose)
+
+        # Get the educ reqs headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_educational_requirement: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the educational requirements list
+        self.EDUC_REQS_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.EDUC_REQS_HEADERS_LIST):
+            s.store_objects(EDUC_REQS_HEADERS_LIST=self.EDUC_REQS_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('EDUC_REQS_HEADERS_LIST'):
             self.EDUC_REQS_HEADERS_LIST = s.load_object('EDUC_REQS_HEADERS_LIST')
         else:
             self.EDUC_REQS_HEADERS_LIST = ['<p>Education:</p>', '<b>Education</b>']
-            s.store_objects(EDUC_REQS_HEADERS_LIST=self.EDUC_REQS_HEADERS_LIST)
-        if s.pickle_exists('INTERV_PROC_HEADERS_LIST'):
+            s.store_objects(EDUC_REQS_HEADERS_LIST=self.EDUC_REQS_HEADERS_LIST, verbose=verbose)
+
+        # Get the interv proc headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_interview_procedure: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the interview procedure list
+        self.INTERV_PROC_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.INTERV_PROC_HEADERS_LIST):
+            s.store_objects(INTERV_PROC_HEADERS_LIST=self.INTERV_PROC_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('INTERV_PROC_HEADERS_LIST'):
             self.INTERV_PROC_HEADERS_LIST = s.load_object('INTERV_PROC_HEADERS_LIST')
         else:
             self.INTERV_PROC_HEADERS_LIST = ['<p>COVID-19 Precaution(s):</p>']
-            s.store_objects(INTERV_PROC_HEADERS_LIST=self.INTERV_PROC_HEADERS_LIST)
-        if s.pickle_exists('CORP_SCOPE_HEADERS_LIST'):
+            s.store_objects(INTERV_PROC_HEADERS_LIST=self.INTERV_PROC_HEADERS_LIST, verbose=verbose)
+
+        # Get the corp scope headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_corporate_scope: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the corporate scope list
+        self.CORP_SCOPE_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.CORP_SCOPE_HEADERS_LIST):
+            s.store_objects(CORP_SCOPE_HEADERS_LIST=self.CORP_SCOPE_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('CORP_SCOPE_HEADERS_LIST'):
             self.CORP_SCOPE_HEADERS_LIST = s.load_object('CORP_SCOPE_HEADERS_LIST')
         else:
             self.CORP_SCOPE_HEADERS_LIST = ['<b>Careers with Optum.</b>', '<b>Why LPL?</b>', '<b>Information on Interviews:</b>', "<p>Company's website:</p>", '<b>Patients First | Innovation | Winning Culture | Heart Recovery</b>', '<b>Cogito Business Intelligence Developer, Enterprise Data &amp; Digital Health</b>']
-            s.store_objects(CORP_SCOPE_HEADERS_LIST=self.CORP_SCOPE_HEADERS_LIST)
-        if s.pickle_exists('POST_DATE_HEADERS_LIST'):
+            s.store_objects(CORP_SCOPE_HEADERS_LIST=self.CORP_SCOPE_HEADERS_LIST, verbose=verbose)
+
+        # Get the post date headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_posting_date: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the posting date list
+        self.POST_DATE_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.POST_DATE_HEADERS_LIST):
+            s.store_objects(POST_DATE_HEADERS_LIST=self.POST_DATE_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('POST_DATE_HEADERS_LIST'):
             self.POST_DATE_HEADERS_LIST = s.load_object('POST_DATE_HEADERS_LIST')
         else:
             self.POST_DATE_HEADERS_LIST = ['<b>Job Posting :</b>']
-            s.store_objects(POST_DATE_HEADERS_LIST=self.POST_DATE_HEADERS_LIST)
-        if s.pickle_exists('OTHER_HEADERS_LIST'):
+            s.store_objects(POST_DATE_HEADERS_LIST=self.POST_DATE_HEADERS_LIST, verbose=verbose)
+        
+        # Get the other headers
+        cypher_str = """
+            MATCH (np:NavigableParents {is_other: 'True', is_header: 'True'})
+            RETURN np.navigable_parent AS navigable_parent;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the other list
+        self.OTHER_HEADERS_LIST = df.navigable_parent.tolist()
+        if len(self.OTHER_HEADERS_LIST):
+            s.store_objects(OTHER_HEADERS_LIST=self.OTHER_HEADERS_LIST, verbose=verbose)
+        elif s.pickle_exists('OTHER_HEADERS_LIST'):
             self.OTHER_HEADERS_LIST = s.load_object('OTHER_HEADERS_LIST')
         else:
             self.OTHER_HEADERS_LIST = ['<div>Share</div>']
-            s.store_objects(OTHER_HEADERS_LIST=self.OTHER_HEADERS_LIST)
-        if s.pickle_exists('POS_EXPLANATION_DICT'):
+            s.store_objects(OTHER_HEADERS_LIST=self.OTHER_HEADERS_LIST, verbose=verbose)
+        
+        # Get the parts-of-speech explanations
+        cypher_str = """
+            MATCH (pos:PartsOfSpeech)
+            RETURN
+                pos.pos_symbol AS pos_symbol,
+                pos.pos_explanation AS pos_explanation;"""
+        df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        
+        # Initialize and populate the parts-of-speech dictionary
+        self.POS_EXPLANATION_DICT = df.set_index('pos_symbol').pos_explanation.to_dict()
+        if len(self.POS_EXPLANATION_DICT.keys()) >= 14:
+            s.store_objects(POS_EXPLANATION_DICT=self.POS_EXPLANATION_DICT, verbose=verbose)
+        elif s.pickle_exists('POS_EXPLANATION_DICT'):
             self.POS_EXPLANATION_DICT = s.load_object('POS_EXPLANATION_DICT')
         else:
             self.POS_EXPLANATION_DICT = {}
@@ -109,7 +272,7 @@ class HeaderCategories(object):
             self.POS_EXPLANATION_DICT['H-PD'] = 'Post Date Header'
             self.POS_EXPLANATION_DICT['H-O'] = 'Other Header'
             self.POS_EXPLANATION_DICT['O'] = 'Non-header'
-            s.store_objects(POS_EXPLANATION_DICT=self.POS_EXPLANATION_DICT)
+            s.store_objects(POS_EXPLANATION_DICT=self.POS_EXPLANATION_DICT, verbose=verbose)
 
     def append_parts_of_speech_list(self, navigable_parent, pos_list=[]):
         if navigable_parent in self.TASK_SCOPE_HEADERS_LIST:
@@ -254,7 +417,6 @@ class HeaderAnalysis(object):
     def __init__(self, verbose=False):
         self.verbose = verbose
         self.HTML_SCANNER_REGEX = re.compile(r'</?\w+|\w+[#\+]*|:|\.|\?')
-        self.QUALS_SCANNER_REGEX = re.compile(r'\b[1-9a-zA-Z][0-9a-zA-Z]*( *[#\+]{1, 2}|\b)')
         self.LT_REGEX = re.compile(r'\s+<')
         self.GT_REGEX = re.compile(r'>\s+')
         self.CLF_NAME = 'LogisticRegression'
@@ -281,10 +443,6 @@ class HeaderAnalysis(object):
 
         return [match.group() for match in re.finditer(self.HTML_SCANNER_REGEX, corpus)]
 
-    def quals_regex_tokenizer(self, corpus):
-
-        return [match.group() for match in re.finditer(self.QUALS_SCANNER_REGEX, corpus)]
-
     def clean_html_str(self, html_obj):
         html_str = str(html_obj)
         html_str = html_str.strip()
@@ -302,7 +460,7 @@ class HeaderAnalysis(object):
         list_obj = list(set(list_obj))
         s.store_objects(**{list_name: list_obj})
 
-    def store_true_or_false_dict(self, dict_name, tag_str, true_or_false=False):
+    def store_true_or_false_dictionary(self, dict_name, tag_str, true_or_false=False):
         if s.pickle_exists(dict_name):
             dict_obj = s.load_object(dict_name)
         else:

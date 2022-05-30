@@ -21,12 +21,12 @@ class TestCrfMethods(unittest.TestCase):
         
         self.hc = HeaderCategories(verbose=True)
         self.ha = HeaderAnalysis(verbose=True)
-        self.ea = ElementAnalysis(ha=self.ha, hc=self.hc, verbose=True)
         wsu = WebScrapingUtilities()
         uri = wsu.secrets_json['neo4j']['connect_url']
         user =  wsu.secrets_json['neo4j']['username']
         password = wsu.secrets_json['neo4j']['password']
         self.cu = CypherUtilities(uri=uri, user=user, password=password, driver=None, s=None, ha=self.ha)
+        self.ea = ElementAnalysis(ha=self.ha, hc=self.hc, verbose=True)
         self.crf = CrfUtilities(ha=self.ha, hc=self.hc, cu=self.cu, verbose=True)
         self.lda = LdaUtilities(ha=self.ha, hc=self.hc, cu=self.cu, verbose=True)
         self.lru = LrUtilities(ha=self.ha, hc=self.hc, cu=self.cu, verbose=True)

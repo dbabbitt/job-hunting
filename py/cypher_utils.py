@@ -68,9 +68,6 @@ class CypherUtilities(object):
 
 
         # Navigable Parents CYPHER strings
-        self.select_navigableparentid_cypher_str = """
-            MATCH (np:NavigableParents {{navigable_parent: '{}'}})
-            RETURN np.navigable_parent_id;"""
         self.set_is_header1_cypher_str = """
             MERGE (np:NavigableParents {{navigable_parent: '{}'}})
             SET np.is_header = 'True';"""
@@ -139,11 +136,9 @@ class CypherUtilities(object):
                 np.is_corporate_scope AS is_corporate_scope,
                 np.is_posting_date AS is_posting_date,
                 np.is_other AS is_other;"""
-        self.select_navigable_parent_id_where_navigable_parent_cypher_str = """
+        self.select_is_minimum_qualification_where_navigable_parent_cypher_str = """
             MATCH (np:NavigableParents {{navigable_parent: '{}'}})
-            RETURN
-                np.navigable_parent_id,
-                np.is_minimum_qualification;"""
+            RETURN np.is_minimum_qualification;"""
 
 
         # Header Tags Sequence CYPHER strings
@@ -518,7 +513,6 @@ class CypherUtilities(object):
                 row.is_other AS is_other,
                 row.is_qualification AS is_qualification
             MERGE (np:NavigableParents {navigable_parent: navigable_parent}) SET
-                np.navigable_parent_id = navigable_parent_id,
                 np.header_tag_id = header_tag_id,
                 np.is_header = is_header,
                 np.is_task_scope = is_task_scope,
@@ -547,11 +541,11 @@ class CypherUtilities(object):
                 navigable_parent_set.add(child_str)
         child_strs_list = sorted(navigable_parent_set)
         child_tags_list = self.ha.get_child_tags_list(child_strs_list)
-        for i, (child_str, child_tag) in enumerate(zip(child_strs_list, child_tags_list)):
+        for child_str, child_tag in zip(child_strs_list, child_tags_list):
             header_tag_id = self.get_headertag_id(child_tag, verbose=verbose)
             child_str = self.clean_text(child_str)
             cypher_str = f"""
-                MERGE (np:NavigableParents {{navigable_parent_id: '{i}', navigable_parent: '{child_str}', header_tag_id: '{header_tag_id}'}});"""
+                MERGE (np:NavigableParents {{navigable_parent: '{child_str}', header_tag_id: '{header_tag_id}'}});"""
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -752,14 +746,11 @@ class CypherUtilities(object):
         navigable_parent1 = self.clean_text(navigable_parent1)
         navigable_parent2 = self.clean_text(navigable_parent2)
         file_name = self.clean_text(file_name)
-        cypher_str = f'''MERGE (np1:NavigableParents {{
-                navigable_parent: "{navigable_parent1}"
-            }})-[r:NEXT {{
-                file_name: "{file_name}",
-                sequence_order: "{str(sequence_order).zfill(4)}"
-            }}]->(np2:NavigableParents {{
-                navigable_parent: "{navigable_parent2}"
-            }});'''
+        cypher_str = f'''
+            MATCH
+                (np1:NavigableParents {{navigable_parent: "{navigable_parent1}"}}),
+                (np2:NavigableParents {{navigable_parent: "{navigable_parent2}"}})
+            MERGE (np1)-[:NEXT {{file_name: "{file_name}", sequence_order: "{str(sequence_order).zfill(4)}"}}]->(np2);'''
         if verbose:
             print(cypher_str)
         with self.driver.session() as session:
@@ -1479,10 +1470,13 @@ class CypherUtilities(object):
         # Get the task scope headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_task_scope)
+            WHERE
+                EXISTS(np.is_task_scope) AND
+                EXISTS(np.is_header)
             RETURN
                 np.navigable_parent,
-                np.is_task_scope;"""
+                np.is_task_scope,
+                np.is_header;"""
         task_scope_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
         task_scope_df.is_task_scope = task_scope_df.is_task_scope.astype('bool')
 
