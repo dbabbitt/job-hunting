@@ -8,11 +8,26 @@ import pyodbc
 import random
 from neo4j import GraphDatabase
 import re
-try:
-    import html_analysis
-except:
-    import flaskr.html_analysis
 import hashlib
+from IPython.display import clear_output
+from string import printable
+
+def with_debug_context(func):
+    """Wraps a callback in print statements:
+    
+    @with_debug_context
+    def needs_decorator(self):
+        print('Needs a decorator')
+    """
+    
+    WHITE_LIST = ['navigable_parent', 'navigable_parent1', 'navigable_parent2']
+    def decorator(*args, **kwargs):
+        for kwarg in WHITE_LIST:
+            if kwargs.get(kwarg, None) == '<p>Work Remotely:</p>':
+                kwargs['verbose'] = True
+        func(*args, **kwargs)
+
+    return decorator
 
 
 
@@ -37,19 +52,41 @@ class CypherUtilities(object):
         else:
             self.driver = driver
         if s is None:
-            try:
-                import storage
-            except:
-                import flaskr.storage
-            self.s = storage.Storage()
+            from storage import Storage
+            self.s = Storage()
         else:
             self.s = s
         if ha is None:
-            self.ha = html_analysis.HeaderAnalysis()
+            from ha_utils import HeaderAnalysis
+            self.ha = HeaderAnalysis(verbose=verbose)
         else:
             self.ha = ha
         self.verbose = verbose
-
+        
+        # Elements sets
+        self.document_structure_elements_set = set(['body', 'head', 'html'])
+        self.document_head_elements_set = set(['base', 'basefont', 'isindex', 'link', 'meta', 'object', 'script', 'style', 'title'])
+        self.document_body_elements_set = set(['a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blockquote', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'dd', 'del', 'dfn', 'dir', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'i', 'img', 'input', 'ins', 'isindex', 'kbd', 'keygen', 'label', 'legend', 'li', 'main', 'map', 'mark', 'menu', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'pre', 'progress', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strike', 'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr'])
+        self.block_elements_set = set(['address', 'article', 'aside', 'blockquote', 'center', 'dd', 'del', 'dir', 'div', 'dl', 'dt', 'figcaption', 'figure', 'footer', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'ins', 'li', 'main', 'menu', 'nav', 'noscript', 'ol', 'p', 'pre', 'script', 'section', 'ul'])
+        self.basic_text_set = set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'])
+        self.section_headings_set = set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+        self.lists_set = set(['dd', 'dir', 'dl', 'dt', 'li', 'ol', 'ul'])
+        self.other_block_elements_set = set(['address', 'article', 'aside', 'blockquote', 'center', 'del', 'div', 'figcaption', 'figure', 'footer', 'header', 'hr', 'ins', 'main', 'menu', 'nav', 'noscript', 'pre', 'script', 'section'])
+        self.inline_elements_set = set(['a', 'abbr', 'acronym', 'b', 'bdi', 'bdo', 'big', 'br', 'cite', 'code', 'data', 'del', 'dfn', 'em', 'font', 'i', 'ins', 'kbd', 'mark', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'small', 'span', 'strike', 'strong', 'sub', 'sup', 'template', 'time', 'tt', 'u', 'var', 'wbr'])
+        self.anchor_set = set(['a'])
+        self.phrase_elements_set = set(['abbr', 'acronym', 'b', 'big', 'code', 'dfn', 'em', 'font', 'i', 'kbd', 's', 'samp', 'small', 'strike', 'strong', 'tt', 'u', 'var'])
+        self.general_set = set(['abbr', 'acronym', 'dfn', 'em', 'strong'])
+        self.computer_phrase_elements_set = set(['code', 'kbd', 'samp', 'var'])
+        self.presentation_set = set(['b', 'big', 'font', 'i', 's', 'small', 'strike', 'tt', 'u'])
+        self.span_set = set(['span'])
+        self.other_inline_elements_set = set(['bdi', 'bdo', 'br', 'cite', 'data', 'del', 'ins', 'mark', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 'script', 'sub', 'sup', 'template', 'time', 'wbr'])
+        self.images_and_objects_set = set(['applet', 'area', 'audio', 'canvas', 'embed', 'img', 'map', 'object', 'param', 'source', 'track', 'video'])
+        self.forms_set = set(['button', 'datalist', 'fieldset', 'form', 'input', 'isindex', 'keygen', 'label', 'legend', 'meter', 'optgroup', 'option', 'output', 'progress', 'select', 'textarea'])
+        self.tables_set = set(['caption', 'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr'])
+        self.frames_set = set(['frame', 'frameset', 'iframe', 'noframes'])
+        self.historic_elements_set = set(['listing', 'nextid', 'plaintext', 'xmp'])
+        self.non_standard_elements_set = set(['blink', 'layer', 'marquee', 'nobr', 'noembed'])
+        
         # File Names Table CYPHER
         self.select_file_name_where_is_qualification_cypher_str = """
             // Get all possible paths
@@ -172,6 +209,7 @@ class CypherUtilities(object):
         return values_list
     def get_execution_results(self, cypher_str, verbose=False):
         if verbose:
+            clear_output(wait=True)
             print(cypher_str)
         try:
             with self.driver.session() as session:
@@ -183,7 +221,13 @@ class CypherUtilities(object):
 
         return row_objs_list
     def clean_text(self, dirty_text):
-        clean_text = dirty_text.replace(self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
+        printable_regex = re.compile(f'[^{printable}]+')
+        clean_text = str(dirty_text)
+        clean_text = printable_regex.sub(r' ', clean_text).strip()
+        clean_text = re.sub(r'[^\x00-\x7f]+', r' ', clean_text).strip()
+        clean_text = re.sub(r' +', ' ', clean_text)
+        clean_text = re.sub(r'::', ':', clean_text)
+        clean_text = clean_text.replace(self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
         clean_text = clean_text.replace(self.BACKSLASH + self.BACKSLASH + self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
         clean_text = clean_text.replace(self.DOUBLE_QUOTE, self.BACKSLASH + self.DOUBLE_QUOTE)
         clean_text = clean_text.replace(self.BACKSLASH + self.BACKSLASH + self.DOUBLE_QUOTE, self.BACKSLASH + self.DOUBLE_QUOTE)
@@ -250,6 +294,7 @@ class CypherUtilities(object):
         cypher_str = f'''MERGE (fn:FileNames {{file_name: "{file_name}"}})
             RETURN fn.file_name_id;'''
         if verbose:
+            clear_output(wait=True)
             print(cypher_str)
         with self.driver.session() as session:
             row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -272,8 +317,8 @@ class CypherUtilities(object):
         cypher_str = f"""
             MATCH (fn:FileNames)
             RETURN
-                fn.file_name_id,
-                fn.file_name;"""
+                fn.file_name_id AS file_name_id,
+                fn.file_name AS file_name;"""
         row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
 
         return row_objs_list
@@ -282,6 +327,7 @@ class CypherUtilities(object):
         file_name = self.clean_text(file_name)
         cypher_str = f'''MERGE (:FileNames {{file_name: "{file_name}"}});'''
         if verbose:
+            clear_output(wait=True)
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -289,11 +335,24 @@ class CypherUtilities(object):
 
 
     # Header Tags Table functions
+    def delete_headertags_nodes(self, verbose=False):
+        with self.driver.session() as session:
+            cypher_str = """
+                MATCH (:HeaderTags)-[r]-()
+                DELETE r;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+            cypher_str = """
+                MATCH (ht:HeaderTags)
+                DETACH DELETE ht;"""
+            if verbose:
+                print(cypher_str)
+            session.write_transaction(self.do_cypher_tx, cypher_str)
     def create_headertags_table(self, verbose=False):
+        self.delete_headertags_nodes(verbose=verbose)
         cypher_str = """
-            MATCH (ht:HeaderTags)
-            DETACH DELETE ht;"""
-        create_headertags_table_cypher_str = """
             LOAD CSV WITH HEADERS FROM 'file:///HeaderTags.csv' AS row
             WITH
                 row.header_tag_id AS header_tag_id,
@@ -320,7 +379,7 @@ class CypherUtilities(object):
                 row.is_in_historic_elements_set AS is_in_historic_elements_set,
                 row.is_in_non_standard_elements_set AS is_in_non_standard_elements_set,
                 row.header_tag AS header_tag
-            MERGE (ht:HeaderTags {header_tag_id: header_tag_id}) SET
+            MERGE (ht:HeaderTags {header_tag: header_tag}) SET
                 ht.is_in_document_structure_elements_set = is_in_document_structure_elements_set,
                 ht.is_in_document_head_elements_set = is_in_document_head_elements_set,
                 ht.is_in_document_body_elements_set = is_in_document_body_elements_set,
@@ -342,14 +401,15 @@ class CypherUtilities(object):
                 ht.is_in_tables_set = is_in_tables_set,
                 ht.is_in_frames_set = is_in_frames_set,
                 ht.is_in_historic_elements_set = is_in_historic_elements_set,
-                ht.is_in_non_standard_elements_set = is_in_non_standard_elements_set,
-                ht.header_tag = header_tag;"""
+                ht.is_in_non_standard_elements_set = is_in_non_standard_elements_set;"""
+        if verbose:
+            clear_output(wait=True)
+            print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            session.write_transaction(self.do_cypher_tx, create_headertags_table_cypher_str)
     def populate_headertags_table(self, verbose=False):
         insert_into_headertags_cypher_str = """
-            CREATE (:HeaderTags {{
+            MERGE (:HeaderTags {{
                 header_tag: '{}',
                 is_in_document_structure_elements_set: '{}',
                 is_in_document_head_elements_set: '{}',
@@ -374,71 +434,38 @@ class CypherUtilities(object):
                 is_in_historic_elements_set: '{}',
                 is_in_non_standard_elements_set: '{}'
                 }});"""
-        document_structure_elements_set = set(['body', 'head', 'html'])
-        document_head_elements_set = set(['base', 'basefont', 'isindex', 'link', 'meta', 'object', 'script', 'style', 'title'])
-        document_body_elements_set = set(['a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blockquote',
-                                          'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'dd', 'del', 'dfn',
-                                          'dir', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3',
-                                          'h4', 'h5', 'h6', 'header', 'hr', 'i', 'img', 'input', 'ins', 'isindex', 'kbd', 'keygen', 'label', 'legend', 'li',
-                                          'main', 'map', 'mark', 'menu', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param',
-                                          'pre', 'progress', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source',
-                                          'span', 'strike', 'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time',
-                                          'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr'])
-        block_elements_set = set(['address', 'article', 'aside', 'blockquote', 'center', 'dd', 'del', 'dir', 'div', 'dl', 'dt', 'figcaption', 'figure', 'footer',
-                                  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'ins', 'li', 'main', 'menu', 'nav', 'noscript', 'ol', 'p', 'pre', 'script',
-                                  'section', 'ul'])
-        basic_text_set = set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'])
-        section_headings_set = set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
-        lists_set = set(['dd', 'dir', 'dl', 'dt', 'li', 'ol', 'ul'])
-        other_block_elements_set = set(['address', 'article', 'aside', 'blockquote', 'center', 'del', 'div', 'figcaption', 'figure', 'footer', 'header', 'hr',
-                                        'ins', 'main', 'menu', 'nav', 'noscript', 'pre', 'script', 'section'])
-        inline_elements_set = set(['a', 'abbr', 'acronym', 'b', 'bdi', 'bdo', 'big', 'br', 'cite', 'code', 'data', 'del', 'dfn', 'em', 'font', 'i', 'ins', 'kbd',
-                                   'mark', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'small', 'span', 'strike', 'strong', 'sub', 'sup',
-                                   'template', 'time', 'tt', 'u', 'var', 'wbr'])
-        anchor_set = set(['a'])
-        phrase_elements_set = set(['abbr', 'acronym', 'b', 'big', 'code', 'dfn', 'em', 'font', 'i', 'kbd', 's', 'samp', 'small', 'strike', 'strong', 'tt', 'u',
-                                   'var'])
-        general_set = set(['abbr', 'acronym', 'dfn', 'em', 'strong'])
-        computer_phrase_elements_set = set(['code', 'kbd', 'samp', 'var'])
-        presentation_set = set(['b', 'big', 'font', 'i', 's', 'small', 'strike', 'tt', 'u'])
-        span_set = set(['span'])
-        other_inline_elements_set = set(['bdi', 'bdo', 'br', 'cite', 'data', 'del', 'ins', 'mark', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 'script', 'sub', 'sup',
-                                         'template', 'time', 'wbr'])
-        images_and_objects_set = set(['applet', 'area', 'audio', 'canvas', 'embed', 'img', 'map', 'object', 'param', 'source', 'track', 'video'])
-        forms_set = set(['button', 'datalist', 'fieldset', 'form', 'input', 'isindex', 'keygen', 'label', 'legend',
-                         'meter', 'optgroup', 'option', 'output', 'progress', 'select', 'textarea'])
-        tables_set = set(['caption', 'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr'])
-        frames_set = set(['frame', 'frameset', 'iframe', 'noframes'])
-        historic_elements_set = set(['listing', 'nextid', 'plaintext', 'xmp'])
-        non_standard_elements_set = set(['blink', 'layer', 'marquee', 'nobr', 'noembed'])
-        union_set = set().union(document_structure_elements_set, document_head_elements_set, document_body_elements_set, block_elements_set, basic_text_set,
-                                section_headings_set, lists_set, other_block_elements_set, inline_elements_set, anchor_set, phrase_elements_set, general_set,
-                                computer_phrase_elements_set, presentation_set, span_set, other_inline_elements_set, images_and_objects_set, forms_set, tables_set,
-                                frames_set, historic_elements_set, non_standard_elements_set)
+        union_set = set().union(self.document_structure_elements_set, self.document_head_elements_set,
+                                self.document_body_elements_set, self.block_elements_set, self.basic_text_set,
+                                section_headings_set, self.lists_set, self.other_block_elements_set,
+                                self.inline_elements_set, self.anchor_set, self.phrase_elements_set,
+                                self.general_set, computer_phrase_elements_set, self.presentation_set, self.span_set,
+                                self.other_inline_elements_set, self.images_and_objects_set, self.forms_set,
+                                self.tables_set, self.frames_set, self.historic_elements_set,
+                                self.non_standard_elements_set)
         child_tags_list = sorted(union_set)
         for i, child_tag in enumerate(child_tags_list):
-            is_in_document_structure_elements_set = (child_tag in document_structure_elements_set)
-            is_in_document_head_elements_set = (child_tag in document_head_elements_set)
-            is_in_document_body_elements_set = (child_tag in document_body_elements_set)
-            is_in_block_elements_set = (child_tag in block_elements_set)
-            is_in_basic_text_set = (child_tag in basic_text_set)
-            is_in_section_headings_set = (child_tag in section_headings_set)
-            is_in_lists_set = (child_tag in lists_set)
-            is_in_other_block_elements_set = (child_tag in other_block_elements_set)
-            is_in_inline_elements_set = (child_tag in inline_elements_set)
-            is_in_anchor_set = (child_tag in anchor_set)
-            is_in_phrase_elements_set = (child_tag in phrase_elements_set)
-            is_in_general_set = (child_tag in general_set)
-            is_in_computer_phrase_elements_set = (child_tag in computer_phrase_elements_set)
-            is_in_presentation_set = (child_tag in presentation_set)
-            is_in_span_set = (child_tag in span_set)
-            is_in_other_inline_elements_set = (child_tag in other_inline_elements_set)
-            is_in_images_and_objects_set = (child_tag in images_and_objects_set)
-            is_in_forms_set = (child_tag in forms_set)
-            is_in_tables_set = (child_tag in tables_set)
-            is_in_frames_set = (child_tag in frames_set)
-            is_in_historic_elements_set = (child_tag in historic_elements_set)
-            is_in_non_standard_elements_set = (child_tag in non_standard_elements_set)
+            is_in_document_structure_elements_set = (child_tag in self.document_structure_elements_set)
+            is_in_document_head_elements_set = (child_tag in self.document_head_elements_set)
+            is_in_document_body_elements_set = (child_tag in self.document_body_elements_set)
+            is_in_block_elements_set = (child_tag in self.block_elements_set)
+            is_in_basic_text_set = (child_tag in self.basic_text_set)
+            is_in_section_headings_set = (child_tag in self.section_headings_set)
+            is_in_lists_set = (child_tag in self.lists_set)
+            is_in_other_block_elements_set = (child_tag in self.other_block_elements_set)
+            is_in_inline_elements_set = (child_tag in self.inline_elements_set)
+            is_in_anchor_set = (child_tag in self.anchor_set)
+            is_in_phrase_elements_set = (child_tag in self.phrase_elements_set)
+            is_in_general_set = (child_tag in self.general_set)
+            is_in_computer_phrase_elements_set = (child_tag in self.computer_phrase_elements_set)
+            is_in_presentation_set = (child_tag in self.presentation_set)
+            is_in_span_set = (child_tag in self.span_set)
+            is_in_other_inline_elements_set = (child_tag in self.other_inline_elements_set)
+            is_in_images_and_objects_set = (child_tag in self.images_and_objects_set)
+            is_in_forms_set = (child_tag in self.forms_set)
+            is_in_tables_set = (child_tag in self.tables_set)
+            is_in_frames_set = (child_tag in self.frames_set)
+            is_in_historic_elements_set = (child_tag in self.historic_elements_set)
+            is_in_non_standard_elements_set = (child_tag in self.non_standard_elements_set)
             cypher_str = insert_into_headertags_cypher_str.format(child_tag, is_in_document_structure_elements_set, is_in_document_head_elements_set,
                                                                   is_in_document_body_elements_set, is_in_block_elements_set, is_in_basic_text_set,
                                                                   is_in_section_headings_set, is_in_lists_set, is_in_other_block_elements_set,
@@ -447,38 +474,56 @@ class CypherUtilities(object):
                                                                   is_in_span_set, is_in_other_inline_elements_set, is_in_images_and_objects_set,
                                                                   is_in_forms_set, is_in_tables_set, is_in_frames_set, is_in_historic_elements_set,
                                                                   is_in_non_standard_elements_set)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
-    def get_headertag_id(self, header_tag, verbose=False):
-        select_header_tag_id_where_header_tag_cypher_str = """
-            MATCH (ht:HeaderTags {{header_tag: '{}'}})
-            RETURN ht.header_tag_id AS header_tag_id;"""
-        row_objs_list = self.get_execution_results(select_header_tag_id_where_header_tag_cypher_str.format(header_tag), verbose=False)
-        header_tag_id = [row_obj.get('header_tag_id') for row_obj in row_objs_list][0]
-
-        return header_tag_id
-    def get_headertag(self, header_tag_id, verbose=False):
-        select_header_tag_where_header_tag_id_cypher_str = """
-            MATCH (ht:HeaderTags {{header_tag_id: '{}'}})
-            RETURN ht.header_tag AS header_tag;"""
-        row_objs_list = self.get_execution_results(select_header_tag_where_header_tag_id_cypher_str.format(header_tag_id), verbose=verbose)
-        header_tag = [row_obj['fn'].get('header_tag') for row_obj in row_objs_list][0]
-
-        return header_tag
     def ensure_headertag(self, header_tag, verbose=False):
         header_tag = self.clean_text(header_tag)
         cypher_str = f'''MERGE (ht:HeaderTags {{header_tag: "{header_tag}"}});'''
         if verbose:
+            clear_output(wait=True)
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
+    def ensure_headertags_relationship(self, header_tag1, header_tag2, file_name, sequence_order, verbose=False):
+        header_tag1 = self.clean_text(header_tag1)
+        cypher_str = f'''MERGE (ht:HeaderTags {{header_tag: "{header_tag1}"}});'''
+        if verbose:
+            clear_output(wait=True)
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+        header_tag2 = self.clean_text(header_tag2)
+        cypher_str = f'''MERGE (ht:HeaderTags {{header_tag: "{header_tag2}"}});'''
+        if verbose:
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+        file_name = self.clean_text(file_name)
+        cypher_str = f'''
+            MATCH
+                (ht1:HeaderTags {{header_tag: "{header_tag1}"}}),
+                (ht2:HeaderTags {{header_tag: "{header_tag2}"}})
+            MERGE (ht1)-[r:NEXT {{
+                file_name: "{file_name}",
+                sequence_order: "{str(sequence_order).zfill(4)}"
+            }}]->(ht2);'''
+        if verbose:
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
+    # @with_debug_context
     def ensure_headertag_navigableparent_relationship(self, header_tag, navigable_parent, verbose=False):
         navigable_parent = self.clean_text(navigable_parent)
-        cypher_str = f'''MATCH
-            (np:NavigableParents {{navigable_parent: "{navigable_parent}"}}),
-            (ht:HeaderTags {{header_tag: "{header_tag}"}})
+        cypher_str = f'''
+            MATCH
+                (np:NavigableParents {{navigable_parent: "{navigable_parent}"}}),
+                (ht:HeaderTags {{header_tag: "{header_tag}"}})
             MERGE (ht)-[r:SUMMARIZES]->(np);'''
         if verbose:
+            clear_output(wait=True)
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -486,7 +531,6 @@ class CypherUtilities(object):
 
 
     # Navigable Parents Table functions
-    
     def create_navigableparents_table(self, verbose=False):
         cypher_str = """
             MATCH (np:NavigableParents)
@@ -513,7 +557,6 @@ class CypherUtilities(object):
                 row.is_other AS is_other,
                 row.is_qualification AS is_qualification
             MERGE (np:NavigableParents {navigable_parent: navigable_parent}) SET
-                np.header_tag_id = header_tag_id,
                 np.is_header = is_header,
                 np.is_task_scope = is_task_scope,
                 np.is_minimum_qualification = is_minimum_qualification,
@@ -529,25 +572,14 @@ class CypherUtilities(object):
                 np.is_posting_date = is_posting_date,
                 np.is_other = is_other,
                 np.is_qualification = is_qualification;"""
+        if verbose:
+            clear_output(wait=True)
+            print(cypher_str)
+            print(create_navigableparents_table_cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
             session.write_transaction(self.do_cypher_tx, create_navigableparents_table_cypher_str)
     def populate_navigableparents_table(self, verbose=False):
-        files_list = self.get_files_list(verbose=verbose)
-        navigable_parent_set = set()
-        for file_name in files_list:
-            child_strs_list = self.ha.get_child_strs_from_file(file_name.strip())
-            for child_str in child_strs_list:
-                navigable_parent_set.add(child_str)
-        child_strs_list = sorted(navigable_parent_set)
-        child_tags_list = self.ha.get_child_tags_list(child_strs_list)
-        for child_str, child_tag in zip(child_strs_list, child_tags_list):
-            header_tag_id = self.get_headertag_id(child_tag, verbose=verbose)
-            child_str = self.clean_text(child_str)
-            cypher_str = f"""
-                MERGE (np:NavigableParents {{navigable_parent: '{child_str}', header_tag_id: '{header_tag_id}'}});"""
-            with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
 
         # Set the Corporate Scope is_header
         set_is_corporate_scope1_cypher_str = """
@@ -557,6 +589,9 @@ class CypherUtilities(object):
         for navigable_parent in corp_scope_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = set_is_corporate_scope1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -569,10 +604,16 @@ class CypherUtilities(object):
             navigable_parent = self.clean_text(navigable_parent)
             if is_qualification:
                 cypher_str = self.set_is_qualification1_cypher_str.format(navigable_parent)
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str)
                 with self.driver.session() as session:
                     session.write_transaction(self.do_cypher_tx, cypher_str)
             else:
                 cypher_str = self.set_is_qualification0_cypher_str.format(navigable_parent)
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str)
                 with self.driver.session() as session:
                     session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -581,6 +622,9 @@ class CypherUtilities(object):
         for navigable_parent in task_scope_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_task_scope1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -589,6 +633,9 @@ class CypherUtilities(object):
         for navigable_parent in office_loc_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_office_location1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -597,6 +644,9 @@ class CypherUtilities(object):
         for navigable_parent in req_quals_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_minimum_qualification1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
         if self.s.pickle_exists('O_RQ_DICT'):
@@ -611,6 +661,9 @@ class CypherUtilities(object):
                 if is_nonheader_minimum_qualification:
                     navigable_parent = self.clean_text(navigable_parent)
                     cypher_str = is_nonheader_minimum_qualification_cypher_str.format(navigable_parent)
+                    if verbose:
+                        clear_output(wait=True)
+                        print(cypher_str)
                     with self.driver.session() as session:
                         session.write_transaction(self.do_cypher_tx, cypher_str)
         if self.s.pickle_exists('H_RQ_DICT'):
@@ -624,6 +677,9 @@ class CypherUtilities(object):
             for navigable_parent, is_header_minimum_qualification in req_quals_headers_dict.items():
                 if is_header_minimum_qualification:
                     cypher_str = is_header_minimum_qualification_cypher_str.format(navigable_parent)
+                    if verbose:
+                        clear_output(wait=True)
+                        print(cypher_str)
                     with self.driver.session() as session:
                         session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -632,6 +688,9 @@ class CypherUtilities(object):
         for navigable_parent in supp_pay_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_supplemental_pay1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -640,6 +699,9 @@ class CypherUtilities(object):
         for navigable_parent in supp_pay_nonheaders_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_nonheader_is_supplemental_pay1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -648,6 +710,9 @@ class CypherUtilities(object):
         for navigable_parent in preff_quals_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_preferred_qualification1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -656,6 +721,9 @@ class CypherUtilities(object):
         for navigable_parent in legal_notifs_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_legal_notification1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -664,6 +732,9 @@ class CypherUtilities(object):
         for navigable_parent in other_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_other1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -672,6 +743,9 @@ class CypherUtilities(object):
         for navigable_parent in educ_reqs_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_educational_requirement1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -680,6 +754,9 @@ class CypherUtilities(object):
         for navigable_parent in interv_proc_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_interview_procedure1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -688,6 +765,9 @@ class CypherUtilities(object):
         for navigable_parent in post_date_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_posting_date1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -696,6 +776,9 @@ class CypherUtilities(object):
         for navigable_parent in job_duration_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_job_duration1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -704,6 +787,9 @@ class CypherUtilities(object):
         for navigable_parent in job_title_headers_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.set_is_job_title1_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
 
@@ -720,6 +806,7 @@ class CypherUtilities(object):
             for secondary_column in subtypes_list:
                 cypher_str = set_secondary_column0_formatted_cypher_str.format(secondary_column, primary_column, secondary_column)
                 if verbose:
+                    clear_output(wait=True)
                     print(cypher_str)
                 with self.driver.session() as session:
                     session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -731,9 +818,12 @@ class CypherUtilities(object):
                 np.is_minimum_qualification = 'True' OR
                 np.is_preferred_qualification = 'True'
             SET np.is_qualification = 'True';"""
+        if verbose:
+            clear_output(wait=True)
+            print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-    
+    # @with_debug_context
     def ensure_navigableparent(self, navigable_parent, verbose=False):
         navigable_parent = self.clean_text(navigable_parent)
         cypher_str = f'''MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent}"}});'''
@@ -741,10 +831,21 @@ class CypherUtilities(object):
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-    
+    # @with_debug_context
     def ensure_navigableparents_relationship(self, navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=False):
         navigable_parent1 = self.clean_text(navigable_parent1)
+        cypher_str = f'''MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent1}"}});'''
+        if verbose:
+            clear_output(wait=True)
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
         navigable_parent2 = self.clean_text(navigable_parent2)
+        cypher_str = f'''MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent2}"}});'''
+        if verbose:
+            print(cypher_str)
+        with self.driver.session() as session:
+            session.write_transaction(self.do_cypher_tx, cypher_str)
         file_name = self.clean_text(file_name)
         cypher_str = f'''
             MATCH
@@ -759,121 +860,40 @@ class CypherUtilities(object):
 
 
     # Header Tag Sequence Table functions
-    def create_headertagsequence_table(self, verbose=False):
-        cypher_str = """
-            MATCH (hts:HeaderTagSequence)
-            DETACH DELETE hts;"""
+    def delete_headertagsequence_nodes(self, verbose=False):
         with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
-        cypher_str = """
-            LOAD CSV WITH HEADERS FROM 'file:///HeaderTagSequence.csv' AS row
-            WITH
-                row.header_tag_sequence_id AS header_tag_sequence_id,
-                row.file_name AS file_name,
-                row.header_tag_id AS header_tag_id,
-                row.sequence_order AS sequence_order
-            MERGE (hts:HeaderTagSequence {header_tag_sequence_id: header_tag_sequence_id}) SET
-                hts.file_name = file_name,
-                hts.header_tag_id = header_tag_id,
-                hts.sequence_order = sequence_order;"""
-        with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
-    def populate_headertagsequence_table(self, verbose=False):
-        insert_header_tag_sequence_str = """
-            CREATE (HeaderTagSequence {{
-                header_tag_sequence_id: '{}',
-                file_name: '{}',
-                header_tag_id: '{}',
-                sequence_order: '{}'
-                }});"""
-        files_list = self.get_files_list(verbose=verbose)
-        for file_name in files_list:
-            child_strs_list = self.ha.get_child_strs_from_file(file_name)
-            file_name = self.clean_text(file_name)
-            child_tags_list = self.ha.get_child_tags_list(child_strs_list)
-            for sequence_order, header_tag in enumerate(child_tags_list):
-                header_tag_id = self.get_headertag_id(header_tag, verbose=verbose)
-                unhashed_str = str(file_name) + str(header_tag_id) + str(sequence_order)
-                header_tag_sequence_id = self.convert_str_to_hash(unhashed_str)
-                cypher_str = insert_header_tag_sequence_str.format(header_tag_sequence_id, file_name,
-                                                                        header_tag_id, sequence_order)
-                if verbose:
-                    print(cypher_str)
-                with self.driver.session() as session:
-                    session.write_transaction(self.do_cypher_tx, cypher_str)
-    def get_child_tags_list(self, file_name, verbose=False):
-
-        # Get the child tags list for the file
-        cypher_str = f"""
-            MATCH (ht:HeaderTags) --> (hts:HeaderTagSequence {{file_name: '{file_name}'}})
-            RETURN
-                ht.header_tag,
-                hts.sequence_order;"""
-        row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
-        df = pd.DataFrame(row_objs_list).sort_values('sequence_order')
-        child_tags_list = [x.strip() for x in df.header_tag.tolist()]
-
-        return child_tags_list
-    def get_headertagsequence_id(self, file_name, header_tag_id, sequence_order, verbose=False):
-        cypher_str = f'''MERGE (hts:HeaderTagSequence {{
-                file_name: "{file_name}",
-                header_tag_id: "{header_tag_id}",
-                sequence_order: "{str(sequence_order).zfill(4)}"}})
-            RETURN hts.header_tag_sequence_id;'''
-        if verbose:
-            print(cypher_str)
-        with self.driver.session() as session:
-            row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
-        header_tag_sequence_id = row_objs_list[0]['hts.header_tag_sequence_id']
-        if header_tag_sequence_id is None:
-            unhashed_str = str(file_name) + str(header_tag_id) + str(sequence_order)
-            header_tag_sequence_id = self.convert_str_to_hash(unhashed_str)
-            cypher_str = f'''
-                MERGE (hts:HeaderTagSequence {{
-                    file_name: "{file_name}",
-                    header_tag_id: "{header_tag_id}",
-                    sequence_order: "{str(sequence_order).zfill(4)}"}}) SET
-                    hts.header_tag_sequence_id = "{header_tag_sequence_id}"
-                RETURN hts.header_tag_sequence_id;'''
+            cypher_str = """
+                MATCH (:HeaderTagSequence)-[r]-()
+                DELETE r;"""
             if verbose:
                 print(cypher_str)
-            with self.driver.session() as session:
-                row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
-            header_tag_sequence_id = row_objs_list[0]['hts.header_tag_sequence_id']
-        
-        return header_tag_sequence_id
-    def ensure_headertagsequence_filename_relationship(self, file_name, verbose=False):
-        cypher_str = f'''MATCH (fn:FileNames {{file_name: "{file_name}"}}), (hts:HeaderTagSequence {{file_name: "{file_name}"}})
-            MERGE (hts)-[r:IS_CONTAINED_IN]->(fn);'''
-        if verbose:
-            print(cypher_str)
-        with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-    def ensure_headertagsequence_headertag_relationship(self, header_tag_id, verbose=False):
-        cypher_str = f'''MATCH
-            (ht:HeaderTags {{header_tag_id: "{header_tag_id}"}}),
-            (hts:HeaderTagSequence {{header_tag_id: "{header_tag_id}"}})
-            MERGE (ht)-[r:IS_PART_OF]->(hts);'''
-        if verbose:
-            print(cypher_str)
-        with self.driver.session() as session:
+            cypher_str = """
+                MATCH (hts:HeaderTagSequence)
+                DETACH DELETE hts;"""
+            if verbose:
+                print(cypher_str)
             session.write_transaction(self.do_cypher_tx, cypher_str)
-    def ensure_headertags_relationship(self, header_tag1, header_tag2, file_name, sequence_order, verbose=False):
-        header_tag1 = self.clean_text(header_tag1)
-        header_tag2 = self.clean_text(header_tag2)
-        file_name = self.clean_text(file_name)
-        cypher_str = f'''MERGE (ht1:HeaderTags {{
-                header_tag: "{header_tag1}"
-            }})-[r:NEXT {{
-                file_name: "{file_name}",
-                sequence_order: "{str(sequence_order).zfill(4)}"
-            }}]->(ht2:HeaderTags {{
-                header_tag: "{header_tag2}"
-            }});'''
-        if verbose:
-            print(cypher_str)
-        with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
+    def create_headertagsequence_table(self, verbose=False):
+        self.delete_headertagsequence_nodes(verbose=verbose)
+    def populate_headertag_sequences(self, verbose=False):
+        self.ensure_headertag('END', verbose=verbose)
+        files_list = self.get_files_list(verbose=verbose)
+        for file_name in files_list:
+            file_name = file_name.strip()
+            child_strs_list = self.ha.get_child_strs_from_file(file_name)
+            child_tags_list = self.ha.get_child_tags_list(child_strs_list)
+            for sequence_order, (child_tag1, child_tag2) in enumerate(zip(child_tags_list[:-1], child_tags_list[1:])):
+                self.ensure_headertags_relationship(child_tag1, child_tag2, file_name, sequence_order, verbose=verbose)
+            
+            # Add a fake relationship at the end
+            self.ensure_headertags_relationship(child_tag2, 'END', file_name, sequence_order+1, verbose=verbose)
+            
+            # Ensure the header tag has a relationship to the child string
+            for header_tag, navigable_parent in zip(child_tags_list, child_strs_list):
+                self.ensure_headertag_navigableparent_relationship(header_tag, navigable_parent, verbose=verbose)
+    def populate_headertagsequence_table(self, verbose=False):
+        self.populate_headertag_sequences(verbose=verbose)
 
 
 
@@ -892,20 +912,51 @@ class CypherUtilities(object):
             if verbose:
                 print(cypher_str)
             session.write_transaction(self.do_cypher_tx, cypher_str)
-    
+    def populate_from_child_strings(self, child_strs_list, file_name, verbose=False):
+        self.ensure_navigableparent('END', verbose=verbose)
+        if len(child_strs_list) > 1:
+            for sequence_order, (navigable_parent1, navigable_parent2) in enumerate(zip(child_strs_list[:-1], child_strs_list[1:])):
+                self.ensure_navigableparents_relationship(navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=verbose)
+            
+            # Add a fake relationship at the end
+            if verbose:
+                clear_output(wait=True)
+            self.ensure_navigableparents_relationship(navigable_parent2, 'END', file_name, sequence_order+1, verbose=verbose)
+        
+        child_tags_list = self.ha.get_child_tags_list(child_strs_list)
+        if len(child_tags_list) > 1:
+            for sequence_order, (header_tag1, header_tag2) in enumerate(zip(child_tags_list[:-1], child_tags_list[1:])):
+                if verbose:
+                    clear_output(wait=True)
+                self.ensure_headertags_relationship(header_tag1, header_tag2, file_name, sequence_order, verbose=verbose)
+            
+            # Add a fake relationship at the end
+            if verbose:
+                clear_output(wait=True)
+            self.ensure_headertags_relationship(header_tag2, 'END', file_name, sequence_order+1, verbose=verbose)
+        
+        for sequence_order, (navigable_parent, header_tag) in enumerate(zip(child_strs_list, child_tags_list)):
+            if verbose:
+                clear_output(wait=True)
+            self.ensure_headertag_navigableparent_relationship(header_tag, navigable_parent, verbose=verbose)
     def populate_navigableparent_sequences(self, verbose=False):
+        csv_name = 'navigable_parent_sequence_table'
+        if self.s.csv_exists(csv_name, self.s.data_csv_folder, verbose=verbose):
+            navigableparent_sequences_df = self.s.load_csv(csv_name)
+            
+            def f(df):
+                df = df.sort_values('sequence_order')
+                file_name = df.file_name.tolist()[0]
+                self.ensure_filename(file_name, verbose=verbose)
+                child_strs_list = df.navigable_parent.fillna(value='N/A').tolist()
+                self.populate_from_child_strings(child_strs_list, file_name, verbose=verbose)
+            
+            navigableparent_sequences_df.groupby('file_name').apply(f)
         files_list = self.get_files_list(verbose=verbose)
         for file_name in files_list:
             file_name = file_name.strip()
             child_strs_list = self.ha.get_child_strs_from_file(file_name)
-            for sequence_order, (navigable_parent1, navigable_parent2) in enumerate(zip(child_strs_list[:-1], child_strs_list[1:])):
-                self.ensure_navigableparent(navigable_parent1, verbose=verbose)
-                self.ensure_navigableparent(navigable_parent2, verbose=verbose)
-                self.ensure_navigableparents_relationship(navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=verbose)
-            
-            # Add a fake relationship at the end
-            self.ensure_navigableparent('END', verbose=verbose)
-            self.ensure_navigableparents_relationship(navigable_parent2, 'END', file_name, sequence_order+1, verbose=verbose)
+            self.populate_from_child_strings(child_strs_list, file_name, verbose=verbose)
 
 
 
@@ -999,6 +1050,7 @@ class CypherUtilities(object):
                     """.join(set_list)
             cypher_str += ';'
             if verbose:
+                clear_output(wait=True)
                 print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -1032,26 +1084,12 @@ class CypherUtilities(object):
     def populate_relationships(self, verbose=False):
         cypher_str = """
             MATCH ()-[r]->()
-            DETACH DELETE r;"""
+            DELETE r;"""
         if verbose:
+            clear_output(wait=True)
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            create_relationship_filenames_headertagsequence_cypher_str = """
-                MATCH (fn:FileNames), (hts:HeaderTagSequence)
-                   WHERE fn.file_name = hts.file_name
-                CREATE (hts)-[r: IS_CONTAINED_IN]->(fn);"""
-            session.write_transaction(self.do_cypher_tx, create_relationship_filenames_headertagsequence_cypher_str)
-            create_relationship_headertags_headertagsequence_cypher_str = """
-                MATCH (ht:HeaderTags), (hts:HeaderTagSequence)
-                   WHERE ht.header_tag_id = hts.header_tag_id
-                CREATE (ht)-[r: IS_PART_OF]->(hts);"""
-            session.write_transaction(self.do_cypher_tx, create_relationship_headertags_headertagsequence_cypher_str)
-            create_relationship_headertags_navigableparents_cypher_str = """
-                MATCH (ht:HeaderTags), (np:NavigableParents)
-                   WHERE ht.header_tag_id = np.header_tag_id
-                CREATE (ht)-[r: SUMMARIZES]->(np);"""
-            session.write_transaction(self.do_cypher_tx, create_relationship_headertags_navigableparents_cypher_str)
             for a in ['True', 'False']:
                 for b in ['is_task_scope', 'is_minimum_qualification', 'is_preferred_qualification', 'is_legal_notification', 'is_job_title',
                           'is_office_location', 'is_job_duration', 'is_supplemental_pay', 'is_educational_requirement', 'is_interview_procedure',
@@ -1060,18 +1098,24 @@ class CypherUtilities(object):
                         MATCH (pos:PartsOfSpeech {{is_header: '{a}', {b}: 'True'}}), (np:NavigableParents {{is_header: '{a}', {b}: 'True'}})
                         MERGE (pos)-[r: SUMMARIZES]->(np);"""
                     if verbose:
+                        clear_output(wait=True)
                         print(cypher_str)
                     session.write_transaction(self.do_cypher_tx, cypher_str)
+        self.populate_headertag_sequences(verbose=verbose)
         self.populate_navigableparent_sequences(verbose=verbose)
 
 
     def get_is_header_list(self, child_strs_list, verbose=False):
         is_header_list = []
+        eval_dict = {'False': False, 'True': True}
         for navigable_parent in child_strs_list:
             navigable_parent = self.clean_text(navigable_parent)
             cypher_str = self.select_is_from_navigableparents_cypher_str.format(navigable_parent)
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
             row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
-            is_header = pd.DataFrame(row_objs_list).is_header.squeeze()
+            is_header = eval_dict.get(pd.DataFrame(row_objs_list).is_header.squeeze())
             is_header_list.append(is_header)
 
         return is_header_list
@@ -1079,17 +1123,13 @@ class CypherUtilities(object):
 
 
     def get_child_strs_from_file(self, file_name, verbose=False):
-        select_navigable_parent_by_file_name_cypher_str = '''
+        cypher_str = f'''
             // Get file name paths
-            MATCH path = (np:NavigableParents)-[rels:NEXT {{file_name: "{}"}}]->(np2:NavigableParents)
-            
-            // Get an array of names
-            RETURN REDUCE(acc = [], n in nodes(path) | acc + [n.navigable_parent]) AS navigable_parents_list
-            
-            ORDER BY rels.sequence_order;'''
-        cypher_str = select_navigable_parent_by_file_name_cypher_str.format(file_name.strip())
+            MATCH (np:NavigableParents)-[r:NEXT {{file_name: "{file_name}"}}]->(:NavigableParents)
+            RETURN np.navigable_parent AS navigable_parent
+            ORDER BY r.sequence_order;'''
         row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
-        child_strs_list = [row_obj.get('np.navigable_parent') for row_obj in row_objs_list]
+        child_strs_list = [row_obj.get('navigable_parent') for row_obj in row_objs_list]
 
         return child_strs_list
 
@@ -1097,17 +1137,20 @@ class CypherUtilities(object):
 
     def get_child_tags_list(self, child_strs_list, verbose=False):
         child_tags_list = []
-        select_header_tag_where_navigable_parent_cypher_str = """
-            MATCH (np:NavigableParents {{navigable_parent: '{}'}})<-[s:SUMMARIZES]-(ht)
-            RETURN ht.header_tag AS header_tag;"""
         for navigable_parent in child_strs_list:
             navigable_parent = self.clean_text(navigable_parent)
-            row_objs_list = self.get_execution_results(select_header_tag_where_navigable_parent_cypher_str.format(navigable_parent), verbose=verbose)
-            header_tag = [row_obj['fn'].get('header_tag') for row_obj in row_objs_list][0]
+            cypher_str = f"""
+                MATCH (np:NavigableParents {{navigable_parent: '{navigable_parent}'}})<-[s:SUMMARIZES]-(ht:HeaderTags)
+                RETURN ht.header_tag AS header_tag;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
+            navigable_parent = self.clean_text(navigable_parent)
+            row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
+            header_tag = [row_obj.get('header_tag') for row_obj in row_objs_list][0]
             child_tags_list.append(header_tag)
 
         return child_tags_list
-
 
 
     def get_feature_dict_list(self, child_tags_list, child_strs_list, verbose=False):
@@ -1119,80 +1162,87 @@ class CypherUtilities(object):
             child_str = self.clean_text(child_str)
             cypher_str = self.select_is_from_navigableparents_cypher_str.format(child_str)
             if verbose:
+                clear_output(wait=True)
                 print(cypher_str)
             row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
             params_dict = row_objs_list[0]
             if params_dict is not None:
                 if params_dict['is_header'] is not None:
-                    feature_dict['is_header'] = params_dict['is_header']
+                    feature_dict['is_header'] = eval(params_dict['is_header'])
                 if params_dict['is_task_scope'] is not None:
-                    feature_dict['is_task_scope'] = params_dict['is_task_scope']
+                    feature_dict['is_task_scope'] = eval(params_dict['is_task_scope'])
                 if params_dict['is_minimum_qualification'] is not None:
-                    feature_dict['is_minimum_qualification'] = params_dict['is_minimum_qualification']
+                    feature_dict['is_minimum_qualification'] = eval(params_dict['is_minimum_qualification'])
                 if params_dict['is_preferred_qualification'] is not None:
-                    feature_dict['is_preferred_qualification'] = params_dict['is_preferred_qualification']
+                    feature_dict['is_preferred_qualification'] = eval(params_dict['is_preferred_qualification'])
                 if params_dict['is_legal_notification'] is not None:
-                    feature_dict['is_legal_notification'] = params_dict['is_legal_notification']
+                    feature_dict['is_legal_notification'] = eval(params_dict['is_legal_notification'])
                 if params_dict['is_job_title'] is not None:
-                    feature_dict['is_job_title'] = params_dict['is_job_title']
+                    feature_dict['is_job_title'] = eval(params_dict['is_job_title'])
                 if params_dict['is_office_location'] is not None:
-                    feature_dict['is_office_location'] = params_dict['is_office_location']
+                    feature_dict['is_office_location'] = eval(params_dict['is_office_location'])
                 if params_dict['is_job_duration'] is not None:
-                    feature_dict['is_job_duration'] = params_dict['is_job_duration']
+                    feature_dict['is_job_duration'] = eval(params_dict['is_job_duration'])
                 if params_dict['is_supplemental_pay'] is not None:
-                    feature_dict['is_supplemental_pay'] = params_dict['is_supplemental_pay']
+                    feature_dict['is_supplemental_pay'] = eval(params_dict['is_supplemental_pay'])
                 if params_dict['is_educational_requirement'] is not None:
-                    feature_dict['is_educational_requirement'] = params_dict['is_educational_requirement']
+                    feature_dict['is_educational_requirement'] = eval(params_dict['is_educational_requirement'])
                 if params_dict['is_interview_procedure'] is not None:
-                    feature_dict['is_interview_procedure'] = params_dict['is_interview_procedure']
+                    feature_dict['is_interview_procedure'] = eval(params_dict['is_interview_procedure'])
                 if params_dict['is_corporate_scope'] is not None:
-                    feature_dict['is_corporate_scope'] = params_dict['is_corporate_scope']
+                    feature_dict['is_corporate_scope'] = eval(params_dict['is_corporate_scope'])
                 if params_dict['is_posting_date'] is not None:
-                    feature_dict['is_posting_date'] = params_dict['is_posting_date']
+                    feature_dict['is_posting_date'] = eval(params_dict['is_posting_date'])
                 if params_dict['is_other'] is not None:
-                    feature_dict['is_other'] = params_dict['is_other']
+                    feature_dict['is_other'] = eval(params_dict['is_other'])
             feature_dict['child_str'] = child_str
             feature_dict_list.append(feature_dict)
 
         return feature_dict_list
 
 
-
+    
+    # @with_debug_context
     def append_parts_of_speech_list(self, navigable_parent, pos_list=[], verbose=False):
         navigable_parent = self.clean_text(navigable_parent)
-        row_objs_list = self.get_execution_results(self.select_is_from_navigableparents_cypher_str.format(navigable_parent, verbose=verbose))
-        params_dict = pd.DataFrame(row_objs_list).squeeze().to_dict()
-        if params_dict['is_header']:
-            pos = 'H'
+        row_objs_list = self.get_execution_results(self.select_is_from_navigableparents_cypher_str.format(navigable_parent),
+                                                   verbose=verbose)
+        if len(row_objs_list):
+            conversion_dict = {'True': True, 'False': False, True: True, False: False}
+            params_dict = {k: conversion_dict.get(v) for k, v in row_objs_list[0].items()}
+            if params_dict['is_header']:
+                pos = 'H'
+            else:
+                pos = 'O'
+            if params_dict['is_task_scope']:
+                pos += '-TS'
+            elif params_dict['is_minimum_qualification']:
+                pos += '-RQ'
+            elif params_dict['is_preferred_qualification']:
+                pos += '-PQ'
+            elif params_dict['is_legal_notification']:
+                pos += '-LN'
+            elif params_dict['is_job_title']:
+                pos += '-JT'
+            elif params_dict['is_office_location']:
+                pos += '-OL'
+            elif params_dict['is_job_duration']:
+                pos += '-JD'
+            elif params_dict['is_supplemental_pay']:
+                pos += '-SP'
+            elif params_dict['is_educational_requirement']:
+                pos += '-ER'
+            elif params_dict['is_interview_procedure']:
+                pos += '-IP'
+            elif params_dict['is_corporate_scope']:
+                pos += '-CS'
+            elif params_dict['is_posting_date']:
+                pos += '-PD'
+            elif params_dict['is_other']:
+                pos += '-O'
+            pos_list.append(pos)
         else:
-            pos = 'O'
-        if params_dict['is_task_scope']:
-            pos += '-TS'
-        elif params_dict['is_minimum_qualification']:
-            pos += '-RQ'
-        elif params_dict['is_preferred_qualification']:
-            pos += '-PQ'
-        elif params_dict['is_legal_notification']:
-            pos += '-LN'
-        elif params_dict['is_job_title']:
-            pos += '-JT'
-        elif params_dict['is_office_location']:
-            pos += '-OL'
-        elif params_dict['is_job_duration']:
-            pos += '-JD'
-        elif params_dict['is_supplemental_pay']:
-            pos += '-SP'
-        elif params_dict['is_educational_requirement']:
-            pos += '-ER'
-        elif params_dict['is_interview_procedure']:
-            pos += '-IP'
-        elif params_dict['is_corporate_scope']:
-            pos += '-CS'
-        elif params_dict['is_posting_date']:
-            pos += '-PD'
-        elif params_dict['is_other']:
-            pos += '-O'
-        pos_list.append(pos)
+            pos_list.append(None)
 
         return pos_list
 
@@ -1204,17 +1254,17 @@ class CypherUtilities(object):
             mask_series = df.is_header.isnull()
 
             return df[mask_series].shape[0]
-        select_filename_isheader_cypher_str = """
-            MATCH (np:NavigableParents)-[rels:NEXT]->(np2:NavigableParents)
+        cypher_str = """
+            MATCH (np:NavigableParents)-[r:NEXT]->(:NavigableParents)
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_header AS is_header,
-                rels.sequence_order AS sequence_order,
-                rels.file_name AS file_name
+                r.sequence_order AS sequence_order,
+                r.file_name AS file_name
             ORDER BY
-                rels.file_name,
-                rels.sequence_order;"""
-        isheaders_df = pd.DataFrame(self.get_execution_results(select_filename_isheader_cypher_str, verbose=verbose))
+                r.file_name,
+                r.sequence_order;"""
+        isheaders_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
         isheaders_series = isheaders_df.groupby('file_name').apply(f).sort_values()
         files_list = isheaders_series[isheaders_series==0].index.tolist()
         for file_name in files_list:
@@ -1222,7 +1272,7 @@ class CypherUtilities(object):
             child_strs_list = self.get_child_strs_from_file(file_name)
             if file_name not in self.CHILD_STRS_LIST_DICT:
                 self.CHILD_STRS_LIST_DICT[file_name] = child_strs_list
-                self.s.store_objects(CHILD_STRS_LIST_DICT=self.CHILD_STRS_LIST_DICT, verbose=False)
+                self.s.store_objects(CHILD_STRS_LIST_DICT=self.CHILD_STRS_LIST_DICT, verbose=verbose)
 
 
 
@@ -1237,56 +1287,19 @@ class CypherUtilities(object):
         # Initialize and populate the header pattern dictionary
         HEADER_PATTERN_DICT = {}
         for row_index, row_series in filenames_df[mask_series].iterrows():
-            file_name = row_series.file_name
-            file_name = row_series.file_name.strip()
+            file_name = self.clean_text(row_series.file_name)
 
             # Get the child strings list for the file
-            cypher_str = f"""
-                MATCH (np1:NavigableParents)-[n:NEXT {{file_name: {file_name}}}]->(np2:NavigableParents)
-                RETURN
-                    np1.navigable_parent,
-                    n.sequence_order;"""
-            child_strs_list = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose)).navigable_parent.tolist()
+            child_strs_list = self.get_child_strs_from_file(file_name, verbose=verbose)
 
             # Get the child tags list for the file
-            child_tags_list = self.get_child_tags_list(file_name, verbose=verbose)
+            child_tags_list = self.get_child_tags_list(child_strs_list, verbose=verbose)
 
             # Assume the is_header feature for each item in the sequence is not None
             item_sequence = self.get_feature_dict_list(child_tags_list, child_strs_list)
 
             HEADER_PATTERN_DICT[file_name] = item_sequence
             self.s.store_objects(HEADER_PATTERN_DICT=HEADER_PATTERN_DICT, verbose=verbose)
-
-
-    def find_basic_quals_section(self, child_strs_list, hc=None, ea=None, crf=None, verbose=False):
-        if hc is None:
-            from html_analysis import HeaderCategories
-            hc = HeaderCategories(verbose=verbose)
-        if ea is None:
-            from html_analysis import ElementAnalysis
-            ea = ElementAnalysis(ha=None, hc=hc, verbose=verbose)
-        if crf is None:
-            from html_analysis import CrfUtilities
-            crf = CrfUtilities(ha=None, hc=hc, cu=None, verbose=verbose)
-        child_tags_list = self.get_child_tags_list(child_strs_list)
-        is_header_list = self.get_is_header_list(child_strs_list)
-        feature_dict_list = self.get_feature_dict_list(child_tags_list, child_strs_list, verbose=False)
-        feature_tuple_list = [hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
-        
-        crf_list = crf.CRF.predict_single(crf.sent2features(feature_tuple_list))
-        pos_list = []
-        for pos, feature_tuple, is_header in zip(crf_list, feature_tuple_list, is_header_list):
-            navigable_parent = feature_tuple[1]
-            if is_header:
-                pos_list = self.append_parts_of_speech_list(navigable_parent, pos_list=[])
-            else:
-                pos_list.append(pos)
-        consecutives_list = []
-        from itertools import groupby
-        for k, v in groupby(pos_list):
-            consecutives_list.append((k, len(list(v))))
-
-        return consecutives_list, pos_list
 
 
 
@@ -1297,10 +1310,10 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE EXISTS(np.is_qualification)
             RETURN
-                np.navigable_parent,
-                np.is_qualification;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_qualification AS is_qualification;"""
         is_qualification_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        is_qualification_df.is_qualification = is_qualification_df.is_qualification.astype('bool')
+        is_qualification_df.is_qualification = is_qualification_df.is_qualification.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the header pattern dictionary
         NAVIGABLE_PARENT_IS_QUAL_DICT = {}
@@ -1320,10 +1333,10 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE EXISTS(np.is_header)
             RETURN
-                np.navigable_parent,
-                np.is_header;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_header AS is_header;"""
         is_header_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        is_header_df.is_header = is_header_df.is_header.astype('bool')
+        is_header_df.is_header = is_header_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the navigable parent is header dictionary
         NAVIGABLE_PARENT_IS_HEADER_DICT = {}
@@ -1332,7 +1345,7 @@ class CypherUtilities(object):
             child_str = row_series.navigable_parent
 
             NAVIGABLE_PARENT_IS_HEADER_DICT[child_str] = is_header
-            self.s.store_objects(NAVIGABLE_PARENT_IS_HEADER_DICT=NAVIGABLE_PARENT_IS_HEADER_DICT, verbose=verbose)
+        self.s.store_objects(NAVIGABLE_PARENT_IS_HEADER_DICT=NAVIGABLE_PARENT_IS_HEADER_DICT, verbose=verbose)
 
 
 
@@ -1345,6 +1358,7 @@ class CypherUtilities(object):
             else:
                 cypher_str = self.set_is_header0_cypher_str.format(navigable_parent)
             if verbose:
+                clear_output(wait=True)
                 print(cypher_str)
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
@@ -1377,6 +1391,7 @@ class CypherUtilities(object):
         filenames_list = []
         if len(sequence_list):
             if verbose:
+                clear_output(wait=True)
                 print(self.create_query_table_cypher_str)
             row_objs_list = self.get_execution_results(self.create_query_table_cypher_str, verbose=verbose)
             try:
@@ -1389,6 +1404,7 @@ class CypherUtilities(object):
             # Insert sequence list into CYPHER Server:
             for sequence_order, header_tag in enumerate(sequence_list):
                 if verbose:
+                    clear_output(wait=True)
                     print(self.insert_query_rows_cypher_str.format(header_tag, sequence_order))
                 try:
                     row_objs_list = self.get_execution_results(self.insert_query_rows_cypher_str, header_tag, sequence_order, verbose=verbose)
@@ -1421,6 +1437,7 @@ class CypherUtilities(object):
 
                 # Recreate temp table
                 if verbose:
+                    clear_output(wait=True)
                     print(self.create_query_table_cypher_str)
                 row_objs_list = self.get_execution_results(self.create_query_table_cypher_str, verbose=verbose)
                 try:
@@ -1433,6 +1450,7 @@ class CypherUtilities(object):
                 # Insert sequence list into temp table
                 for sequence_order, header_tag in enumerate(sequence_list):
                     if verbose:
+                        clear_output(wait=True)
                         print(self.insert_query_rows_cypher_str.format(header_tag, start_num + sequence_order))
                     try:
                         row_objs_list = self.get_execution_results(self.insert_query_rows_cypher_str, header_tag, start_num + sequence_order, verbose=verbose)
@@ -1447,6 +1465,7 @@ class CypherUtilities(object):
 
                 # Find sequence list by file name
                 if verbose:
+                    clear_output(wait=True)
                     print(self.select_query_cypher_str)
                 row_objs_list = self.get_execution_results(self.select_query_cypher_str, verbose=verbose)
                 try:
@@ -1472,13 +1491,13 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_task_scope) AND
-                EXISTS(np.is_header)
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_task_scope,
-                np.is_header;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_task_scope AS is_task_scope,
+                np.is_header AS is_header;"""
         task_scope_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        task_scope_df.is_task_scope = task_scope_df.is_task_scope.astype('bool')
+        task_scope_df.is_task_scope = task_scope_df.is_task_scope.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the task scope list
         TASK_SCOPE_HEADERS_LIST = task_scope_df[task_scope_df.is_task_scope].navigable_parent.tolist()
@@ -1490,12 +1509,14 @@ class CypherUtilities(object):
         # Get the req quals headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_minimum_qualification)
+            WHERE
+                EXISTS(np.is_minimum_qualification) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_minimum_qualification;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_minimum_qualification AS is_minimum_qualification;"""
         req_quals_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.astype('bool')
+        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the req quals list
         REQ_QUALS_HEADERS_LIST = req_quals_df[req_quals_df.is_minimum_qualification].navigable_parent.tolist()
@@ -1511,12 +1532,12 @@ class CypherUtilities(object):
                 EXISTS(np.is_minimum_qualification) AND
                 EXISTS(np.is_header)
             RETURN
-                np.navigable_parent,
-                np.is_minimum_qualification,
-                np.is_header;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_minimum_qualification AS is_minimum_qualification,
+                np.is_header AS is_header;"""
         req_quals_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.astype('bool')
-        req_quals_df.is_header = req_quals_df.is_header.astype('bool')
+        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {'True': True, 'False': False}[x])
+        req_quals_df.is_header = req_quals_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the req quals non-headers dictionary
         O_RQ_DICT = {}
@@ -1530,6 +1551,28 @@ class CypherUtilities(object):
                 O_RQ_DICT[navigable_parent] = False
 
 
+    def create_h_pickle(self, verbose=False):
+
+        # Get the headers
+        cypher_str = """
+            MATCH (np:NavigableParents)
+            WHERE EXISTS(np.is_header)
+            RETURN
+                np.navigable_parent AS navigable_parent,
+                np.is_header AS is_header;"""
+        headers_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
+        headers_df.is_header = headers_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
+
+        # Load and populate the headers dictionary
+        NAVIGABLE_PARENT_IS_HEADER_DICT = self.s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
+        for row_index, row_series in headers_df.iterrows():
+            is_header = row_series.is_header
+            navigable_parent = row_series.navigable_parent
+            NAVIGABLE_PARENT_IS_HEADER_DICT[navigable_parent] = is_header
+
+        self.s.store_objects(NAVIGABLE_PARENT_IS_HEADER_DICT=NAVIGABLE_PARENT_IS_HEADER_DICT, verbose=verbose)
+
+
     def create_h_rq_pickle(self, verbose=False):
 
         # Get the req quals headers
@@ -1539,12 +1582,12 @@ class CypherUtilities(object):
                 EXISTS(np.is_minimum_qualification) AND
                 EXISTS(np.is_header)
             RETURN
-                np.navigable_parent,
-                np.is_minimum_qualification,
-                np.is_header;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_minimum_qualification AS is_minimum_qualification,
+                np.is_header AS is_header;"""
         req_quals_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.astype('bool')
-        req_quals_df.is_header = req_quals_df.is_header.astype('bool')
+        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {'True': True, 'False': False}[x])
+        req_quals_df.is_header = req_quals_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the req quals headers dictionary
         H_RQ_DICT = {}
@@ -1565,12 +1608,14 @@ class CypherUtilities(object):
         # Get the preff quals headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_preferred_qualification)
+            WHERE
+                EXISTS(np.is_preferred_qualification) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_preferred_qualification;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_preferred_qualification AS is_preferred_qualification;"""
         preff_quals_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        preff_quals_df.is_preferred_qualification = preff_quals_df.is_preferred_qualification.astype('bool')
+        preff_quals_df.is_preferred_qualification = preff_quals_df.is_preferred_qualification.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the preff quals list
         PREFF_QUALS_HEADERS_LIST = preff_quals_df[preff_quals_df.is_preferred_qualification].navigable_parent.tolist()
@@ -1582,12 +1627,14 @@ class CypherUtilities(object):
         # Get the legal notifs headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_legal_notification)
+            WHERE
+                EXISTS(np.is_legal_notification) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_legal_notification;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_legal_notification AS is_legal_notification;"""
         legal_notifs_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        legal_notifs_df.is_legal_notification = legal_notifs_df.is_legal_notification.astype('bool')
+        legal_notifs_df.is_legal_notification = legal_notifs_df.is_legal_notification.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the legal notifs list
         LEGAL_NOTIFS_HEADERS_LIST = legal_notifs_df[legal_notifs_df.is_legal_notification].navigable_parent.tolist()
@@ -1599,12 +1646,14 @@ class CypherUtilities(object):
         # Get the job title headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_job_title)
+            WHERE
+                EXISTS(np.is_job_title) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_job_title;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_job_title AS is_job_title;"""
         job_title_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        job_title_df.is_job_title = job_title_df.is_job_title.astype('bool')
+        job_title_df.is_job_title = job_title_df.is_job_title.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the job title list
         JOB_TITLE_HEADERS_LIST = job_title_df[job_title_df.is_job_title].navigable_parent.tolist()
@@ -1616,12 +1665,14 @@ class CypherUtilities(object):
         # Get the office loc headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_office_location)
+            WHERE
+                EXISTS(np.is_office_location) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_office_location;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_office_location AS is_office_location;"""
         office_loc_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        office_loc_df.is_office_location = office_loc_df.is_office_location.astype('bool')
+        office_loc_df.is_office_location = office_loc_df.is_office_location.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the office location list
         OFFICE_LOC_HEADERS_LIST = office_loc_df[office_loc_df.is_office_location].navigable_parent.tolist()
@@ -1633,12 +1684,14 @@ class CypherUtilities(object):
         # Get the job duration headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_job_duration)
+            WHERE
+                EXISTS(np.is_job_duration) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_job_duration;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_job_duration AS is_job_duration;"""
         job_duration_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        job_duration_df.is_job_duration = job_duration_df.is_job_duration.astype('bool')
+        job_duration_df.is_job_duration = job_duration_df.is_job_duration.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the job duration list
         JOB_DURATION_HEADERS_LIST = job_duration_df[job_duration_df.is_job_duration].navigable_parent.tolist()
@@ -1650,12 +1703,14 @@ class CypherUtilities(object):
         # Get the supp pay headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_supplemental_pay)
+            WHERE
+                EXISTS(np.is_supplemental_pay) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_supplemental_pay;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_supplemental_pay AS is_supplemental_pay;"""
         supp_pay_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        supp_pay_df.is_supplemental_pay = supp_pay_df.is_supplemental_pay.astype('bool')
+        supp_pay_df.is_supplemental_pay = supp_pay_df.is_supplemental_pay.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the supplemental pay list
         SUPP_PAY_HEADERS_LIST = supp_pay_df[supp_pay_df.is_supplemental_pay].navigable_parent.tolist()
@@ -1667,12 +1722,14 @@ class CypherUtilities(object):
         # Get the educ reqs headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_educational_requirement)
+            WHERE
+                EXISTS(np.is_educational_requirement) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_educational_requirement;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_educational_requirement AS is_educational_requirement;"""
         educ_reqs_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        educ_reqs_df.is_educational_requirement = educ_reqs_df.is_educational_requirement.astype('bool')
+        educ_reqs_df.is_educational_requirement = educ_reqs_df.is_educational_requirement.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the educational requirements list
         EDUC_REQS_HEADERS_LIST = educ_reqs_df[educ_reqs_df.is_educational_requirement].navigable_parent.tolist()
@@ -1684,12 +1741,14 @@ class CypherUtilities(object):
         # Get the interv proc headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_interview_procedure)
+            WHERE
+                EXISTS(np.is_interview_procedure) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_interview_procedure;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_interview_procedure AS is_interview_procedure;"""
         interv_proc_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        interv_proc_df.is_interview_procedure = interv_proc_df.is_interview_procedure.astype('bool')
+        interv_proc_df.is_interview_procedure = interv_proc_df.is_interview_procedure.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the interview procedure list
         INTERV_PROC_HEADERS_LIST = interv_proc_df[interv_proc_df.is_interview_procedure].navigable_parent.tolist()
@@ -1701,12 +1760,14 @@ class CypherUtilities(object):
         # Get the corp scope headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_corporate_scope)
+            WHERE
+                EXISTS(np.is_corporate_scope) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_corporate_scope;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_corporate_scope AS is_corporate_scope;"""
         corp_scope_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        corp_scope_df.is_corporate_scope = corp_scope_df.is_corporate_scope.astype('bool')
+        corp_scope_df.is_corporate_scope = corp_scope_df.is_corporate_scope.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the corporate scope list
         CORP_SCOPE_HEADERS_LIST = corp_scope_df[corp_scope_df.is_corporate_scope].navigable_parent.tolist()
@@ -1718,12 +1779,14 @@ class CypherUtilities(object):
         # Get the post date headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_posting_date)
+            WHERE
+                EXISTS(np.is_posting_date) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_posting_date;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_posting_date AS is_posting_date;"""
         post_date_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        post_date_df.is_posting_date = post_date_df.is_posting_date.astype('bool')
+        post_date_df.is_posting_date = post_date_df.is_posting_date.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the posting date list
         POST_DATE_HEADERS_LIST = post_date_df[post_date_df.is_posting_date].navigable_parent.tolist()
@@ -1735,12 +1798,14 @@ class CypherUtilities(object):
         # Get the other headers
         cypher_str = """
             MATCH (np:NavigableParents)
-            WHERE EXISTS(np.is_other)
+            WHERE
+                EXISTS(np.is_other) AND
+                np.is_header = 'True'
             RETURN
-                np.navigable_parent,
-                np.is_other;"""
+                np.navigable_parent AS navigable_parent,
+                np.is_other AS is_other;"""
         other_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        other_df.is_other = other_df.is_other.astype('bool')
+        other_df.is_other = other_df.is_other.map(lambda x: {'True': True, 'False': False}[x])
 
         # Initialize and populate the other list
         OTHER_HEADERS_LIST = other_df[other_df.is_other].navigable_parent.tolist()

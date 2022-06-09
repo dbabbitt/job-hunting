@@ -52,6 +52,9 @@ saves/txt
 # Git Large File Storage (Git LFS) as part of your workflow.
 saves/csv/export_df.csv
 saves/csv/mrc_df.csv
+cypher/neo4j_job_hunting_export.cypher
+cypher/neo4j_job_hunting_export_import.cypher
+cypher/neo4j_job_hunting_import.cypher
 
 # Exclude executables
 *.exe
@@ -59,8 +62,9 @@ saves/csv/mrc_df.csv
 # Exclude secrets
 **/json/*_secrets.json
 
-# Exclude pickles
+# Exclude pickles and backups
 #*.pkl
+*.bak
 saves/pkl/estimators_list.pkl
 saves/pkl/FIT_ESTIMATORS_DICT.pkl
 saves/pkl/fit_estimators_list.pkl
@@ -212,4 +216,3 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
-*.bak

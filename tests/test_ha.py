@@ -18,7 +18,7 @@ class TestHaMethods(unittest.TestCase):
         from storage import Storage
         self.s = Storage()
         
-        from html_analysis import HeaderAnalysis
+        from ha_utils import HeaderAnalysis
         self.ha = HeaderAnalysis(verbose=True)
         
         import warnings
