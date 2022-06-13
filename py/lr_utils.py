@@ -78,7 +78,15 @@ class LrUtilities(object):
             self.POS_TT = TfidfTransformer(norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True)
             s.store_objects(POS_TT=self.POS_TT)
         tfidf_matrix = self.POS_TT.fit_transform(bow_matrix)
-        X = tfidf_matrix.toarray()
+        try:
+            import gc
+            
+            gc.collect()
+            X = tfidf_matrix.toarray()
+        except Exception as e:
+            print(f'Got this {e.__class__} error in build_pos_logistic_regression_elements trying ',
+                  f'to turn the pos_symbol TF-IDF matrix into a normal array: {str(e).strip()}')
+            X = tfidf_matrix
 
         for pos_symbol in pos_symbol_list:
 
