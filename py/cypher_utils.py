@@ -1214,12 +1214,14 @@ class CypherUtilities(object):
                 pos = 'H'
             else:
                 pos = 'O'
-            if params_dict['is_task_scope']:
-                pos += '-TS'
-            elif params_dict['is_minimum_qualification']:
+            if params_dict['is_minimum_qualification']:
                 pos += '-RQ'
+            elif params_dict['is_educational_requirement']:
+                pos += '-ER'
             elif params_dict['is_preferred_qualification']:
                 pos += '-PQ'
+            elif params_dict['is_task_scope']:
+                pos += '-TS'
             elif params_dict['is_legal_notification']:
                 pos += '-LN'
             elif params_dict['is_job_title']:
@@ -1230,8 +1232,6 @@ class CypherUtilities(object):
                 pos += '-JD'
             elif params_dict['is_supplemental_pay']:
                 pos += '-SP'
-            elif params_dict['is_educational_requirement']:
-                pos += '-ER'
             elif params_dict['is_interview_procedure']:
                 pos += '-IP'
             elif params_dict['is_corporate_scope']:

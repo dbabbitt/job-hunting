@@ -3,7 +3,7 @@
 # coding: utf-8
 
 # cd C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\tests
-# python -m unittest test_cu.TestCuMethods.test_get_child_tags_list
+# python -m unittest test_cu.TestCuMethods.test_clean_text
 
 import unittest
 import os
@@ -128,9 +128,9 @@ class TestCuMethods(unittest.TestCase):
         # cypher_str = 
         # self.assertEqual(self.cu.get_execution_results(cypher_str), )
     
-    # def test_clean_text(self):
-        # dirty_text = 
-        # self.assertEqual(self.cu.clean_text(dirty_text), )
+    def test_clean_text(self):
+        dirty_text = 'Senior_Data_Scientist–Statistics_and_Machine_Learning_b7c10bcd03f70654.html'
+        self.assertEqual(self.cu.clean_text(dirty_text), dirty_text)
     
     # def test_convert_str_to_hash(self):
         # unhashed_str = 

@@ -6,6 +6,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.linear_model import LogisticRegression
 import pandas as pd
+import re
+import numpy as np
 from storage import Storage
 
 s = Storage()
@@ -40,6 +42,24 @@ class LrUtilities(object):
         # Build the Logistic Regression elements
         # self.build_pos_logistic_regression_elements()
         # self.build_isheader_logistic_regression_elements()
+        self.navigable_parent_cypher_str = '''
+            MATCH (np:NavigableParents {{navigable_parent: '{}'}})
+            RETURN
+                np.navigable_parent AS navigable_parent,
+                np.is_header AS is_header,
+                np.is_task_scope AS is_task_scope,
+                np.is_minimum_qualification AS is_minimum_qualification,
+                np.is_preferred_qualification AS is_preferred_qualification,
+                np.is_legal_notification AS is_legal_notification,
+                np.is_job_title AS is_job_title,
+                np.is_office_location AS is_office_location,
+                np.is_job_duration AS is_job_duration,
+                np.is_supplemental_pay AS is_supplemental_pay,
+                np.is_educational_requirement AS is_educational_requirement,
+                np.is_interview_procedure AS is_interview_procedure,
+                np.is_corporate_scope AS is_corporate_scope,
+                np.is_posting_date AS is_posting_date,
+                np.is_other AS is_other;'''
     
     
     ###################################################
@@ -69,6 +89,8 @@ class LrUtilities(object):
                                           max_features=None, min_df=0.0, ngram_range=(1, 5), stop_words=None,
                                           strip_accents='ascii', tokenizer=self.ha.html_regex_tokenizer)
             s.store_objects(POS_CV=self.POS_CV)
+        
+        # Learn the vocabulary dictionary and return the document-term matrix
         bow_matrix = self.POS_CV.fit_transform(sents_list)
 
         # Tf-idf must get from Bag-of-words first
@@ -159,8 +181,9 @@ class LrUtilities(object):
             gc.collect()
             X = tfidf_matrix.toarray()
         except Exception as e:
-            print(f'Got this {e.__class__} error in build_isheader_logistic_regression_elements trying ',
-                  f'to turn the is_header TF-IDF matrix into a normal array: {str(e).strip()}')
+            if verbose:
+                print(f'Got this {e.__class__} error in build_isheader_logistic_regression_elements trying ',
+                      f'to turn the is_header TF-IDF matrix into a normal array: {str(e).strip()}')
             X = tfidf_matrix
         self.ISHEADER_LR.fit(X, y)
         s.store_objects(ISHEADER_LR=self.ISHEADER_LR)
@@ -190,7 +213,9 @@ class LrUtilities(object):
             sents_list = np_df.navigable_parent.tolist()
             
             # Re-transform the bag-of-words and tf-idf from the new manual scores
+            # Learn the vocabulary dictionary and return the document-term matrix
             bow_matrix = self.ISHEADER_CV.fit_transform(sents_list)
+            
             s.store_objects(ISHEADER_CV=self.ISHEADER_CV)
             if not hasattr(self.ISHEADER_CV, 'vocabulary_'):
                 self.ISHEADER_CV._validate_vocabulary()
@@ -263,40 +288,16 @@ class LrUtilities(object):
     ################################################
     ## Logistic Regression is-qualified functions ##
     ################################################
-    def predict_isqualified(self, child_str):
-        probs_list = self.ISQUALIFIED_PREDICT_PERCENT_FIT(child_str)
-        idx = probs_list.index(max(probs_list))
-        is_qualified = [True, False][idx]
-        
-        return is_qualified
-    
-    def refit_isqualified_lr(self, np_df, tfidf_matrix, verbose=False):
-            
-        # Re-train the classifier
-        y = np_df.is_qualified.values
-        try:
-            import gc
-            
-            gc.collect()
-            X = tfidf_matrix.toarray()
-        except Exception as e:
-            print(f'Got this {e.__class__} error in build_isqualified_logistic_regression_elements trying ',
-                  f'to turn the is_qualified TF-IDF matrix into a normal array: {str(e).strip()}')
-            X = tfidf_matrix
-        self.ISQUALIFIED_LR.fit(X, y)
-        s.store_objects(ISQUALIFIED_LR=self.ISQUALIFIED_LR)
-    
     def build_isqualified_logistic_regression_elements(self, verbose=False):
         
         # Get the data
         if not s.pickle_exists('ISQUALIFIED_LR'):
-            cypher_str = """
-                MATCH (np:NavigableParents)
-                RETURN
-                    np.navigable_parent AS navigable_parent, 
-                    np.is_qualified AS is_qualified;"""
-            np_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
-            np_df.is_qualified = np_df.is_qualified.map(lambda x: {'True': True, 'False': False}[x])
+            self.basic_quals_dict = s.load_object('basic_quals_dict')
+            rows_list = [{'qualification_str': qualification_str,
+                          'is_qualified': is_fit} for qualification_str, is_fit in self.basic_quals_dict.items()]
+            self.basic_quals_df = pd.DataFrame(rows_list)
+            transform_dict = {'True': 1, 'False': 0, True: 1, False: 0, 1: 1, 0: 0}
+            self.basic_quals_df.is_qualified = self.basic_quals_df.is_qualified.map(lambda x: transform_dict[x])
         
         if s.pickle_exists('ISQUALIFIED_CV'):
             self.ISQUALIFIED_CV = s.load_object('ISQUALIFIED_CV')
@@ -308,11 +309,13 @@ class LrUtilities(object):
         if (not s.pickle_exists('ISQUALIFIED_LR')) or (not s.pickle_exists('ISQUALIFIED_CV')):
             
             # The shape of the Bag-of-words count vector here should be n html strings * m unique tokens
-            sents_list = np_df.navigable_parent.tolist()
+            sents_list = self.basic_quals_df.qualification_str.tolist()
             
             # Re-transform the bag-of-words and tf-idf from the new manual scores
+            # Learn the vocabulary dictionary and return the document-term matrix
             bow_matrix = self.ISQUALIFIED_CV.fit_transform(sents_list)
-            s.store_objects(ISQUALIFIED_CV=self.ISQUALIFIED_CV)
+            
+            s.store_objects(ISQUALIFIED_CV=self.ISQUALIFIED_CV, verbose=verbose)
             if not hasattr(self.ISQUALIFIED_CV, 'vocabulary_'):
                 self.ISQUALIFIED_CV._validate_vocabulary()
                 if not self.ISQUALIFIED_CV.fixed_vocabulary_:
@@ -324,7 +327,7 @@ class LrUtilities(object):
             self.ISQUALIFIED_VOCAB = s.load_object('ISQUALIFIED_VOCAB')
         else:
             self.ISQUALIFIED_VOCAB = self.ISQUALIFIED_CV.vocabulary_
-            s.store_objects(ISQUALIFIED_VOCAB=self.ISQUALIFIED_VOCAB)
+            s.store_objects(ISQUALIFIED_VOCAB=self.ISQUALIFIED_VOCAB, verbose=verbose)
             
         if s.pickle_exists('ISQUALIFIED_TT'):
             self.ISQUALIFIED_TT = s.load_object('ISQUALIFIED_TT')
@@ -335,7 +338,7 @@ class LrUtilities(object):
             
             # Tf-idf must get from Bag-of-words first
             tfidf_matrix = self.ISQUALIFIED_TT.fit_transform(bow_matrix)
-            s.store_objects(ISQUALIFIED_TT=self.ISQUALIFIED_TT)
+            s.store_objects(ISQUALIFIED_TT=self.ISQUALIFIED_TT, verbose=verbose)
         
         if s.pickle_exists('ISQUALIFIED_LR'):
             self.ISQUALIFIED_LR = s.load_object('ISQUALIFIED_LR')
@@ -356,9 +359,89 @@ class LrUtilities(object):
                 tol=0.0001, 
                 verbose=0, 
                 warm_start=False)
-            self.refit_isqualified_lr(np_df, tfidf_matrix, verbose=verbose)
+            self.refit_isqualified_lr(tfidf_matrix, verbose=verbose)
             
         self.ISQUALIFIED_PREDICT_PERCENT_FIT = self.build_isqualified_lr_predict_percent(verbose=verbose)
+    
+    def get_quals_str(self, prediction_list, quals_list):
+        qual_count = 0
+        quals_str = ''
+        for pred_array, (i, qual_str) in zip(prediction_list, enumerate(quals_list)):
+            if qual_str in self.basic_quals_dict:
+                formatted_str = '\nquals_list[{}] = "{}" ({})'
+                prediction = float(self.basic_quals_dict[qual_str])
+            else:
+                formatted_str = '\n*quals_list[{}] = "{}" ({})'
+                prediction = pred_array[1]
+            quals_str += formatted_str.format(i, qual_str, prediction)
+            if prediction > 0.5:
+                qual_count += 1
+        
+        return quals_str, qual_count
+    
+    def qual_sum(self, qual_str, verbose=False):
+        if verbose:
+            print(qual_str)
+        results = '"{}"'.format(qual_str)
+        if qual_str in self.basic_quals_dict:
+            results = self.basic_quals_dict[qual_str]
+        else:
+            results = self.predict_job_hunt_percent_fit([qual_str])[0][1]
+            if results > 0.5:
+                results = 1.0
+            else:
+                results = 0.0
+        
+        return str(results)
+    
+    def print_loc_computation(self, row_index, quals_list, verbose=True):
+        if verbose:
+            print()
+        numerator_str_list = []
+        for qual_str in quals_list:
+            if qual_str in self.basic_quals_dict:
+                numerator_str_list.append(str(self.basic_quals_dict[qual_str]))
+            else:
+                numerator_str_list.append('000')
+        numerator_str = '+'.join(numerator_str_list)
+        if verbose:
+            print("hunting_df.loc[{}, 'percent_fit'] = ({})/{}".format(row_index, numerator_str, len(quals_list)))
+    
+    def update_hunting(self, row_index, row_series, quals_list, verbose=True):
+        percent_fit = eval(' + '.join(map(self.qual_sum, quals_list))) / len(quals_list)
+        self.hunting_df.loc[row_index, 'percent_fit'] = percent_fit
+        s.store_objects(hunting_df=self.hunting_df, verbose=False)
+        file_name = self.cu.clean_text(row_series.file_name)
+        cypher_str = f'''
+            MATCH (fn:FileNames {{file_name: "{file_name}"}})
+            SET fn.percent_fit = {percent_fit};'''
+        if verbose:
+            print(cypher_str.strip())
+        with self.cu.driver.session() as session:
+            session.write_transaction(self.cu.do_cypher_tx, cypher_str)
+    
+    def predict_isqualified(self, child_str):
+        probs_list = self.ISQUALIFIED_PREDICT_PERCENT_FIT(child_str)
+        idx = probs_list.index(max(probs_list))
+        is_qualified = [True, False][idx]
+        
+        return is_qualified
+    
+    def refit_isqualified_lr(self, tfidf_matrix, verbose=False):
+            
+        # Re-train the classifier
+        y = self.basic_quals_df.is_qualified.to_numpy().astype(int)
+        try:
+            import gc
+            
+            gc.collect()
+            X = tfidf_matrix.toarray()
+        except Exception as e:
+            print(f'Got this {e.__class__} error in build_isqualified_logistic_regression_elements trying ',
+                  f'to turn the is_qualified TF-IDF matrix into a normal array: {str(e).strip()}')
+            X = tfidf_matrix
+        self.ISQUALIFIED_LR.fit(X, y)
+        s.store_objects(ISQUALIFIED_LR=self.ISQUALIFIED_LR, verbose=verbose)
     
     def build_isqualified_lr_predict_percent(self, verbose=False):
         
@@ -366,16 +449,100 @@ class LrUtilities(object):
         cv = CountVectorizer(vocabulary=self.ISQUALIFIED_VOCAB)
         cv._validate_vocabulary()
         
+        def predict_job_hunt_percent_fit(quals_list):
+            y_predict_proba = np.array([])
+            
+            # The TFIDF Vectorizer expects an array of strings
+            if len(quals_list) and all([isinstance(qual_str, str) for qual_str in quals_list]):
+                count_matrix = cv.transform(quals_list)
+                
+                # Transform the count matrix to a tf-idf representation
+                X_test = self.ISQUALIFIED_TT.transform(count_matrix).toarray()
+                
+                y_predict_proba = self.ISQUALIFIED_LR.predict_proba(X_test)
+            
+            return y_predict_proba
         def predict_percent_fit(navigable_parent):
             '''
             probs_list = lru.ISQUALIFIED_PREDICT_PERCENT_FIT(child_str)
             idx = probs_list.index(max(probs_list))
             is_qualified = [True, False][idx]
             '''
-
-            X_test = self.ISQUALIFIED_TT.transform(cv.transform([navigable_parent])).toarray()
+            count_matrix = cv.transform([navigable_parent])
+            X_test = self.ISQUALIFIED_TT.transform(count_matrix).toarray()
             y_predict_proba = self.ISQUALIFIED_LR.predict_proba(X_test).flatten().tolist()
 
             return y_predict_proba
 
-        return predict_percent_fit
+        return predict_job_hunt_percent_fit
+    
+    def retrain_from_dictionary(self, verbose=True):
+        cypher_str = '''
+            MATCH (fn:FileNames)
+            RETURN fn;'''
+        row_objs_list = self.cu.get_execution_results(cypher_str, verbose=False)
+        self.hunting_df = pd.DataFrame([{k: v for k, v in row_obj['fn'].items()} for row_obj in row_objs_list])
+        
+        # Rebuild the dataframe from the dictionary
+        self.basic_quals_dict = s.load_object('basic_quals_dict')
+        rows_list = [{'qualification_str': qualification_str,
+                      'is_qualified': is_fit} for qualification_str, is_fit in self.basic_quals_dict.items()]
+        self.basic_quals_df = pd.DataFrame(rows_list)
+        if verbose:
+            print(self.basic_quals_df.shape)
+        mask_series = (self.basic_quals_df.is_qualified == True)
+        self.basic_quals_df.loc[mask_series, 'is_qualified'] = 1
+        mask_series = (self.basic_quals_df.is_qualified == False)
+        self.basic_quals_df.loc[mask_series, 'is_qualified'] = 0
+        s.store_objects(basic_quals_dict=self.basic_quals_df.set_index('qualification_str').is_qualified.to_dict(), verbose=verbose)
+        s.store_objects(basic_quals_df=self.basic_quals_df, verbose=verbose)
+
+        # Get the new manual scores
+        sents_list = self.basic_quals_df.qualification_str.tolist()
+
+        # Re-transform the bag-of-words from the new manual scores
+        self.ISQUALIFIED_CV = CountVectorizer(lowercase=True, tokenizer=self.ha.html_regex_tokenizer, ngram_range=(1, 3))
+        
+        # Learn the vocabulary dictionary and return the document-term matrix
+        bow_matrix = self.ISQUALIFIED_CV.fit_transform(sents_list)
+        
+        self.ISQUALIFIED_VOCAB = self.ISQUALIFIED_CV.vocabulary_
+        s.store_objects(ISQUALIFIED_VOCAB=self.ISQUALIFIED_VOCAB, verbose=verbose)
+
+        # Tf-idf must get from Bag-of-words first
+        self.ISQUALIFIED_TT = TfidfTransformer(norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True)
+        tfidf_matrix = self.ISQUALIFIED_TT.fit_transform(bow_matrix)
+        s.store_objects(ISQUALIFIED_TT=self.ISQUALIFIED_TT, verbose=verbose)
+
+        # Re-train the classifier
+        self.refit_isqualified_lr(tfidf_matrix, verbose=verbose)
+
+        # Re-calibrate the inference engine
+        self.predict_job_hunt_percent_fit = self.build_isqualified_lr_predict_percent(verbose=verbose)
+        if verbose:
+            print('Retraining complete')
+    
+    def infer_from_hunting_dataframe(self, su=None, verbose=True):
+        if su is None:
+            from section_utils import SectionUtilities
+            su = SectionUtilities(s=s, ha=self.ha, cu=self.cu, verbose=verbose)
+        
+        # Loop through all the unset %fit values, set them if you can, break for help if you can't
+        mask_series = (self.hunting_df.percent_fit >= 0.0)
+        quals_list = []
+        file_name = None
+        for row_index, row_series in self.hunting_df[~mask_series].iterrows():
+            file_name = row_series.file_name
+            quals_list, job_fitness = su.print_fit_job(row_index, row_series, lru=self)
+            if job_fitness > 0.8:
+                if all(qual_str in self.basic_quals_dict for qual_str in quals_list):
+                    self.update_hunting(row_index, row_series, quals_list)
+                else:
+                    break
+            elif len(quals_list) and all([isinstance(qual_str, str) for qual_str in quals_list]):
+                self.update_hunting(row_index, row_series, quals_list)
+        if verbose:
+            print('{}/{} = {}% completed'.format(self.hunting_df[mask_series].shape[0], self.hunting_df.shape[0],
+                                                 int(100 * self.hunting_df[mask_series].shape[0] / self.hunting_df.shape[0])))
+        
+        return quals_list, file_name
