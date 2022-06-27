@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 # cd C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\tests
 # python -m unittest test_hc.TestHcMethods.test_append_parts_of_speech_list
 

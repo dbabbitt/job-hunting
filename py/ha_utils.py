@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 import re
 import os
 from storage import Storage

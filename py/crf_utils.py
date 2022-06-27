@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 from functools import wraps
 
 def with_lru_pos_context(init_func):

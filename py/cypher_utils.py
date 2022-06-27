@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 import os
 import pandas as pd
 import pyodbc
@@ -99,6 +105,22 @@ class CypherUtilities(object):
                 ALL(r in rels WHERE rels[0]['file_name'] = r.file_name)
             
             RETURN rels[0]['file_name'] AS file_name;"""
+        self.return_everything_str = """RETURN
+        np.navigable_parent AS navigable_parent,
+        np.is_header AS is_header,
+        np.is_task_scope AS is_task_scope,
+        np.is_minimum_qualification AS is_minimum_qualification,
+        np.is_preferred_qualification AS is_preferred_qualification,
+        np.is_legal_notification AS is_legal_notification,
+        np.is_job_title AS is_job_title,
+        np.is_office_location AS is_office_location,
+        np.is_job_duration AS is_job_duration,
+        np.is_supplemental_pay AS is_supplemental_pay,
+        np.is_educational_requirement AS is_educational_requirement,
+        np.is_interview_procedure AS is_interview_procedure,
+        np.is_corporate_scope AS is_corporate_scope,
+        np.is_posting_date AS is_posting_date,
+        np.is_other AS is_other"""
 
 
         # Header Tags Table CYPHER

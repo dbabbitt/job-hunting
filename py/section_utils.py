@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 from matplotlib.colors import to_hex
 import re
 from nltk.tokenize import sent_tokenize

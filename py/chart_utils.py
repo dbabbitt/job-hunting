@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 from IPython.display import HTML, display
 from cycler import cycler
 from matplotlib.colors import to_hex

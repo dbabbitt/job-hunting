@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.linear_model import LogisticRegression
@@ -489,7 +495,7 @@ class LrUtilities(object):
                       'is_qualified': is_fit} for qualification_str, is_fit in self.basic_quals_dict.items()]
         self.basic_quals_df = pd.DataFrame(rows_list)
         if verbose:
-            print(self.basic_quals_df.shape)
+            print(f'I have {self.basic_quals_df.shape[0]:,} hand-labeled qualification strings in here')
         mask_series = (self.basic_quals_df.is_qualified == True)
         self.basic_quals_df.loc[mask_series, 'is_qualified'] = 1
         mask_series = (self.basic_quals_df.is_qualified == False)

@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 # From Anaconda Prompt (anaconda3), type:
 # conda activate C:\Users\dev\Documents\GitHub\job-hunting\jh
 # cd C:\Users\dev\Documents\GitHub\job-hunting\py

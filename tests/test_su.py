@@ -2,6 +2,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+
+# Soli Deo gloria
+
+
+
 # cd C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\tests
 # cls
 # python -m unittest test_su.TestSuMethods.test_get_section3
