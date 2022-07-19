@@ -2,10 +2,7 @@
 # https://neo4j.com/docs/operations-manual/current/installation/windows
 # Run this in a PowerShell window:
 # 
-# conda activate base
-# cd C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\ps1
-# cls
-# .\run_neo4j_as_console_application.ps1
+# conda activate base; cd C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\ps1; cls; .\run_neo4j_as_console_application.ps1
 #
 # Stop the server by typing Ctrl-C in the console
 

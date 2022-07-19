@@ -9,6 +9,7 @@
 
 
 from functools import wraps
+import sklearn_crfsuite
 
 def with_lru_pos_context(init_func):
     """
@@ -38,6 +39,8 @@ class CrfUtilities(object):
             self.hc = HeaderCategories()
         else:
             self.hc = hc
+        from storage import Storage
+        self.s = Storage()
         if cu is None:
             from scrape_utils import WebScrapingUtilities
             wsu = WebScrapingUtilities()
@@ -58,14 +61,11 @@ class CrfUtilities(object):
             # self.lru = lru
 
         # Build the CRF elements
-        from storage import Storage
-        s = Storage()
-        if s.pickle_exists('CRF'):
-            self.CRF = s.load_object('CRF')
+        if self.s.pickle_exists('CRF'):
+            self.CRF = self.s.load_object('CRF')
         else:
-            import sklearn_crfsuite
             self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs', c1=0.1, c2=0.1, max_iterations=100, all_possible_transitions=True)
-            HEADER_PATTERN_DICT = s.load_object('HEADER_PATTERN_DICT')
+            HEADER_PATTERN_DICT = self.s.load_object('HEADER_PATTERN_DICT')
             X_train = []
             y_train = []
             for file_name, feature_dict_list in HEADER_PATTERN_DICT.items():
@@ -82,11 +82,52 @@ class CrfUtilities(object):
                 with open('../saves/txt/y_train.txt', 'w', encoding='utf-8') as f:
                     print(y_train, file=f)
                 raise
-            s.store_objects(CRF=self.CRF, verbose=verbose)
+            self.s.store_objects(CRF=self.CRF, verbose=verbose)
 
     #########################################
     ## Conditional Random Fields functions ##
     #########################################
+    def retrain_pos_classifier(self, header_pattern_dict=None, verbose=False):
+        
+        # Get all the header pattern data
+        if header_pattern_dict is None:
+            header_pattern_dict = self.cu.create_header_pattern_dictionary(verbose=verbose)
+        if verbose:
+            print(f'I have {len(header_pattern_dict):,} hand-labeled header patterns in here')
+        
+        X_train = []
+        y_train = []
+        for file_name, feature_dict_list in header_pattern_dict.items():
+            feature_tuple_list = [self.hc.get_feature_tuple(feature_dict, self.lru.pos_lr_predict_single) for feature_dict in feature_dict_list]
+            pos_list = [feature_tuple[2] for feature_tuple in feature_tuple_list]
+            y_train.append(pos_list)
+            X_train.append(self.sent2features(feature_tuple_list))
+        self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs', c1=0.1, c2=0.1, max_iterations=100, all_possible_transitions=True)
+        try:
+            if verbose:
+                print('Training the Conditional Random Fields model with the parts-of-speech labels')
+            self.CRF.fit(X_train, y_train)
+        except Exception as e:
+            print(f'Error in CrfUtilities init trying to self.CRF.fit(X_train, y_train): {str(e).strip()}')
+            with open('../saves/txt/X_train.txt', 'w', encoding='utf-8') as f:
+                print(X_train, file=f)
+            with open('../saves/txt/y_train.txt', 'w', encoding='utf-8') as f:
+                print(y_train, file=f)
+            raise
+        self.s.store_objects(CRF=self.CRF, verbose=verbose)
+        if verbose:
+            print('Retraining complete')
+    
+    
+    def retrain_pos_classifier_from_dictionary(self, verbose=False):
+        
+        # Get all the header pattern data
+        if self.s.pickle_exists('HEADER_PATTERN_DICT'):
+            header_pattern_dict = self.s.load_object('HEADER_PATTERN_DICT')
+        else:
+            header_pattern_dict = None
+        
+        self.retrain_pos_classifier(header_pattern_dict=header_pattern_dict, verbose=verbose)
 
 
     def word2features(self, sent, i):

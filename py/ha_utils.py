@@ -106,6 +106,7 @@ class HeaderAnalysis(object):
     def get_child_strs_from_file(self, file_name):
         child_strs_list = []
         file_path = os.path.join(self.SAVES_HTML_FOLDER, file_name)
+        assert os.path.isfile(file_path), f"Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)"
         with open(file_path, 'r', encoding='utf-8') as f:
             try:
                 html_str = f.read()

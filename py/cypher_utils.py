@@ -242,19 +242,19 @@ class CypherUtilities(object):
             row_objs_list = []
 
         return row_objs_list
-    def clean_text(self, dirty_text):
-        printable_regex = re.compile(f'[^{printable}]+')
-        clean_text = str(dirty_text)
-        clean_text = printable_regex.sub(r' ', clean_text).strip()
-        clean_text = re.sub(r'[^\x00-\x7f]+', r' ', clean_text).strip()
-        clean_text = re.sub(r' +', ' ', clean_text)
-        clean_text = re.sub(r'::', ':', clean_text)
-        clean_text = clean_text.replace(self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
-        clean_text = clean_text.replace(self.BACKSLASH + self.BACKSLASH + self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
-        clean_text = clean_text.replace(self.DOUBLE_QUOTE, self.BACKSLASH + self.DOUBLE_QUOTE)
-        clean_text = clean_text.replace(self.BACKSLASH + self.BACKSLASH + self.DOUBLE_QUOTE, self.BACKSLASH + self.DOUBLE_QUOTE)
+    def escape_text(self, dirty_str):
+        # printable_regex = re.compile(f'[^{printable}]+')
+        # clean_str = str(dirty_str)
+        # clean_str = printable_regex.sub(r' ', clean_str).strip()
+        # clean_str = re.sub(r'[^\x00-\x7f]+', r' ', clean_str).strip()
+        # clean_str = re.sub(r' +', ' ', clean_str)
+        # clean_str = re.sub(r'::', ':', clean_str)
+        clean_str = clean_str.replace(self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
+        clean_str = clean_str.replace(self.BACKSLASH + self.BACKSLASH + self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
+        clean_str = clean_str.replace(self.DOUBLE_QUOTE, self.BACKSLASH + self.DOUBLE_QUOTE)
+        clean_str = clean_str.replace(self.BACKSLASH + self.BACKSLASH + self.DOUBLE_QUOTE, self.BACKSLASH + self.DOUBLE_QUOTE)
 
-        return clean_text
+        return clean_str
     def convert_str_to_hash(self, unhashed_str):
         hash_object = hashlib.md5(unhashed_str.encode())
 
@@ -312,28 +312,41 @@ class CypherUtilities(object):
         return files_list
     
     def get_filename_id(self, file_name, verbose=False):
-        file_name = self.clean_text(file_name)
-        cypher_str = f'''MERGE (fn:FileNames {{file_name: "{file_name}"}})
-            RETURN fn.file_name_id;'''
-        if verbose:
-            clear_output(wait=True)
-            print(cypher_str)
-        with self.driver.session() as session:
-            row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
-        file_name_id = row_objs_list[0]['fn.file_name_id']
-        if file_name_id is None:
-            file_name_id = self.convert_str_to_hash(file_name)
-            cypher_str = f'''
-                MERGE (fn:FileNames {{file_name: "{file_name}"}}) SET
-                    fn.file_name_id = "{file_name_id}"
-                RETURN fn.file_name_id;'''
+        file_name_id = None
+        
+        def do_cypher_tx(tx, file_name, verbose=False):
+            cypher_str = """
+                MERGE (fn:FileNames {file_name: $file_name})
+                RETURN fn.file_name_id;"""
             if verbose:
-                print(cypher_str)
-            with self.driver.session() as session:
-                row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
+                clear_output(wait=True)
+                print(cypher_str.replace('$file_name', f'"{file_name}"'))
+            parameter_dict = {'file_name': file_name}
+            results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+            values_list = []
+            for record in results_list:
+                values_list.append(dict(record.items()))
+            
+            return values_list
+        
+        with self.driver.session() as session:
+            row_objs_list = session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
             file_name_id = row_objs_list[0]['fn.file_name_id']
+            if file_name_id is None:
+                file_name_id = self.convert_str_to_hash(file_name)
+                cypher_str = f'''
+                    MERGE (fn:FileNames {{file_name: "{file_name}"}}) SET
+                        fn.file_name_id = "{file_name_id}"
+                    RETURN fn.file_name_id;'''
+                if verbose:
+                    print(cypher_str)
+                with self.driver.session() as session:
+                    row_objs_list = session.write_transaction(self.do_cypher_tx, cypher_str)
+                file_name_id = row_objs_list[0]['fn.file_name_id']
 
         return file_name_id
+    
+    
     
     def get_all_filenames(self, verbose=False):
         cypher_str = f"""
@@ -345,14 +358,119 @@ class CypherUtilities(object):
 
         return row_objs_list
     
+    
+    
     def ensure_filename(self, file_name, verbose=False):
-        file_name = self.clean_text(file_name)
-        cypher_str = f'''MERGE (:FileNames {{file_name: "{file_name}"}});'''
-        if verbose:
-            clear_output(wait=True)
-            print(cypher_str)
+        
+        def do_cypher_tx(tx, file_name, verbose=False):
+            cypher_str = """MERGE (:FileNames {file_name: $file_name});"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$file_name', f'"{file_name}"'))
+            parameter_dict = {'file_name': file_name}
+            results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+        
         with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
+            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
+    
+    
+    
+    def set_posting_url(self, file_name, url_str, verbose=False):
+        
+        def do_cypher_tx(tx, file_name, url_str, verbose=False):
+            cypher_str = """
+                MATCH (fn:FileNames {file_name: $file_name})
+                SET fn.posting_url = $url_str
+                RETURN fn;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$file_name', f'"{file_name}"').replace('$url_str', f'"{url_str}"'))
+            parameter_dict = {'file_name': file_name, 'url_str': url_str}
+            results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+            values_list = []
+            for record in results_list:
+                values_list.append(dict(record.items()))
+            
+            return values_list
+        
+        with self.driver.session() as session:
+            row_objs_list = session.write_transaction(do_cypher_tx, file_name=file_name, url_str=url_str, verbose=verbose)
+            if verbose:
+                print(row_objs_list)
+    
+    
+    
+    def set_is_closed(self, file_name, verbose=False):
+        
+        def do_cypher_tx(tx, file_name, verbose=False):
+            cypher_str = """
+                MATCH (fn:FileNames {file_name: $file_name})
+                SET fn.is_closed = true
+                RETURN fn;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$file_name', f'"{file_name}"'))
+            parameter_dict = {'file_name': file_name}
+            results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+            values_list = []
+            for record in results_list:
+                values_list.append(dict(record.items()))
+            
+            return values_list
+        
+        with self.driver.session() as session:
+            row_objs_list = session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
+            if verbose:
+                print(row_objs_list)
+    
+    
+    
+    def delete_filename_node(self, file_name, verbose=False):
+        
+        def do_cypher_tx(tx, file_name, verbose=False):
+            cypher_str = """
+                MATCH (:NavigableParents)-[r:NEXT {file_name: $file_name}]->(:NavigableParents)
+                DETACH DELETE r;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$file_name', f'"{file_name}"'))
+            parameter_dict = {'file_name': file_name}
+            tx.run(query=cypher_str, parameters=parameter_dict)
+        
+        with self.driver.session() as session:
+            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
+        
+        def do_cypher_tx(tx, file_name, verbose=False):
+            cypher_str = """
+                MATCH (:HeaderTags)-[r:NEXT {file_name: $file_name}]->(:HeaderTags)
+                DETACH DELETE r;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$file_name', f'"{file_name}"'))
+            parameter_dict = {'file_name': file_name}
+            tx.run(query=cypher_str, parameters=parameter_dict)
+        
+        with self.driver.session() as session:
+            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
+        
+        def do_cypher_tx(tx, file_name, verbose=False):
+            cypher_str = """
+                MATCH (fn:FileNames {file_name: $file_name})
+                DETACH DELETE fn;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$file_name', f'"{file_name}"'))
+            parameter_dict = {'file_name': file_name}
+            tx.run(query=cypher_str, parameters=parameter_dict)
+        
+        with self.driver.session() as session:
+            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
+        
+        file_path = os.path.join(self.SAVES_HTML_FOLDER, file_name)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        if verbose and not os.path.isfile(file_path):
+            print(f'{file_path} removed')
 
 
 
@@ -502,53 +620,61 @@ class CypherUtilities(object):
             with self.driver.session() as session:
                 session.write_transaction(self.do_cypher_tx, cypher_str)
     def ensure_headertag(self, header_tag, verbose=False):
-        header_tag = self.clean_text(header_tag)
-        cypher_str = f'''MERGE (ht:HeaderTags {{header_tag: "{header_tag}"}});'''
-        if verbose:
-            clear_output(wait=True)
-            print(cypher_str)
+        
+        def do_cypher_tx(tx, header_tag, verbose=False):
+            cypher_str = """MERGE (ht:HeaderTags {header_tag: $header_tag});"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$header_tag', f'"{header_tag}"'))
+            parameter_dict = {'header_tag': header_tag}
+            tx.run(query=cypher_str, parameters=parameter_dict)
+        
         with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
+            session.write_transaction(do_cypher_tx, header_tag=header_tag, verbose=verbose)
     def ensure_headertags_relationship(self, header_tag1, header_tag2, file_name, sequence_order, verbose=False):
-        header_tag1 = self.clean_text(header_tag1)
-        cypher_str = f'''MERGE (ht:HeaderTags {{header_tag: "{header_tag1}"}});'''
-        if verbose:
-            clear_output(wait=True)
-            print(cypher_str)
+        self.ensure_headertag(header_tag1, verbose=verbose)
+        self.ensure_headertag(header_tag2, verbose=verbose)
+        
+        def do_cypher_tx(tx, header_tag1, header_tag2, file_name, sequence_order, verbose=False):
+            cypher_str = """
+                MATCH
+                    (ht1:HeaderTags {header_tag: $header_tag1}),
+                    (ht2:HeaderTags {header_tag: $header_tag2})
+                MERGE (ht1)-[r:NEXT {
+                    file_name: $file_name,
+                    sequence_order: $sequence_order
+                }]->(ht2);"""
+            if verbose:
+                clear_output(wait=True)
+                verbose_cypher_str = cypher_str.replace('$header_tag1', f'"{header_tag1}"')
+                verbose_cypher_str = verbose_cypher_str.replace('$header_tag2', f'"{header_tag2}"')
+                verbose_cypher_str = verbose_cypher_str.replace('$file_name', f'"{file_name}"')
+                verbose_cypher_str = verbose_cypher_str.replace('$sequence_order', f'"{sequence_order}"')
+                print(verbose_cypher_str)
+            parameter_dict = {'header_tag1': header_tag1, 'header_tag2': header_tag2, 'file_name': file_name,
+                              'sequence_order': str(sequence_order).zfill(4)}
+            tx.run(query=cypher_str, parameters=parameter_dict)
+        
         with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
-        header_tag2 = self.clean_text(header_tag2)
-        cypher_str = f'''MERGE (ht:HeaderTags {{header_tag: "{header_tag2}"}});'''
-        if verbose:
-            print(cypher_str)
-        with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
-        file_name = self.clean_text(file_name)
-        cypher_str = f'''
-            MATCH
-                (ht1:HeaderTags {{header_tag: "{header_tag1}"}}),
-                (ht2:HeaderTags {{header_tag: "{header_tag2}"}})
-            MERGE (ht1)-[r:NEXT {{
-                file_name: "{file_name}",
-                sequence_order: "{str(sequence_order).zfill(4)}"
-            }}]->(ht2);'''
-        if verbose:
-            print(cypher_str)
-        with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
+            session.write_transaction(do_cypher_tx, header_tag1=header_tag1, header_tag2=header_tag2, file_name=file_name,
+                                      sequence_order=sequence_order, verbose=verbose)
     # @with_debug_context
     def ensure_headertag_navigableparent_relationship(self, header_tag, navigable_parent, verbose=False):
-        navigable_parent = self.clean_text(navigable_parent)
-        cypher_str = f'''
-            MATCH
-                (np:NavigableParents {{navigable_parent: "{navigable_parent}"}}),
-                (ht:HeaderTags {{header_tag: "{header_tag}"}})
-            MERGE (ht)-[r:SUMMARIZES]->(np);'''
-        if verbose:
-            clear_output(wait=True)
-            print(cypher_str)
+        
+        def do_cypher_tx(tx, navigable_parent, header_tag, verbose=False):
+            cypher_str = '''
+                MATCH
+                    (np:NavigableParents {navigable_parent: $navigable_parent}),
+                    (ht:HeaderTags {header_tag: $header_tag})
+                MERGE (ht)-[r:SUMMARIZES]->(np);'''
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"').replace('$header_tag', f'"{header_tag}"'))
+            parameter_dict = {'navigable_parent': navigable_parent, 'header_tag': header_tag}
+            tx.run(query=cypher_str, parameters=parameter_dict)
+        
         with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
+            session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, header_tag=header_tag, verbose=verbose)
 
 
 
@@ -605,17 +731,20 @@ class CypherUtilities(object):
 
         # Set the Corporate Scope is_header
         set_is_corporate_scope1_cypher_str = """
-            MATCH (np:NavigableParents {{navigable_parent: '{}'}})
+            MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
             SET np.is_header = 'True', np.is_corporate_scope = 'True';"""
         corp_scope_headers_list = self.s.load_object('corp_scope_headers_list')
         for navigable_parent in corp_scope_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = set_is_corporate_scope1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                if verbose:
+                    clear_output(wait=True)
+                    print(set_is_corporate_scope1_cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=set_is_corporate_scope1_cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the basic tags is_header
         self.ensure_navigableparent_is_header_from_dictionary(verbose=verbose)
@@ -623,71 +752,90 @@ class CypherUtilities(object):
         # Set the basic tags is_qual
         NAVIGABLE_PARENT_IS_QUAL_DICT = self.s.load_object('NAVIGABLE_PARENT_IS_QUAL_DICT')
         for navigable_parent, is_qualification in NAVIGABLE_PARENT_IS_QUAL_DICT.items():
-            navigable_parent = self.clean_text(navigable_parent)
-            if is_qualification:
-                cypher_str = self.set_is_qualification1_cypher_str.format(navigable_parent)
+            
+            def do_cypher_tx(tx, navigable_parent, is_qualification, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_qualification = $is_qualification;"""
                 if verbose:
                     clear_output(wait=True)
-                    print(cypher_str)
-                with self.driver.session() as session:
-                    session.write_transaction(self.do_cypher_tx, cypher_str)
-            else:
-                cypher_str = self.set_is_qualification0_cypher_str.format(navigable_parent)
-                if verbose:
-                    clear_output(wait=True)
-                    print(cypher_str)
-                with self.driver.session() as session:
-                    session.write_transaction(self.do_cypher_tx, cypher_str)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"').replace('$is_qualification', f'"{str(is_qualification)}"'))
+                parameter_dict = {'navigable_parent': navigable_parent, 'is_qualification': str(is_qualification)}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
+            with self.driver.session() as session:
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, is_qualification=is_qualification, verbose=verbose)
 
         # Set the Task Scope is_header
         task_scope_headers_list = self.s.load_object('task_scope_headers_list')
         for navigable_parent in task_scope_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_task_scope1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_task_scope = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Office Location is_header
         office_loc_headers_list = self.s.load_object('office_loc_headers_list')
         for navigable_parent in office_loc_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_office_location1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_office_location = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Minimum Quals is_header
         req_quals_headers_list = self.s.load_object('req_quals_headers_list')
         for navigable_parent in req_quals_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_minimum_qualification1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_minimum_qualification = 'True', np.is_qualification = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
         if self.s.pickle_exists('O_RQ_DICT'):
             req_quals_nonheaders_dict = self.s.load_object('O_RQ_DICT')
             is_nonheader_minimum_qualification_cypher_str = """
-                MATCH (np:NavigableParents {{navigable_parent: '{}'}})
+                MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
                 SET
                     np.is_header = 'False',
                     np.is_minimum_qualification = 'True',
                     np.is_qualification = 'True';"""
             for navigable_parent, is_nonheader_minimum_qualification in req_quals_nonheaders_dict.items():
                 if is_nonheader_minimum_qualification:
-                    navigable_parent = self.clean_text(navigable_parent)
-                    cypher_str = is_nonheader_minimum_qualification_cypher_str.format(navigable_parent)
-                    if verbose:
-                        clear_output(wait=True)
-                        print(cypher_str)
+                    
+                    def do_cypher_tx(tx, navigable_parent, verbose=False):
+                        if verbose:
+                            clear_output(wait=True)
+                            print(is_nonheader_minimum_qualification_cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                        parameter_dict = {'navigable_parent': navigable_parent}
+                        tx.run(query=is_nonheader_minimum_qualification_cypher_str, parameters=parameter_dict)
+                    
                     with self.driver.session() as session:
-                        session.write_transaction(self.do_cypher_tx, cypher_str)
+                        session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
         if self.s.pickle_exists('H_RQ_DICT'):
             req_quals_headers_dict = self.s.load_object('H_RQ_DICT')
             is_header_minimum_qualification_cypher_str = """
@@ -708,113 +856,163 @@ class CypherUtilities(object):
         # Set the Supplemental Pay is_header
         supp_pay_headers_list = self.s.load_object('supp_pay_headers_list')
         for navigable_parent in supp_pay_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_supplemental_pay1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_supplemental_pay = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Supplemental Pay non-header
         supp_pay_nonheaders_list = self.s.load_object('supp_pay_nonheaders_list')
         for navigable_parent in supp_pay_nonheaders_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_nonheader_is_supplemental_pay1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'False', np.is_supplemental_pay = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Preferred Quals is_header
         preff_quals_headers_list = self.s.load_object('preff_quals_headers_list')
         for navigable_parent in preff_quals_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_preferred_qualification1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_preferred_qualification = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Legal Notifications is_header
         legal_notifs_headers_list = self.s.load_object('legal_notifs_headers_list')
         for navigable_parent in legal_notifs_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_legal_notification1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_legal_notification = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Other is_header
         other_headers_list = self.s.load_object('other_headers_list')
         for navigable_parent in other_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_other1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_other = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Education Requirements is_header
         educ_reqs_headers_list = self.s.load_object('educ_reqs_headers_list')
         for navigable_parent in educ_reqs_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_educational_requirement1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_educational_requirement = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Interview Process is_header
         interv_proc_headers_list = self.s.load_object('interv_proc_headers_list')
         for navigable_parent in interv_proc_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_interview_procedure1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_interview_procedure = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Posting Date is_header
         post_date_headers_list = self.s.load_object('post_date_headers_list')
         for navigable_parent in post_date_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_posting_date1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_posting_date = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Job Duration is_header
         job_duration_headers_list = self.s.load_object('job_duration_headers_list')
         for navigable_parent in job_duration_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_job_duration1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            def do_cypher_tx(tx, navigable_parent, is_header, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_job_duration = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent, 'is_header': is_header}
+                tx.run(query=cypher_str, parameters=parameter_dict)
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
 
         # Set the Job Title is_header
         job_title_headers_list = self.s.load_object('job_title_headers_list')
         for navigable_parent in job_title_headers_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.set_is_job_title1_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    SET np.is_header = 'True', np.is_job_title = 'True';"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
-
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
+        
         # SET other subtypes as False; assume 0 rows affected if primary and secondary columns are the same
         subtypes_list = ['is_task_scope', 'is_minimum_qualification', 'is_preferred_qualification', 'is_legal_notification',
                          'is_job_title', 'is_office_location', 'is_job_duration', 'is_supplemental_pay',
@@ -847,37 +1045,38 @@ class CypherUtilities(object):
             session.write_transaction(self.do_cypher_tx, cypher_str)
     # @with_debug_context
     def ensure_navigableparent(self, navigable_parent, verbose=False):
-        navigable_parent = self.clean_text(navigable_parent)
-        cypher_str = f'''MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent}"}});'''
-        if verbose:
-            print(cypher_str)
+        def do_cypher_tx(tx, navigable_parent, verbose=False):
+            cypher_str = 'MERGE (np:NavigableParents {navigable_parent: $navigable_parent});'
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+            parameter_dict = {'navigable_parent': navigable_parent}
+            tx.run(query=cypher_str, parameters=parameter_dict)
         with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
+            session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
     # @with_debug_context
     def ensure_navigableparents_relationship(self, navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=False):
-        navigable_parent1 = self.clean_text(navigable_parent1)
-        cypher_str = f'''MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent1}"}});'''
-        if verbose:
-            clear_output(wait=True)
-            print(cypher_str)
+        self.ensure_navigableparent(navigable_parent1, verbose=verbose)
+        self.ensure_navigableparent(navigable_parent2, verbose=verbose)
+        def do_cypher_tx(tx, navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=False):
+            cypher_str = '''
+                MATCH
+                    (np1:NavigableParents {navigable_parent: $navigable_parent1}),
+                    (np2:NavigableParents {navigable_parent: $navigable_parent2})
+                MERGE (np1)-[:NEXT {file_name: $file_name, sequence_order: $sequence_order}]->(np2);'''
+            if verbose:
+                clear_output(wait=True)
+                verbose_cypher_str = cypher_str.replace('$navigable_parent1', f'"{navigable_parent1}"')
+                verbose_cypher_str = verbose_cypher_str.replace('$navigable_parent2', f'"{navigable_parent2}"')
+                verbose_cypher_str = verbose_cypher_str.replace('$file_name', f'"{file_name}"')
+                verbose_cypher_str = verbose_cypher_str.replace('$sequence_order', f'"{str(sequence_order).zfill(4)}"')
+                print(verbose_cypher_str)
+            parameter_dict = {'navigable_parent1': navigable_parent1, 'navigable_parent2': navigable_parent2,
+                              'file_name': file_name, 'sequence_order': sequence_order}
+            tx.run(query=cypher_str, parameters=parameter_dict)
         with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
-        navigable_parent2 = self.clean_text(navigable_parent2)
-        cypher_str = f'''MERGE (np:NavigableParents {{navigable_parent: "{navigable_parent2}"}});'''
-        if verbose:
-            print(cypher_str)
-        with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
-        file_name = self.clean_text(file_name)
-        cypher_str = f'''
-            MATCH
-                (np1:NavigableParents {{navigable_parent: "{navigable_parent1}"}}),
-                (np2:NavigableParents {{navigable_parent: "{navigable_parent2}"}})
-            MERGE (np1)-[:NEXT {{file_name: "{file_name}", sequence_order: "{str(sequence_order).zfill(4)}"}}]->(np2);'''
-        if verbose:
-            print(cypher_str)
-        with self.driver.session() as session:
-            session.write_transaction(self.do_cypher_tx, cypher_str)
+            session.write_transaction(do_cypher_tx, navigable_parent1=navigable_parent1, navigable_parent2=navigable_parent2,
+                                      file_name=file_name, sequence_order=str(sequence_order).zfill(4), verbose=verbose)
 
 
 
@@ -1131,14 +1330,38 @@ class CypherUtilities(object):
         is_header_list = []
         eval_dict = {'False': False, 'True': True}
         for navigable_parent in child_strs_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = self.select_is_from_navigableparents_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
-            row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
-            is_header = eval_dict.get(pd.DataFrame(row_objs_list).is_header.squeeze())
-            is_header_list.append(is_header)
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    RETURN
+                        np.is_header AS is_header,
+                        np.is_task_scope AS is_task_scope,
+                        np.is_minimum_qualification AS is_minimum_qualification,
+                        np.is_preferred_qualification AS is_preferred_qualification,
+                        np.is_legal_notification AS is_legal_notification,
+                        np.is_job_title AS is_job_title,
+                        np.is_office_location AS is_office_location,
+                        np.is_job_duration AS is_job_duration,
+                        np.is_supplemental_pay AS is_supplemental_pay,
+                        np.is_educational_requirement AS is_educational_requirement,
+                        np.is_interview_procedure AS is_interview_procedure,
+                        np.is_corporate_scope AS is_corporate_scope,
+                        np.is_posting_date AS is_posting_date,
+                        np.is_other AS is_other;"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+                parameter_dict = {'navigable_parent': navigable_parent}
+                results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+                values_list = []
+                for record in results_list:
+                    values_list.append(dict(record.items()))
+
+                return values_list
+            with self.driver.session() as session:
+                row_objs_list = session.read_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
+                is_header = eval_dict.get(pd.DataFrame(row_objs_list).is_header.squeeze())
+                is_header_list.append(is_header)
 
         return is_header_list
 
@@ -1158,67 +1381,101 @@ class CypherUtilities(object):
 
 
     def get_child_tags_list(self, child_strs_list, verbose=False):
-        child_tags_list = []
-        for navigable_parent in child_strs_list:
-            navigable_parent = self.clean_text(navigable_parent)
-            cypher_str = f"""
-                MATCH (np:NavigableParents {{navigable_parent: '{navigable_parent}'}})<-[s:SUMMARIZES]-(ht:HeaderTags)
-                RETURN ht.header_tag AS header_tag;"""
+        def do_cypher_tx(tx, navigable_parent, verbose=False):
+            cypher_str = 'MATCH (np:NavigableParents {navigable_parent: $navigable_parent})<-[s:SUMMARIZES]-(ht:HeaderTags) '
+            cypher_str += 'RETURN ht.header_tag AS header_tag;'
             if verbose:
                 clear_output(wait=True)
-                print(cypher_str)
-            navigable_parent = self.clean_text(navigable_parent)
-            row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
-            header_tag = [row_obj.get('header_tag') for row_obj in row_objs_list][0]
-            child_tags_list.append(header_tag)
+                print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+            parameter_dict = {'navigable_parent': navigable_parent}
+            results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+            values_list = []
+            for record in results_list:
+                values_list.append(dict(record.items()))
+            
+            return values_list
+        child_tags_list = []
+        for navigable_parent in child_strs_list:
+            with self.driver.session() as session:
+                row_objs_list = session.read_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
+                header_tag = [row_obj.get('header_tag') for row_obj in row_objs_list][0]
+                child_tags_list.append(header_tag)
 
         return child_tags_list
+
+# def add_person(self, name):
+    # with self.driver.session() as session:
+        # session.run("CREATE (a:Person {name: $name})", name=name)
 
 
     def get_feature_dict_list(self, child_tags_list, child_strs_list, verbose=False):
         feature_dict_list = []
         import numpy as np
-        for tag, child_str in zip(child_tags_list, child_strs_list):
+        for tag, navigable_parent in zip(child_tags_list, child_strs_list):
             feature_dict = {}
             feature_dict['initial_tag'] = tag
-            child_str = self.clean_text(child_str)
-            cypher_str = self.select_is_from_navigableparents_cypher_str.format(child_str)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
-            row_objs_list = self.get_execution_results(cypher_str, verbose=verbose)
-            params_dict = row_objs_list[0]
-            if params_dict is not None:
-                if params_dict['is_header'] is not None:
-                    feature_dict['is_header'] = eval(params_dict['is_header'])
-                if params_dict['is_task_scope'] is not None:
-                    feature_dict['is_task_scope'] = eval(params_dict['is_task_scope'])
-                if params_dict['is_minimum_qualification'] is not None:
-                    feature_dict['is_minimum_qualification'] = eval(params_dict['is_minimum_qualification'])
-                if params_dict['is_preferred_qualification'] is not None:
-                    feature_dict['is_preferred_qualification'] = eval(params_dict['is_preferred_qualification'])
-                if params_dict['is_legal_notification'] is not None:
-                    feature_dict['is_legal_notification'] = eval(params_dict['is_legal_notification'])
-                if params_dict['is_job_title'] is not None:
-                    feature_dict['is_job_title'] = eval(params_dict['is_job_title'])
-                if params_dict['is_office_location'] is not None:
-                    feature_dict['is_office_location'] = eval(params_dict['is_office_location'])
-                if params_dict['is_job_duration'] is not None:
-                    feature_dict['is_job_duration'] = eval(params_dict['is_job_duration'])
-                if params_dict['is_supplemental_pay'] is not None:
-                    feature_dict['is_supplemental_pay'] = eval(params_dict['is_supplemental_pay'])
-                if params_dict['is_educational_requirement'] is not None:
-                    feature_dict['is_educational_requirement'] = eval(params_dict['is_educational_requirement'])
-                if params_dict['is_interview_procedure'] is not None:
-                    feature_dict['is_interview_procedure'] = eval(params_dict['is_interview_procedure'])
-                if params_dict['is_corporate_scope'] is not None:
-                    feature_dict['is_corporate_scope'] = eval(params_dict['is_corporate_scope'])
-                if params_dict['is_posting_date'] is not None:
-                    feature_dict['is_posting_date'] = eval(params_dict['is_posting_date'])
-                if params_dict['is_other'] is not None:
-                    feature_dict['is_other'] = eval(params_dict['is_other'])
-            feature_dict['child_str'] = child_str
-            feature_dict_list.append(feature_dict)
+            def do_cypher_tx(tx, navigable_parent, verbose=False):
+                cypher_str = """
+                    MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                    RETURN
+                        np.is_header AS is_header,
+                        np.is_task_scope AS is_task_scope,
+                        np.is_minimum_qualification AS is_minimum_qualification,
+                        np.is_preferred_qualification AS is_preferred_qualification,
+                        np.is_legal_notification AS is_legal_notification,
+                        np.is_job_title AS is_job_title,
+                        np.is_office_location AS is_office_location,
+                        np.is_job_duration AS is_job_duration,
+                        np.is_supplemental_pay AS is_supplemental_pay,
+                        np.is_educational_requirement AS is_educational_requirement,
+                        np.is_interview_procedure AS is_interview_procedure,
+                        np.is_corporate_scope AS is_corporate_scope,
+                        np.is_posting_date AS is_posting_date,
+                        np.is_other AS is_other;"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str)
+                parameter_dict = {'navigable_parent': navigable_parent}
+                results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+                values_list = []
+                for record in results_list:
+                    values_list.append(dict(record.items()))
+
+                return values_list
+            with self.driver.session() as session:
+                row_objs_list = session.read_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
+                params_dict = row_objs_list[0]
+                if params_dict is not None:
+                    if params_dict['is_header'] is not None:
+                        feature_dict['is_header'] = eval(params_dict['is_header'])
+                    if params_dict['is_task_scope'] is not None:
+                        feature_dict['is_task_scope'] = eval(params_dict['is_task_scope'])
+                    if params_dict['is_minimum_qualification'] is not None:
+                        feature_dict['is_minimum_qualification'] = eval(params_dict['is_minimum_qualification'])
+                    if params_dict['is_preferred_qualification'] is not None:
+                        feature_dict['is_preferred_qualification'] = eval(params_dict['is_preferred_qualification'])
+                    if params_dict['is_legal_notification'] is not None:
+                        feature_dict['is_legal_notification'] = eval(params_dict['is_legal_notification'])
+                    if params_dict['is_job_title'] is not None:
+                        feature_dict['is_job_title'] = eval(params_dict['is_job_title'])
+                    if params_dict['is_office_location'] is not None:
+                        feature_dict['is_office_location'] = eval(params_dict['is_office_location'])
+                    if params_dict['is_job_duration'] is not None:
+                        feature_dict['is_job_duration'] = eval(params_dict['is_job_duration'])
+                    if params_dict['is_supplemental_pay'] is not None:
+                        feature_dict['is_supplemental_pay'] = eval(params_dict['is_supplemental_pay'])
+                    if params_dict['is_educational_requirement'] is not None:
+                        feature_dict['is_educational_requirement'] = eval(params_dict['is_educational_requirement'])
+                    if params_dict['is_interview_procedure'] is not None:
+                        feature_dict['is_interview_procedure'] = eval(params_dict['is_interview_procedure'])
+                    if params_dict['is_corporate_scope'] is not None:
+                        feature_dict['is_corporate_scope'] = eval(params_dict['is_corporate_scope'])
+                    if params_dict['is_posting_date'] is not None:
+                        feature_dict['is_posting_date'] = eval(params_dict['is_posting_date'])
+                    if params_dict['is_other'] is not None:
+                        feature_dict['is_other'] = eval(params_dict['is_other'])
+                feature_dict['child_str'] = navigable_parent
+                feature_dict_list.append(feature_dict)
 
         return feature_dict_list
 
@@ -1226,45 +1483,72 @@ class CypherUtilities(object):
     
     # @with_debug_context
     def append_parts_of_speech_list(self, navigable_parent, pos_list=[], verbose=False):
-        navigable_parent = self.clean_text(navigable_parent)
-        row_objs_list = self.get_execution_results(self.select_is_from_navigableparents_cypher_str.format(navigable_parent),
-                                                   verbose=verbose)
-        if len(row_objs_list):
-            conversion_dict = {'True': True, 'False': False, True: True, False: False}
-            params_dict = {k: conversion_dict.get(v) for k, v in row_objs_list[0].items()}
-            if params_dict['is_header']:
-                pos = 'H'
+        def do_cypher_tx(tx, navigable_parent, verbose=False):
+            cypher_str = """
+                MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
+                RETURN
+                    np.is_header AS is_header,
+                    np.is_task_scope AS is_task_scope,
+                    np.is_minimum_qualification AS is_minimum_qualification,
+                    np.is_preferred_qualification AS is_preferred_qualification,
+                    np.is_legal_notification AS is_legal_notification,
+                    np.is_job_title AS is_job_title,
+                    np.is_office_location AS is_office_location,
+                    np.is_job_duration AS is_job_duration,
+                    np.is_supplemental_pay AS is_supplemental_pay,
+                    np.is_educational_requirement AS is_educational_requirement,
+                    np.is_interview_procedure AS is_interview_procedure,
+                    np.is_corporate_scope AS is_corporate_scope,
+                    np.is_posting_date AS is_posting_date,
+                    np.is_other AS is_other;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
+            parameter_dict = {'navigable_parent': navigable_parent}
+            results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+            values_list = []
+            for record in results_list:
+                values_list.append(dict(record.items()))
+
+            return values_list
+        with self.driver.session() as session:
+            row_objs_list = session.read_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
+            if len(row_objs_list):
+                conversion_dict = {'True': True, 'False': False, True: True, False: False}
+                params_dict = {k: conversion_dict.get(v) for k, v in row_objs_list[0].items()}
+                if params_dict['is_header']:
+                    pos = 'H'
+                else:
+                    pos = 'O'
+                if params_dict['is_minimum_qualification']:
+                    pos += '-RQ'
+                elif params_dict['is_educational_requirement']:
+                    pos += '-ER'
+                elif params_dict['is_preferred_qualification']:
+                    pos += '-PQ'
+                elif params_dict['is_task_scope']:
+                    pos += '-TS'
+                elif params_dict['is_legal_notification']:
+                    pos += '-LN'
+                elif params_dict['is_job_title']:
+                    pos += '-JT'
+                elif params_dict['is_office_location']:
+                    pos += '-OL'
+                elif params_dict['is_job_duration']:
+                    pos += '-JD'
+                elif params_dict['is_supplemental_pay']:
+                    pos += '-SP'
+                elif params_dict['is_interview_procedure']:
+                    pos += '-IP'
+                elif params_dict['is_corporate_scope']:
+                    pos += '-CS'
+                elif params_dict['is_posting_date']:
+                    pos += '-PD'
+                elif params_dict['is_other']:
+                    pos += '-O'
+                pos_list.append(pos)
             else:
-                pos = 'O'
-            if params_dict['is_minimum_qualification']:
-                pos += '-RQ'
-            elif params_dict['is_educational_requirement']:
-                pos += '-ER'
-            elif params_dict['is_preferred_qualification']:
-                pos += '-PQ'
-            elif params_dict['is_task_scope']:
-                pos += '-TS'
-            elif params_dict['is_legal_notification']:
-                pos += '-LN'
-            elif params_dict['is_job_title']:
-                pos += '-JT'
-            elif params_dict['is_office_location']:
-                pos += '-OL'
-            elif params_dict['is_job_duration']:
-                pos += '-JD'
-            elif params_dict['is_supplemental_pay']:
-                pos += '-SP'
-            elif params_dict['is_interview_procedure']:
-                pos += '-IP'
-            elif params_dict['is_corporate_scope']:
-                pos += '-CS'
-            elif params_dict['is_posting_date']:
-                pos += '-PD'
-            elif params_dict['is_other']:
-                pos += '-O'
-            pos_list.append(pos)
-        else:
-            pos_list.append(None)
+                pos_list.append(None)
 
         return pos_list
 
@@ -1309,9 +1593,9 @@ class CypherUtilities(object):
         # Initialize and populate the header pattern dictionary
         HEADER_PATTERN_DICT = {}
         for row_index, row_series in filenames_df[mask_series].iterrows():
-            file_name = self.clean_text(row_series.file_name)
 
             # Get the child strings list for the file
+            file_name = row_series.file_name
             child_strs_list = self.get_child_strs_from_file(file_name, verbose=verbose)
 
             # Get the child tags list for the file
@@ -1322,6 +1606,8 @@ class CypherUtilities(object):
 
             HEADER_PATTERN_DICT[file_name] = item_sequence
             self.s.store_objects(HEADER_PATTERN_DICT=HEADER_PATTERN_DICT, verbose=verbose)
+        
+        return HEADER_PATTERN_DICT
 
 
 
@@ -1374,16 +1660,15 @@ class CypherUtilities(object):
     def ensure_navigableparent_is_header_from_dictionary(self, verbose=False):
         NAVIGABLE_PARENT_IS_HEADER_DICT = self.s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
         for navigable_parent, is_header in NAVIGABLE_PARENT_IS_HEADER_DICT.items():
-            navigable_parent = self.clean_text(navigable_parent)
-            if is_header:
-                cypher_str = self.set_is_header1_cypher_str.format(navigable_parent)
-            else:
-                cypher_str = self.set_is_header0_cypher_str.format(navigable_parent)
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str)
+            def do_cypher_tx(tx, navigable_parent, is_header, verbose=False):
+                cypher_str = 'MERGE (np:NavigableParents {navigable_parent: $navigable_parent}) SET np.is_header = $is_header;'
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"').replace('$is_header', f'"{is_header}"'))
+                parameter_dict = {'navigable_parent': navigable_parent, 'is_header': is_header}
+                tx.run(query=cypher_str, parameters=parameter_dict)
             with self.driver.session() as session:
-                session.write_transaction(self.do_cypher_tx, cypher_str)
+                session.write_transaction(do_cypher_tx, navigable_parent=navigable_parent, is_header=str(is_header), verbose=verbose)
 
 
 

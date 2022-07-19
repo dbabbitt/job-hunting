@@ -11,11 +11,12 @@
 from matplotlib.colors import to_hex
 import re
 from nltk.tokenize import sent_tokenize
+import os
 
 class SectionUtilities(object):
     """Section class."""
 
-    def __init__(self, s=None, ha=None, cu=None, hc=None, verbose=False):
+    def __init__(self, s=None, ha=None, wsu=None, cu=None, hc=None, verbose=False):
         if s is None:
             from storage import Storage
             self.s = Storage()
@@ -26,15 +27,16 @@ class SectionUtilities(object):
             self.ha = HeaderAnalysis(verbose=verbose)
         else:
             self.ha = ha
-        if cu is None:
-            
+        if wsu is None:
             from scrape_utils import WebScrapingUtilities
-            wsu = WebScrapingUtilities()
-            uri = wsu.secrets_json['neo4j']['connect_url']
-            user =  wsu.secrets_json['neo4j']['username']
-            password = wsu.secrets_json['neo4j']['password']
-            
+            self.wsu = WebScrapingUtilities()
+        else:
+            self.wsu = wsu
+        if cu is None:
             from cypher_utils import CypherUtilities
+            uri = self.wsu.secrets_json['neo4j']['connect_url']
+            user =  self.wsu.secrets_json['neo4j']['username']
+            password = self.wsu.secrets_json['neo4j']['password']
             self.cu = CypherUtilities(uri=uri, user=user, password=password, driver=None, s=self.s, ha=self.ha)
             
         else:
@@ -116,7 +118,6 @@ class SectionUtilities(object):
                 if feature_dict_list is None:
                     if child_strs_list is None:
                         if file_name is None:
-                            import os
                             files_list = files_list = sorted([fn for fn in os.listdir(self.cu.SAVES_HTML_FOLDER) if fn.endswith('.html')])
                             file_name = random.choice(files_list)
                         child_strs_list = self.ha.get_child_strs_from_file(file_name=file_name)
@@ -193,15 +194,20 @@ class SectionUtilities(object):
         file_name = row_series.file_name
         child_strs_list = self.ha.get_child_strs_from_file(file_name=file_name)
         indices_list = self.find_basic_quals_section_indexes(child_strs_list=child_strs_list, file_name=file_name)
-        assert indices_list, f'Something is wrong with {file_name}'
+        assert indices_list, f"Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)"
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
-        sentence_regex = re.compile(r'[\.;]')
+        sentence_regex = re.compile(r'[\.;•]')
         quals_set = set()
+        fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.']
+        replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US']
         for qual in prequals_list:
+            for fake_stop, replacement in zip(fake_stops_list, replacements_list):
+                qual = qual.replace(fake_stop, replacement)
             concatonated_quals_list = sentence_regex.split(qual)
             if len(concatonated_quals_list) > 2:
-                for q in sent_tokenize(qual):
-                    quals_set.add(q)
+                for q1 in sent_tokenize(qual):
+                    for q2 in q1.split('•'):
+                        quals_set.add(q2)
             else:
                 quals_set.add(qual)
         quals_list = list(quals_set)
@@ -216,8 +222,72 @@ class SectionUtilities(object):
             if job_fitness > 0.8:
                 job_title = re.sub(r'(_-_Indeed.com)?(_[a-z0-9]{16})?\.html$', '', file_name).replace('_', ' ')
                 if verbose:
+                    print()
                     print(f'Basic Qualifications for {job_title}:{quals_str}')
                     print(job_fitness)
                     lru.print_loc_computation(row_index, quals_list, verbose=verbose)
         
         return quals_list, job_fitness
+    
+    def load_indeed_posting_url(self, viewjob_url, jk_str=None, files_list=[], verbose=True):
+        file_node_dict = {}
+        if jk_str is None:
+            from urllib.parse import urlparse, parse_qs
+            jk_str = parse_qs(urlparse(viewjob_url).query).get('jk', [''])[0]
+        from urllib.error import HTTPError, URLError
+        try:
+            page_soup = self.wsu.get_page_soup(viewjob_url)
+            page_title = page_soup.find('title').string.strip()
+            file_name = re.sub(r'[^A-Za-z0-9]+', ' ', page_title).strip().replace(' ', '_')
+            if len(jk_str):
+                file_name = f'{jk_str}_{file_name}.html'
+            else:
+                # file_name = datetime.now().strftime('%Y%m%d%H%M%S%f') + f'_{file_name}.html'
+                file_name = f'{file_name}.html'
+            file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
+            file_node_dict['file_name'] = file_name
+            if not os.path.isfile(file_path):
+                with open(file_path, 'w', encoding=self.s.encoding_type) as f:
+                    if verbose:
+                        print(f'Saving to {file_path}')
+                    f.write('<html><head><title>')
+                    f.write(page_title)
+                    f.write('</title></head><body>')
+                    row_div_list = page_soup.find_all(name='div', attrs={'class': ['jobsearch-JobComponent-description']})
+                    for div_soup in row_div_list:
+                        f.write(str(div_soup))
+                    f.write('</body></html>')
+                files_list.append(file_name)
+                self.cu.ensure_filename(file_name, verbose=False)
+
+            def do_cypher_tx(tx, file_name, viewjob_url, verbose=False):
+                cypher_str = """
+                    MATCH (fn:FileNames {file_name: $file_name})
+                    SET fn.posting_url = $viewjob_url
+                    RETURN fn;"""
+                if verbose:
+                    from IPython.display import clear_output
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$file_name', f'"{file_name}"').replace('$viewjob_url', f'"{viewjob_url}"'))
+                parameter_dict = {'file_name': file_name, 'viewjob_url': viewjob_url}
+                rows_list = []
+                for record in tx.run(query=cypher_str, parameters=parameter_dict):
+                    row_dict = {k: v for k, v in dict(record.items())['fn'].items()}
+                    rows_list.append(row_dict)
+                from pandas import DataFrame
+                df = DataFrame(rows_list).T
+                
+                return df
+
+            with self.cu.driver.session() as session:
+                df = session.write_transaction(do_cypher_tx, file_name=file_name, viewjob_url=viewjob_url, verbose=False)
+                if df.shape[1]:
+                    file_node_dict = df[0].to_dict()
+        except HTTPError as e:
+            print(f'Got an HTTPError with {viewjob_url}: {str(e).strip()}')
+        except URLError as e:
+            print(f'Got an URLError with {viewjob_url}: {str(e).strip()}')
+        except Exception as e:
+            print(f'Got an {e.__class__} error with {viewjob_url}: {str(e).strip()}')
+
+        return file_node_dict, files_list
