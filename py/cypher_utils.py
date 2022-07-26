@@ -371,11 +371,11 @@ class CypherUtilities(object):
             results_list = tx.run(query=cypher_str, parameters=parameter_dict)
         
         with self.driver.session() as session:
-            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
-    
+            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)    
     
     
     def set_posting_url(self, file_name, url_str, verbose=False):
+        file_node_dict = {}
         
         def do_cypher_tx(tx, file_name, url_str, verbose=False):
             cypher_str = """
@@ -386,17 +386,23 @@ class CypherUtilities(object):
                 clear_output(wait=True)
                 print(cypher_str.replace('$file_name', f'"{file_name}"').replace('$url_str', f'"{url_str}"'))
             parameter_dict = {'file_name': file_name, 'url_str': url_str}
-            results_list = tx.run(query=cypher_str, parameters=parameter_dict)
-            values_list = []
-            for record in results_list:
-                values_list.append(dict(record.items()))
+            rows_list = []
+            for record in tx.run(query=cypher_str, parameters=parameter_dict):
+                row_dict = {k: v for k, v in dict(record.items())['fn'].items()}
+                rows_list.append(row_dict)
+            from pandas import DataFrame
+            df = DataFrame(rows_list).T
             
-            return values_list
+            return df
         
         with self.driver.session() as session:
-            row_objs_list = session.write_transaction(do_cypher_tx, file_name=file_name, url_str=url_str, verbose=verbose)
+            df = session.write_transaction(do_cypher_tx, file_name=file_name, url_str=url_str, verbose=verbose)
             if verbose:
-                print(row_objs_list)
+                print(df.to_dict('records'))
+            if df.shape[1]:
+                file_node_dict = df[0].to_dict()
+        
+        return file_node_dict
     
     
     

@@ -22,30 +22,35 @@ class SectionUtilities(object):
             self.s = Storage()
         else:
             self.s = s
+        
         if ha is None:
             from ha_utils import HeaderAnalysis
             self.ha = HeaderAnalysis(verbose=verbose)
         else:
             self.ha = ha
+        
         if wsu is None:
             from scrape_utils import WebScrapingUtilities
             self.wsu = WebScrapingUtilities()
         else:
             self.wsu = wsu
+        
         if cu is None:
             from cypher_utils import CypherUtilities
             uri = self.wsu.secrets_json['neo4j']['connect_url']
             user =  self.wsu.secrets_json['neo4j']['username']
             password = self.wsu.secrets_json['neo4j']['password']
             self.cu = CypherUtilities(uri=uri, user=user, password=password, driver=None, s=self.s, ha=self.ha)
-            
         else:
             self.cu = cu
+        
         if hc is None:
             from hc_utils import HeaderCategories
             self.hc = HeaderCategories(cu=self.cu, verbose=verbose)
         else:
             self.hc = hc
+        
+        self.ascii_regex = re.compile('[^A-Za-z0-9]+')
     
     
     def get_section(self, crf_list, pos_symbol='RQ', neg_symbol='PQ', nonheader_allows_list=['O-RQ', 'O-ER'], verbose=False):
@@ -198,8 +203,8 @@ class SectionUtilities(object):
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
         sentence_regex = re.compile(r'[\.;•]')
         quals_set = set()
-        fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.']
-        replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US']
+        fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.', 'i.e.']
+        replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie']
         for qual in prequals_list:
             for fake_stop, replacement in zip(fake_stops_list, replacements_list):
                 qual = qual.replace(fake_stop, replacement)
@@ -259,35 +264,41 @@ class SectionUtilities(object):
                     f.write('</body></html>')
                 files_list.append(file_name)
                 self.cu.ensure_filename(file_name, verbose=False)
-
-            def do_cypher_tx(tx, file_name, viewjob_url, verbose=False):
-                cypher_str = """
-                    MATCH (fn:FileNames {file_name: $file_name})
-                    SET fn.posting_url = $viewjob_url
-                    RETURN fn;"""
-                if verbose:
-                    from IPython.display import clear_output
-                    clear_output(wait=True)
-                    print(cypher_str.replace('$file_name', f'"{file_name}"').replace('$viewjob_url', f'"{viewjob_url}"'))
-                parameter_dict = {'file_name': file_name, 'viewjob_url': viewjob_url}
-                rows_list = []
-                for record in tx.run(query=cypher_str, parameters=parameter_dict):
-                    row_dict = {k: v for k, v in dict(record.items())['fn'].items()}
-                    rows_list.append(row_dict)
-                from pandas import DataFrame
-                df = DataFrame(rows_list).T
-                
-                return df
-
-            with self.cu.driver.session() as session:
-                df = session.write_transaction(do_cypher_tx, file_name=file_name, viewjob_url=viewjob_url, verbose=False)
-                if df.shape[1]:
-                    file_node_dict = df[0].to_dict()
+            file_node_dict.update(self.cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
         except HTTPError as e:
             print(f'Got an HTTPError with {viewjob_url}: {str(e).strip()}')
         except URLError as e:
             print(f'Got an URLError with {viewjob_url}: {str(e).strip()}')
         except Exception as e:
             print(f'Got an {e.__class__} error with {viewjob_url}: {str(e).strip()}')
-
+        
+        return file_node_dict, files_list
+    
+    def load_dice_posting_url(self, viewjob_url, driver, files_list=[], verbose=True):
+        file_node_dict = {}
+        tags_list = driver.find_elements_by_css_selector('h1.pull-left')
+        if not tags_list:
+            job_title_str = driver.find_elements_by_css_selector('#jt')[0].text
+            job_org_str = driver.find_elements_by_css_selector('#hiringOrganizationName')[0].text
+            job_location_str = driver.find_elements_by_css_selector('.location')[0].text
+            page_title = f'{job_title_str} {job_org_str} {job_location_str}'
+            file_name = self.ascii_regex.sub(' ', page_title).strip().replace(' ', '_')
+            file_name = f'{file_name}.html'
+            self.cu.ensure_filename(file_name, verbose=False)
+            self.cu.set_posting_url(file_name, viewjob_url, verbose=False)
+            file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
+            if os.path.isfile(file_path):
+                file_name = datetime.now().strftime('%Y%m%d%H%M%S%f') + f'_{file_name}'
+            if not os.path.isfile(file_path):
+                with open(file_path, 'w', encoding=s.encoding_type) as f:
+                    print(f'Saving to {file_path}')
+                    f.write('<html><head><title>')
+                    f.write(page_title)
+                    f.write('</title></head><body><div id="jobDescriptionText">')
+                    web_obj = driver.find_elements_by_css_selector(article_css)[0]
+                    article_str = web_obj.get_attribute('innerHTML').strip()
+                    f.write(article_str)
+                    f.write('</div></body></html>')
+                files_list.append(file_name)
+        
         return file_node_dict, files_list

@@ -1,13 +1,24 @@
 
+MATCH (fn:FileNames)
+WHERE
+    (fn.file_name CONTAINS "Senior") AND
+    (fn.file_name CONTAINS "Data") AND
+    (fn.file_name CONTAINS "Analyst")
+RETURN
+    fn.percent_fit AS percent_fit,
+    fn.is_closed AS is_closed,
+    fn.is_opportunity_application_emailed AS email
+ORDER BY fn.percent_fit DESC;
+
 MATCH (fn:FileNames {file_name: "464b66ce20a2adc0_Data_Architect_100_Remote_Remote_Indeed_com.html"})
 SET fn.is_remote = false, fn.is_verified = true
 RETURN fn
 
-MATCH (fn:FileNames {file_name: "464b66ce20a2adc0_Data_Architect_100_Remote_Remote_Indeed_com.html"})
+MATCH (fn:FileNames {file_name: "1008014650796_Senior_Software_Engineer_Dark_Web_Collections.html"})
 SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_email_date = date()
 RETURN fn
 
-MATCH (fn:FileNames {file_name: "1008006392357_Data_Science_Analyst.html"})
+MATCH (fn:FileNames {file_name: "6Xs1Z1_yOO85Ca8pYyhjVw_Python_Developer_Dice_United_States_Remote.html"})
 SET fn.is_closed = true
 RETURN fn
 
