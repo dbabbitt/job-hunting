@@ -600,3 +600,17 @@ class LrUtilities(object):
                                                  int(100 * self.hunting_df[mask_series].shape[0] / self.hunting_df.shape[0])))
         
         return quals_list, file_name
+    
+    def display_hunting_dataframe_as_histogram(self, width_inches=18.0, height_inches=3.0, bin_count=12, verbose=False):
+        import matplotlib.pyplot as plt
+        fig = plt.figure(figsize=(width_inches, height_inches))
+        ax1 = fig.add_subplot(121)
+        ax1.set_xlabel('Proportion of Qualified Minimum Requirements per Job Posting')
+        self.hunting_df.percent_fit.hist(cumulative=False, density=1, bins=bin_count, ax=ax1)
+        ax2 = fig.add_subplot(122)
+        ax2.set_xlabel('Cumulative Histogram')
+        self.hunting_df.percent_fit.hist(cumulative=True, density=1, bins=bin_count, ax=ax2)
+        mode = self.hunting_df.percent_fit.mode().squeeze()
+        ax2.axvline(mode, linewidth=1.5, color='r', linestyle='-.')
+        ax2.axhline(mode, linewidth=1.5, color='r', linestyle='-.')
+        plt.tight_layout()

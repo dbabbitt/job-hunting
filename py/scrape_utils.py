@@ -69,12 +69,15 @@ class WebScrapingUtilities(object):
     
     
     
-    def get_page_soup(self, page_url_or_filepath, verbose=False):
+    def get_page_soup(self, page_url_or_filepath, driver=None, verbose=False):
         match_obj = self.url_regex.search(page_url_or_filepath)
         if match_obj:
-            import urllib
-            with urllib.request.urlopen(page_url_or_filepath) as response:
-                page_html = response.read()
+            if driver is None:
+                import urllib
+                with urllib.request.urlopen(page_url_or_filepath) as response:
+                    page_html = response.read()
+            else:
+                page_html = driver.page_source
         else:
             with open(page_url_or_filepath, 'r', encoding='utf-8') as f:
                 page_html = f.read()
@@ -408,6 +411,8 @@ class WebScrapingUtilities(object):
         self.fill_in_field(driver, field_name='password',
                            field_value=self.secrets_json['indeed']['password'],
                            input_css='#ifl-InputFormField-121', verbose=verbose)
+        button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form[1]/button'
+        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
         
         # Stall for time while looking for the error message
         indeed_xpath = '/html/body/main/div/ul'

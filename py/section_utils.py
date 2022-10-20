@@ -212,7 +212,9 @@ class SectionUtilities(object):
             if len(concatonated_quals_list) > 2:
                 for q1 in sent_tokenize(qual):
                     for q2 in q1.split('•'):
-                        quals_set.add(q2)
+                        q2 = q2.strip()
+                        if q2:
+                            quals_set.add(q2)
             else:
                 quals_set.add(qual)
         quals_list = list(quals_set)
@@ -225,7 +227,10 @@ class SectionUtilities(object):
         if len(prediction_list):
             job_fitness = qual_count/len(prediction_list)
             if job_fitness > 0.8:
-                job_title = re.sub(r'(_-_Indeed.com)?(_[a-z0-9]{16})?\.html$', '', file_name).replace('_', ' ')
+                import enchant
+                d = enchant.Dict('en_US')
+                job_title = ' '.join([w for w in file_name.replace('.html', '').replace('_Indeed_com', '').split('_') if d.check(w)])
+                # job_title = re.sub(r'(_-_Indeed.com)?(_[a-z0-9]{16})?\.html$', '', file_name).replace('_', ' ')
                 if verbose:
                     print()
                     print(f'Basic Qualifications for {job_title}:{quals_str}')
@@ -234,43 +239,49 @@ class SectionUtilities(object):
         
         return quals_list, job_fitness
     
-    def load_indeed_posting_url(self, viewjob_url, jk_str=None, files_list=[], verbose=True):
+    def load_indeed_posting_url(self, viewjob_url, driver=None, jk_str=None, files_list=[], verbose=True):
         file_node_dict = {}
         if jk_str is None:
             from urllib.parse import urlparse, parse_qs
             jk_str = parse_qs(urlparse(viewjob_url).query).get('jk', [''])[0]
+        
+        if driver is not None:
+            self.wsu.driver_get_url(driver, viewjob_url, verbose=verbose)
+            import time
+            time.sleep(3)
         from urllib.error import HTTPError, URLError
         try:
-            page_soup = self.wsu.get_page_soup(viewjob_url)
-            page_title = page_soup.find('title').string.strip()
-            file_name = re.sub(r'[^A-Za-z0-9]+', ' ', page_title).strip().replace(' ', '_')
-            if len(jk_str):
-                file_name = f'{jk_str}_{file_name}.html'
-            else:
-                # file_name = datetime.now().strftime('%Y%m%d%H%M%S%f') + f'_{file_name}.html'
-                file_name = f'{file_name}.html'
-            file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
-            file_node_dict['file_name'] = file_name
-            if not os.path.isfile(file_path):
-                with open(file_path, 'w', encoding=self.s.encoding_type) as f:
-                    if verbose:
-                        print(f'Saving to {file_path}')
-                    f.write('<html><head><title>')
-                    f.write(page_title)
-                    f.write('</title></head><body>')
-                    row_div_list = page_soup.find_all(name='div', attrs={'class': ['jobsearch-JobComponent-description']})
-                    for div_soup in row_div_list:
-                        f.write(str(div_soup))
-                    f.write('</body></html>')
-                files_list.append(file_name)
-                self.cu.ensure_filename(file_name, verbose=False)
-            file_node_dict.update(self.cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
+            page_soup = self.wsu.get_page_soup(viewjob_url, driver)
         except HTTPError as e:
             print(f'Got an HTTPError with {viewjob_url}: {str(e).strip()}')
         except URLError as e:
             print(f'Got an URLError with {viewjob_url}: {str(e).strip()}')
         except Exception as e:
             print(f'Got an {e.__class__} error with {viewjob_url}: {str(e).strip()}')
+            
+        page_title = page_soup.find('title').string.strip()
+        file_name = re.sub(r'[^A-Za-z0-9]+', ' ', page_title).strip().replace(' ', '_')
+        if len(jk_str):
+            file_name = f'{jk_str}_{file_name}.html'
+        else:
+            # file_name = datetime.now().strftime('%Y%m%d%H%M%S%f') + f'_{file_name}.html'
+            file_name = f'{file_name}.html'
+        file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
+        file_node_dict['file_name'] = file_name
+        if not os.path.isfile(file_path):
+            with open(file_path, 'w', encoding=self.s.encoding_type) as f:
+                if verbose:
+                    print(f'Saving to {file_path}')
+                f.write('<html><head><title>')
+                f.write(page_title)
+                f.write('</title></head><body>')
+                row_div_list = page_soup.find_all(name='div', attrs={'class': ['jobsearch-JobComponent-description']})
+                for div_soup in row_div_list:
+                    f.write(str(div_soup))
+                f.write('</body></html>')
+            files_list.append(file_name)
+        self.cu.ensure_filename(file_name, verbose=False)
+        file_node_dict.update(self.cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
         
         return file_node_dict, files_list
     
@@ -284,21 +295,24 @@ class SectionUtilities(object):
             page_title = f'{job_title_str} {job_org_str} {job_location_str}'
             file_name = self.ascii_regex.sub(' ', page_title).strip().replace(' ', '_')
             file_name = f'{file_name}.html'
-            self.cu.ensure_filename(file_name, verbose=False)
-            self.cu.set_posting_url(file_name, viewjob_url, verbose=False)
             file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
-            if os.path.isfile(file_path):
-                file_name = datetime.now().strftime('%Y%m%d%H%M%S%f') + f'_{file_name}'
+            # if os.path.isfile(file_path):
+                # from datetime import datetime
+                # file_name = datetime.now().strftime('%Y%m%d%H%M%S%f') + f'_{file_name}'
+                # file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
+            file_node_dict['file_name'] = file_name
             if not os.path.isfile(file_path):
-                with open(file_path, 'w', encoding=s.encoding_type) as f:
+                with open(file_path, 'w', encoding=self.s.encoding_type) as f:
                     print(f'Saving to {file_path}')
                     f.write('<html><head><title>')
                     f.write(page_title)
                     f.write('</title></head><body><div id="jobDescriptionText">')
-                    web_obj = driver.find_elements_by_css_selector(article_css)[0]
+                    web_obj = driver.find_elements_by_css_selector('#jobdescSec')[0]
                     article_str = web_obj.get_attribute('innerHTML').strip()
                     f.write(article_str)
                     f.write('</div></body></html>')
                 files_list.append(file_name)
+            self.cu.ensure_filename(file_name, verbose=False)
+            file_node_dict.update(self.cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
         
         return file_node_dict, files_list

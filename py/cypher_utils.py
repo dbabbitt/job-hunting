@@ -391,7 +391,7 @@ class CypherUtilities(object):
                 row_dict = {k: v for k, v in dict(record.items())['fn'].items()}
                 rows_list.append(row_dict)
             from pandas import DataFrame
-            df = DataFrame(rows_list).T
+            df = DataFrame(rows_list)
             
             return df
         
@@ -400,7 +400,7 @@ class CypherUtilities(object):
             if verbose:
                 print(df.to_dict('records'))
             if df.shape[1]:
-                file_node_dict = df[0].to_dict()
+                file_node_dict = df.T[0].to_dict()
         
         return file_node_dict
     
