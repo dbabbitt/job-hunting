@@ -69,6 +69,9 @@ saves/pkl/estimators_list.pkl
 saves/pkl/FIT_ESTIMATORS_DICT.pkl
 saves/pkl/fit_estimators_list.pkl
 saves/pkl/GN300_MODEL.pkl
+saves/pkl/JAYZ_*
+saves/pkl/DAVEZ_*
+saves/pkl/davez_*
 
 # Exclude Mac, Jupyter, R, and Octave admin files
 **/octave-workspace

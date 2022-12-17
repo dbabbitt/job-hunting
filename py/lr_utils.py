@@ -83,7 +83,8 @@ class LrUtilities(object):
                 pos.pos_symbol AS pos_symbol;"""
         pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
 
-        # The shape of the Bag-of-words count vector here should be n html strings * m unique tokens
+        # The shape of the Bag-of-words count vector here should be
+        # `n` html strings * `m` unique parts-of-speech tokens
         sents_list = pos_df.navigable_parent.tolist()
         pos_symbol_list = pos_df.pos_symbol.unique().tolist()
 
@@ -238,6 +239,7 @@ class LrUtilities(object):
         if not s.pickle_exists('ISHEADER_LR'):
             cypher_str = """
                 MATCH (np:NavigableParents)
+                WHERE np.is_header IS NOT NULL
                 RETURN
                     np.navigable_parent AS navigable_parent, 
                     np.is_header AS is_header;"""

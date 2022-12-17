@@ -59,7 +59,7 @@ class SectionUtilities(object):
         neg_list = []
         if f'H-{neg_symbol}' in crf_list:
             neg_idx = len(crf_list) - crf_list[::-1].index(f'H-{neg_symbol}') - 1
-            while (crf_list[neg_idx] == f'H-{neg_symbol}'):
+            while (len(crf_list) > neg_idx) and (crf_list[neg_idx] == f'H-{neg_symbol}'):
                 neg_idx += 1
             while (neg_idx < len(crf_list)) and (crf_list[neg_idx].split('-')[0] == 'O'):
                 neg_list.append(neg_idx)

@@ -109,6 +109,7 @@ class CypherUtilities(object):
         np.navigable_parent AS navigable_parent,
         np.is_header AS is_header,
         np.is_task_scope AS is_task_scope,
+        np.is_qualification AS is_qualification,
         np.is_minimum_qualification AS is_minimum_qualification,
         np.is_preferred_qualification AS is_preferred_qualification,
         np.is_legal_notification AS is_legal_notification,
@@ -243,16 +244,18 @@ class CypherUtilities(object):
 
         return row_objs_list
     def escape_text(self, dirty_str):
+        clean_str = str(dirty_str)
         # printable_regex = re.compile(f'[^{printable}]+')
-        # clean_str = str(dirty_str)
         # clean_str = printable_regex.sub(r' ', clean_str).strip()
         # clean_str = re.sub(r'[^\x00-\x7f]+', r' ', clean_str).strip()
         # clean_str = re.sub(r' +', ' ', clean_str)
         # clean_str = re.sub(r'::', ':', clean_str)
-        clean_str = clean_str.replace(self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
-        clean_str = clean_str.replace(self.BACKSLASH + self.BACKSLASH + self.SINGLE_QUOTE, self.BACKSLASH + self.SINGLE_QUOTE)
-        clean_str = clean_str.replace(self.DOUBLE_QUOTE, self.BACKSLASH + self.DOUBLE_QUOTE)
-        clean_str = clean_str.replace(self.BACKSLASH + self.BACKSLASH + self.DOUBLE_QUOTE, self.BACKSLASH + self.DOUBLE_QUOTE)
+        clean_str = clean_str.replace(self.BACKSLASH, self.BACKSLASH + self.BACKSLASH)
+        for c in [self.SINGLE_QUOTE, self.DOUBLE_QUOTE]:
+            clean_str = clean_str.replace(self.BACKSLASH + self.BACKSLASH + c, self.BACKSLASH + c)
+        for c in [self.SINGLE_QUOTE, self.DOUBLE_QUOTE]:
+            clean_str = clean_str.replace(c, self.BACKSLASH + c)
+            clean_str = clean_str.replace(self.BACKSLASH + self.BACKSLASH + c, self.BACKSLASH + c)
 
         return clean_str
     def convert_str_to_hash(self, unhashed_str):
@@ -1049,6 +1052,7 @@ class CypherUtilities(object):
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
+    
     # @with_debug_context
     def ensure_navigableparent(self, navigable_parent, verbose=False):
         def do_cypher_tx(tx, navigable_parent, verbose=False):

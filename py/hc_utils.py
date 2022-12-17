@@ -238,6 +238,7 @@ class HeaderCategories(object):
                 self.POS_EXPLANATION_DICT['H-TS'] = 'Task Scope Header'
                 self.POS_EXPLANATION_DICT['H-RQ'] = 'Required Qualifications Header'
                 self.POS_EXPLANATION_DICT['H-PQ'] = 'Preferred Qualifications Header'
+                self.POS_EXPLANATION_DICT['H-Q'] = 'Qualifications Header'
                 self.POS_EXPLANATION_DICT['H-LN'] = 'Legal Notifications Header'
                 self.POS_EXPLANATION_DICT['H-JT'] = 'Job Title Header'
                 self.POS_EXPLANATION_DICT['H-OL'] = 'Office Location Header'
@@ -258,6 +259,8 @@ class HeaderCategories(object):
             pos_list.append('H-RQ')
         elif navigable_parent in self.PREFF_QUALS_HEADERS_LIST:
             pos_list.append('H-PQ')
+        elif navigable_parent in self.QUALS_HEADERS_LIST:
+            pos_list.append('H-Q')
         elif navigable_parent in self.LEGAL_NOTIFS_HEADERS_LIST:
             pos_list.append('H-LN')
         elif navigable_parent in self.JOB_TITLE_HEADERS_LIST:
@@ -293,6 +296,8 @@ class HeaderCategories(object):
                 feature_list.append('H-RQ')
             elif feature_dict.get('is_preferred_qualification', False):
                 feature_list.append('H-PQ')
+            elif feature_dict.get('is_qualification', False):
+                feature_list.append('H-Q')
             elif feature_dict.get('is_legal_notification', False):
                 feature_list.append('H-LN')
             elif feature_dict.get('is_job_title', False):
