@@ -201,7 +201,7 @@ class SectionUtilities(object):
         indices_list = self.find_basic_quals_section_indexes(child_strs_list=child_strs_list, file_name=file_name)
         assert indices_list, f"Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)"
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
-        sentence_regex = re.compile(r'[\.;•]')
+        sentence_regex = re.compile(r'[\.;•]|\(\d+\)')
         quals_set = set()
         fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.', 'i.e.']
         replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie']
@@ -211,7 +211,7 @@ class SectionUtilities(object):
             concatonated_quals_list = sentence_regex.split(qual)
             if len(concatonated_quals_list) > 2:
                 for q1 in sent_tokenize(qual):
-                    for q2 in q1.split('•'):
+                    for q2 in sentence_regex.split(q1):
                         q2 = q2.strip()
                         if q2:
                             quals_set.add(q2)
