@@ -7,14 +7,16 @@
 
 
 
+from IPython.display import clear_output
+from sklearn.exceptions import NotFittedError
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.linear_model import LogisticRegression
+from storage import Storage
+import gc
+import numpy as np
 import pandas as pd
 import re
-import numpy as np
-from storage import Storage
-from IPython.display import clear_output
 
 s = Storage()
 
@@ -81,11 +83,13 @@ class LrUtilities(object):
             RETURN
                 np.navigable_parent AS navigable_parent, 
                 pos.pos_symbol AS pos_symbol;"""
-        pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+        pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=False))
 
         # The shape of the Bag-of-words count vector here should be
         # `n` html strings * `m` unique parts-of-speech tokens
         sents_list = pos_df.navigable_parent.tolist()
+        if verbose:
+            print(f'I have {len(sents_list):,} hand-labeled html patterns in here')
         pos_symbol_list = pos_df.pos_symbol.unique().tolist()
 
         # Re-transform the bag-of-words and tf-idf from the new manual scores
@@ -108,8 +112,6 @@ class LrUtilities(object):
             s.store_objects(POS_TT=self.POS_TT)
         tfidf_matrix = self.POS_TT.fit_transform(bow_matrix)
         try:
-            import gc
-            
             gc.collect()
             X = tfidf_matrix.toarray()
         except Exception as e:
@@ -128,7 +130,7 @@ class LrUtilities(object):
                                                                   l1_ratio=None, max_iter=1000, 
                                                                   multi_class='auto', n_jobs=None, penalty='l1', 
                                                                   random_state=None, solver='liblinear', 
-                                                                  tol=0.0001, verbose=verbose, warm_start=False)
+                                                                  tol=0.0001, verbose=False, warm_start=False)
             try:
                 self.POS_LR_DICT[pos_symbol].fit(X, y)
                 self.POS_PREDICT_PERCENT_FIT_DICT[pos_symbol] = self.build_pos_lr_predict_percent(pos_symbol, verbose=verbose)
@@ -215,8 +217,6 @@ class LrUtilities(object):
         # Re-train the classifier
         y = header_df.is_header.values
         try:
-            import gc
-
             gc.collect()
             X = tfidf_matrix.toarray()
         except Exception as e:
@@ -266,7 +266,6 @@ class LrUtilities(object):
             if not hasattr(self.ISHEADER_CV, 'vocabulary_'):
                 self.ISHEADER_CV._validate_vocabulary()
                 if not self.ISHEADER_CV.fixed_vocabulary_:
-                    from sklearn.exceptions import NotFittedError
                     raise NotFittedError('Vocabulary not fitted or provided')
             if len(self.ISHEADER_CV.vocabulary_) == 0:
                 raise ValueError('Vocabulary is empty')
@@ -365,7 +364,6 @@ class LrUtilities(object):
             if not hasattr(self.ISQUALIFIED_CV, 'vocabulary_'):
                 self.ISQUALIFIED_CV._validate_vocabulary()
                 if not self.ISQUALIFIED_CV.fixed_vocabulary_:
-                    from sklearn.exceptions import NotFittedError
                     raise NotFittedError('Vocabulary not fitted or provided')
             if len(self.ISQUALIFIED_CV.vocabulary_) == 0:
                 raise ValueError('Vocabulary is empty')
@@ -484,8 +482,6 @@ class LrUtilities(object):
         # Re-train the classifier
         y = self.basic_quals_df.is_qualified.to_numpy().astype(int)
         try:
-            import gc
-            
             gc.collect()
             X = tfidf_matrix.toarray()
         except Exception as e:
@@ -550,8 +546,8 @@ class LrUtilities(object):
         self.basic_quals_df.loc[mask_series, 'is_qualified'] = 1
         mask_series = (self.basic_quals_df.is_qualified == False)
         self.basic_quals_df.loc[mask_series, 'is_qualified'] = 0
-        s.store_objects(basic_quals_dict=self.basic_quals_df.set_index('qualification_str').is_qualified.to_dict(), verbose=verbose)
-        s.store_objects(basic_quals_df=self.basic_quals_df, verbose=verbose)
+        s.store_objects(basic_quals_dict=self.basic_quals_df.set_index('qualification_str').is_qualified.to_dict(), verbose=False)
+        s.store_objects(basic_quals_df=self.basic_quals_df, verbose=False)
 
         # Get the new manual scores
         sents_list = self.basic_quals_df.qualification_str.tolist()
@@ -563,18 +559,18 @@ class LrUtilities(object):
         bow_matrix = self.ISQUALIFIED_CV.fit_transform(sents_list)
         
         self.ISQUALIFIED_VOCAB = self.ISQUALIFIED_CV.vocabulary_
-        s.store_objects(ISQUALIFIED_VOCAB=self.ISQUALIFIED_VOCAB, verbose=verbose)
+        s.store_objects(ISQUALIFIED_VOCAB=self.ISQUALIFIED_VOCAB, verbose=False)
 
         # Tf-idf must get from Bag-of-words first
         self.ISQUALIFIED_TT = TfidfTransformer(norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True)
         tfidf_matrix = self.ISQUALIFIED_TT.fit_transform(bow_matrix)
-        s.store_objects(ISQUALIFIED_TT=self.ISQUALIFIED_TT, verbose=verbose)
+        s.store_objects(ISQUALIFIED_TT=self.ISQUALIFIED_TT, verbose=False)
 
         # Re-train the classifier
-        self.refit_isqualified_lr(tfidf_matrix, verbose=verbose)
+        self.refit_isqualified_lr(tfidf_matrix, verbose=False)
         
         # Re-calibrate the inference engine
-        self.predict_job_hunt_percent_fit = self.build_isqualified_lr_predict_percent(verbose=verbose)
+        self.predict_job_hunt_percent_fit = self.build_isqualified_lr_predict_percent(verbose=False)
         if verbose:
             print('Retraining complete')
     
@@ -590,7 +586,7 @@ class LrUtilities(object):
         for row_index, row_series in self.hunting_df[~mask_series].iterrows():
             file_name = row_series.file_name
             quals_list, job_fitness = su.print_fit_job(row_index, row_series, lru=self)
-            if job_fitness > 0.8:
+            if job_fitness >= 2/3:
                 if all(qual_str in self.basic_quals_dict for qual_str in quals_list):
                     self.update_hunting(row_index, row_series, quals_list)
                 else:
@@ -603,12 +599,21 @@ class LrUtilities(object):
         
         return quals_list, file_name
     
-    def display_hunting_dataframe_as_histogram(self, width_inches=18.0, height_inches=3.0, bin_count=12, verbose=False):
+    def display_hunting_dataframe_as_histogram(
+        self, width_inches=18.0, height_inches=3.0, bin_count=10, verbose=False
+    ):
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(width_inches, height_inches))
         ax1 = fig.add_subplot(121)
-        ax1.set_xlabel('Proportion of Qualified Minimum Requirements per Job Posting')
-        self.hunting_df.percent_fit.hist(cumulative=False, density=1, bins=bin_count, ax=ax1)
+        ax1.set_xlabel('Percentage of Qualified Minimum Requirements met per Job Posting')
+        self.hunting_df.percent_fit.hist(
+            cumulative=False, density=1, bins=bin_count, ax=ax1, align='mid', rwidth=.9
+        )
+        
+        # Set x axis tick labels
+        ax1.set_xticks([-0.2, 0., 0.2, 0.4, 0.6, 0.8, 1., 1.2])
+        ax1.set_xticklabels(['', '0%', '20%', '40%', '60%', '80%', '100%', ''])
+        
         ax2 = fig.add_subplot(122)
         ax2.set_xlabel('Cumulative Histogram')
         self.hunting_df.percent_fit.hist(cumulative=True, density=1, bins=bin_count, ax=ax2)

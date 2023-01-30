@@ -78,7 +78,7 @@ class HeaderAnalysis(object):
             if hasattr(tag, 'children'):
                 for child_tag in tag.children:
                     result_list = self.get_navigable_children(child_tag, result_list)
-            elif tag.name is not None:
+            elif (type(tag) is not str) and (tag.name is not None):
                 self.store_unique_list('CHILDLESS_TAGS_LIST', tag.name)
         else:
             base_str = self.clean_html_str(tag)

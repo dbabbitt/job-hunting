@@ -1146,6 +1146,8 @@ class CypherUtilities(object):
     def populate_from_child_strings(self, child_strs_list, file_name, verbose=False):
         self.ensure_navigableparent('END', verbose=verbose)
         if len(child_strs_list) > 1:
+            
+            # Record the sequence of HTML strings
             for sequence_order, (navigable_parent1, navigable_parent2) in enumerate(zip(child_strs_list[:-1], child_strs_list[1:])):
                 self.ensure_navigableparents_relationship(navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=verbose)
             
@@ -1156,6 +1158,8 @@ class CypherUtilities(object):
         
         child_tags_list = self.ha.get_child_tags_list(child_strs_list)
         if len(child_tags_list) > 1:
+            
+            # Record the sequence of HTML tags
             for sequence_order, (header_tag1, header_tag2) in enumerate(zip(child_tags_list[:-1], child_tags_list[1:])):
                 if verbose:
                     clear_output(wait=True)
@@ -1588,7 +1592,7 @@ class CypherUtilities(object):
             child_strs_list = self.get_child_strs_from_file(file_name)
             if file_name not in self.CHILD_STRS_LIST_DICT:
                 self.CHILD_STRS_LIST_DICT[file_name] = child_strs_list
-                self.s.store_objects(CHILD_STRS_LIST_DICT=self.CHILD_STRS_LIST_DICT, verbose=verbose)
+                self.s.store_objects(CHILD_STRS_LIST_DICT=self.CHILD_STRS_LIST_DICT, verbose=False)
 
 
 

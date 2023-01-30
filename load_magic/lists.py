@@ -47,8 +47,7 @@ def check_4_doubles(item_list, verbose=False):
         row_dict = {}
         row_dict['first_item'] = first_item
         row_dict['second_item'] = max_item
-        row_dict['first_bytes'] = '-'.join(str(x) for x in bytearray(str(first_item),
-                                                                     encoding=encoding, errors="replace"))
+        row_dict['first_bytes'] = '-'.join(str(x) for x in bytearray(str(first_item), encoding=encoding, errors='replace'))
         row_dict['second_bytes'] = '-'.join(str(x) for x in bytearray(str(max_item),
                                                                       encoding=encoding, errors="replace"))
         row_dict['max_similarity'] = max_similarity

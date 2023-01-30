@@ -201,10 +201,11 @@ class SectionUtilities(object):
         indices_list = self.find_basic_quals_section_indexes(child_strs_list=child_strs_list, file_name=file_name)
         assert indices_list, f"Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)"
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
-        sentence_regex = re.compile(r'[\.;•]|\(\d+\)')
+        sentence_regex = re.compile(r'[;•➢\*]|\.(?!\w)')
         quals_set = set()
-        fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.', 'i.e.']
-        replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie']
+        fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.',
+                           'i.e.', '&amp;']
+        replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie', '&']
         for qual in prequals_list:
             for fake_stop, replacement in zip(fake_stops_list, replacements_list):
                 qual = qual.replace(fake_stop, replacement)
@@ -212,7 +213,7 @@ class SectionUtilities(object):
             if len(concatonated_quals_list) > 2:
                 for q1 in sent_tokenize(qual):
                     for q2 in sentence_regex.split(q1):
-                        q2 = q2.strip()
+                        q2 = re.sub('</?[a-z][a-z0-9]*[^<>]*>', '', q2.strip(), 0, re.IGNORECASE)
                         if q2:
                             quals_set.add(q2)
             else:
@@ -226,7 +227,7 @@ class SectionUtilities(object):
         quals_str, qual_count = lru.get_quals_str(prediction_list, quals_list)
         if len(prediction_list):
             job_fitness = qual_count/len(prediction_list)
-            if job_fitness > 0.8:
+            if job_fitness >= 2/3:
                 import enchant
                 d = enchant.Dict('en_US')
                 job_title = ' '.join([w for w in file_name.replace('.html', '').replace('_Indeed_com', '').split('_') if d.check(w)])
@@ -296,10 +297,6 @@ class SectionUtilities(object):
             file_name = self.ascii_regex.sub(' ', page_title).strip().replace(' ', '_')
             file_name = f'{file_name}.html'
             file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
-            # if os.path.isfile(file_path):
-                # from datetime import datetime
-                # file_name = datetime.now().strftime('%Y%m%d%H%M%S%f') + f'_{file_name}'
-                # file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
             file_node_dict['file_name'] = file_name
             if not os.path.isfile(file_path):
                 with open(file_path, 'w', encoding=self.s.encoding_type) as f:

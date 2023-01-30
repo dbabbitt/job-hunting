@@ -12,9 +12,9 @@ cd C:\neo4j
 cls
 
 Write-Host ""
-Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-Write-Host "                     Running Neo4j as a console" -ForegroundColor Green
-Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "-----------------------------------------------------------------------------" -ForegroundColor Green
+Write-Host "                         Running Neo4j as a console" -ForegroundColor Green
+Write-Host "-----------------------------------------------------------------------------" -ForegroundColor Green
 bin\neo4j console
 
 cd $OldPath

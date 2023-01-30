@@ -11,17 +11,46 @@ RETURN
     fn.posting_url AS posting_url
 ORDER BY fn.percent_fit DESC;
 
-MATCH (np:NavigableParents)
-WHERE (np.is_qualification IS NOT NULL)
-RETURN count(*);
-
-MATCH (fn:FileNames {file_name: "754e6475cdf64015_Technical_Data_Quality_Analyst_Austin_TX_Indeed_com.html"})
+MATCH (fn:FileNames {file_name: "48e1fa9d2fbdbff2_Data_Scientist_Remote_Indeed_com.html"})
 SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_email_date = date()
 RETURN fn;
 
-MATCH (fn:FileNames {file_name: "aMDl94_HegifUiq3Yt7f3Q_Data_Integration_Specialist_Manager_PwC_Boston_MA_Remote.html"})
+MATCH (fn:FileNames)
+WHERE
+    fn.file_name = "54c63703090b13c0_AI_Engineer_Walnut_Creek_CA_Indeed_com.html"
+RETURN
+    fn.percent_fit AS percent_fit,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.percent_fit DESC;
+
+MATCH (np1:NavigableParents)-[r:NEXT]->(np2:NavigableParents)
+WHERE r.file_name = "f74391cece289324_Senior_Performance_Engineer_Cloud_Infrastructure_Remote_Indeed_com.html"
+RETURN
+    LEFT(np1.navigable_parent, 50) AS navigable_parent1,
+    np1.is_header AS is_header1,
+    np1.is_task_scope AS is_task_scope1,
+    np1.is_minimum_qualification AS is_minimum_qualification1,
+    np1.is_preferred_qualification AS is_preferred_qualification1,
+    np1.is_educational_requirement AS is_educational_requirement1,
+    np1.is_legal_notification AS is_legal_notification1,
+    np1.is_other AS is_other1,
+    np1.is_corporate_scope AS is_corporate_scope1,
+    np1.is_job_title AS is_job_title1,
+    np1.is_office_location AS is_office_location1,
+    np1.is_job_duration AS is_job_duration1,
+    np1.is_supplemental_pay AS is_supplemental_pay1,
+    np1.is_interview_procedure AS is_interview_procedure1,
+    np1.is_posting_date AS is_posting_date1
+ORDER BY r.sequence_order;
+
+MATCH (fn:FileNames {file_name: "39ad8c2d1627717d_Quality_Assurance_Engineer_Manhattan_KS_66506_Indeed_com.html"})
 SET fn.is_closed = true
-RETURN fn
+RETURN fn;
+
+MATCH (np:NavigableParents)
+WHERE (np.is_qualification IS NOT NULL)
+RETURN count(*);
 
 MATCH (fn:FileNames)
 WHERE (fn.opportunity_application_email_date IS NOT NULL)

@@ -105,7 +105,7 @@ class CrfUtilities(object):
         self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs', c1=0.1, c2=0.1, max_iterations=100, all_possible_transitions=True)
         try:
             if verbose:
-                print('Training the Conditional Random Fields model with the parts-of-speech labels')
+                print(f'Training the Conditional Random Fields model with {len(y_train)} parts-of-speech labels')
             self.CRF.fit(X_train, y_train)
         except Exception as e:
             print(f'Error in CrfUtilities init trying to self.CRF.fit(X_train, y_train): {str(e).strip()}')
