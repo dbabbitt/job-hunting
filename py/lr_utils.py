@@ -23,7 +23,7 @@ s = Storage()
 class LrUtilities(object):
     """Logistic Regression utilities class."""
 
-    def __init__(self, ha=None, cu=None, hc=None, verbose=False):
+    def __init__(self, ha=None, cu=None, hc=None, sampling_strategy_limit=50, verbose=False):
         if ha is None:
             from ha_utils import HeaderAnalysis
             self.ha = HeaderAnalysis(verbose=verbose)
@@ -45,6 +45,7 @@ class LrUtilities(object):
             self.hc = HeaderCategories(cu=self.cu, verbose=verbose)
         else:
             self.hc = hc
+        self.sampling_strategy_limit = sampling_strategy_limit
         self.verbose = verbose
         
         # Build the Logistic Regression elements
@@ -73,10 +74,12 @@ class LrUtilities(object):
     ###################################################
     ## Logistic Regression parts-of-speech functions ##
     ###################################################
-    def build_pos_logistic_regression_elements(self, verbose=False):
+    def build_pos_logistic_regression_elements(self, sampling_strategy_limit=None, verbose=False):
+        if sampling_strategy_limit is None:
+            sampling_strategy_limit = self.sampling_strategy_limit
         self.POS_LR_DICT = {}
         self.POS_PREDICT_PERCENT_FIT_DICT = {}
-
+        
         # Train a model for each labeled POS symbol
         cypher_str = """
             MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
@@ -84,21 +87,38 @@ class LrUtilities(object):
                 np.navigable_parent AS navigable_parent, 
                 pos.pos_symbol AS pos_symbol;"""
         pos_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=False))
+        
+        # Rebalance the data with the sampling strategy limit
+        counts_dict = pos_df.groupby('pos_symbol').count().navigable_parent.to_dict()
+        sampling_strategy = {k: min(sampling_strategy_limit, v) for k, v in counts_dict.items()}
+        from imblearn.under_sampling import RandomUnderSampler
+        rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
+
+        # Define the tuple of arrays
+        data = rus.fit_resample(
+            pos_df.navigable_parent.values.reshape(-1, 1), pos_df.pos_symbol.values.reshape(-1, 1)
+        )
+
+        # Recreate the Pandas DataFrame
+        pos_df = pd.DataFrame(data[0], columns=['navigable_parent'])
+        pos_df['pos_symbol'] = data[1]
 
         # The shape of the Bag-of-words count vector here should be
         # `n` html strings * `m` unique parts-of-speech tokens
         sents_list = pos_df.navigable_parent.tolist()
         if verbose:
-            print(f'I have {len(sents_list):,} hand-labeled html patterns in here')
+            print(f'I have {len(sents_list):,} labeled parts of speech in here')
         pos_symbol_list = pos_df.pos_symbol.unique().tolist()
 
         # Re-transform the bag-of-words and tf-idf from the new manual scores
         if s.pickle_exists('POS_CV'):
             self.POS_CV = s.load_object('POS_CV')
         else:
-            self.POS_CV = CountVectorizer(analyzer='word', binary=False, decode_error='strict', lowercase=False, max_df=1.0,
-                                          max_features=None, min_df=0.0, ngram_range=(1, 5), stop_words=None,
-                                          strip_accents='ascii', tokenizer=self.ha.html_regex_tokenizer)
+            self.POS_CV = CountVectorizer(
+                analyzer='word', binary=False, decode_error='strict', lowercase=False, max_df=1.0,
+                max_features=None, min_df=0.0, ngram_range=(1, 5), stop_words=None,
+                strip_accents='ascii', tokenizer=self.ha.html_regex_tokenizer
+            )
             s.store_objects(POS_CV=self.POS_CV)
         
         # Learn the vocabulary dictionary and return the document-term matrix
@@ -125,15 +145,17 @@ class LrUtilities(object):
             mask_series = (pos_df.pos_symbol == pos_symbol)
             y = mask_series.to_numpy()
             if pos_symbol not in self.POS_LR_DICT:
-                self.POS_LR_DICT[pos_symbol] = LogisticRegression(C=375.0, class_weight='balanced', dual=False, 
-                                                                  fit_intercept=True, intercept_scaling=1, 
-                                                                  l1_ratio=None, max_iter=1000, 
-                                                                  multi_class='auto', n_jobs=None, penalty='l1', 
-                                                                  random_state=None, solver='liblinear', 
-                                                                  tol=0.0001, verbose=False, warm_start=False)
+                self.POS_LR_DICT[pos_symbol] = LogisticRegression(
+                    C=375.0, class_weight='balanced', dual=False, fit_intercept=True,
+                    intercept_scaling=1, l1_ratio=None, max_iter=1000, multi_class='auto',
+                    n_jobs=None, penalty='l1', random_state=None, solver='liblinear', tol=0.0001,
+                    verbose=False, warm_start=False
+                )
             try:
                 self.POS_LR_DICT[pos_symbol].fit(X, y)
-                self.POS_PREDICT_PERCENT_FIT_DICT[pos_symbol] = self.build_pos_lr_predict_percent(pos_symbol, verbose=verbose)
+                self.POS_PREDICT_PERCENT_FIT_DICT[pos_symbol] = self.build_pos_lr_predict_percent(
+                    pos_symbol, verbose=verbose
+                )
             except ValueError as e:
                 print(f'Fitting {pos_symbol} had this error: {str(e).strip()}')
                 self.POS_LR_DICT.pop(pos_symbol, None)
@@ -190,10 +212,10 @@ class LrUtilities(object):
                 RETURN
                     np.navigable_parent AS navigable_parent, 
                     np.is_header AS is_header;"""
-            header_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
+            header_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=False))
             header_df.is_header = header_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
         if verbose:
-            print(f'I have {self.header_df.shape[0]:,} hand-labeled header htmls in here')
+            print(f'I have {header_df.shape[0]:,} hand-labeled header htmls in here')
         
         if tfidf_matrix is None:
             
@@ -207,12 +229,12 @@ class LrUtilities(object):
             bow_matrix = self.ISHEADER_CV.fit_transform(sents_list)
 
             self.ISHEADER_VOCAB = self.ISHEADER_CV.vocabulary_
-            s.store_objects(ISHEADER_VOCAB=self.ISHEADER_VOCAB, verbose=verbose)
+            s.store_objects(ISHEADER_VOCAB=self.ISHEADER_VOCAB, verbose=False)
             
             # Tf-idf must get from Bag-of-words first
             self.ISHEADER_TT = TfidfTransformer(norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True)
             tfidf_matrix = self.ISHEADER_TT.fit_transform(bow_matrix)
-            s.store_objects(ISHEADER_TT=self.ISHEADER_TT, verbose=verbose)
+            s.store_objects(ISHEADER_TT=self.ISHEADER_TT, verbose=False)
 
         # Re-train the classifier
         y = header_df.is_header.values
@@ -220,12 +242,12 @@ class LrUtilities(object):
             gc.collect()
             X = tfidf_matrix.toarray()
         except Exception as e:
-            if verbose:
-                print(f'Got this {e.__class__} error in build_isheader_logistic_regression_elements trying ',
-                      f'to turn the is_header TF-IDF matrix into a normal array: {str(e).strip()}')
+            # if verbose:
+                # print(f'Got this {e.__class__} error in build_isheader_logistic_regression_elements trying ',
+                      # f'to turn the is_header TF-IDF matrix into a normal array: {str(e).strip()}')
             X = tfidf_matrix
         self.ISHEADER_LR.fit(X, y)
-        s.store_objects(ISHEADER_LR=self.ISHEADER_LR, verbose=verbose)
+        s.store_objects(ISHEADER_LR=self.ISHEADER_LR, verbose=False)
 
         # Re-calibrate the inference engine
         self.ISHEADER_PREDICT_PERCENT_FIT = self.build_isheader_lr_predict_percent(verbose=verbose)
@@ -333,10 +355,94 @@ class LrUtilities(object):
     ################################################
     ## Logistic Regression is-qualified functions ##
     ################################################
-    def build_isqualified_logistic_regression_elements(self, verbose=False):
+    def sync_basic_quals_dict(self, sampling_strategy_limit=None, basic_quals_dict=None, verbose=False):
+        if sampling_strategy_limit is None:
+            sampling_strategy_limit = self.sampling_strategy_limit
         
-        # Get the data
-        self.basic_quals_dict = s.load_object('basic_quals_dict')
+        # Ensure that everything in the pickle is also in the database
+        if basic_quals_dict is None:
+            self.basic_quals_dict = s.load_object('basic_quals_dict')
+        else:
+            self.basic_quals_dict = basic_quals_dict
+        rows_list = [
+            {
+                'qualification_str': qualification_str,
+                'is_qualified': is_fit
+            } for qualification_str, is_fit in self.basic_quals_dict.items()
+        ]
+        def do_cypher_tx(tx, qualification_str, is_qualified, verbose=False):
+            cypher_str = '''
+                MERGE (:QualificationStrings {
+                    qualification_str: $qualification_str,
+                    is_qualified: $is_qualified
+                    });'''
+            if verbose:
+                clear_output(wait=True)
+                print(
+                    cypher_str.replace('$qualification_str', f'"{qualification_str}"').replace('$is_qualified', f'"{is_qualified}"')
+                )
+            parameter_dict = {'qualification_str': qualification_str, 'is_qualified': is_qualified}
+            rows_list = []
+            for record in tx.run(query=cypher_str, parameters=parameter_dict):
+                row_dict = {k: v for k, v in dict(record.items())['fn'].items()}
+                rows_list.append(row_dict)
+            from pandas import DataFrame
+            df = DataFrame(rows_list)
+
+            return df
+        for row_dict in rows_list:
+            qualification_str = row_dict['qualification_str']
+            qual = re.sub('</?[^<>]*>', r'', qualification_str.strip(), 0, re.MULTILINE).strip()
+            if (not qual.endswith(':')):
+                with self.cu.driver.session() as session:
+                    df = session.write_transaction(
+                        do_cypher_tx, qualification_str=qualification_str, is_qualified=row_dict['is_qualified'], verbose=verbose
+                    )
+        
+        # Rebuild the dataframe from the both the dictionary and the database
+        cypher_str = '''
+            MATCH (qs:QualificationStrings)
+            RETURN qs;'''
+        row_objs_list = self.cu.get_execution_results(cypher_str, verbose=False)
+        self.basic_quals_df = pd.DataFrame(
+            [{k: v for k, v in row_obj['qs'].items()} for row_obj in row_objs_list]
+        )
+        
+        # Rebalance the data with the sampling strategy limit
+        counts_dict = self.basic_quals_df.groupby('is_qualified').count().qualification_str.to_dict()
+        sampling_strategy = {k: min(sampling_strategy_limit, v) for k, v in counts_dict.items()}
+        from imblearn.under_sampling import RandomUnderSampler
+        rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
+
+        # Define the tuple of arrays
+        data = rus.fit_resample(
+            self.basic_quals_df.qualification_str.values.reshape(-1, 1),
+            self.basic_quals_df.is_qualified.values.reshape(-1, 1)
+        )
+
+        # Recreate the Pandas DataFrame
+        self.basic_quals_df = pd.DataFrame(data[0], columns=['qualification_str'])
+        self.basic_quals_df['is_qualified'] = data[1]
+        
+        # Clean up the data
+        mask_series = (self.basic_quals_df.is_qualified == True)
+        self.basic_quals_df.loc[mask_series, 'is_qualified'] = 1
+        mask_series = (self.basic_quals_df.is_qualified == False)
+        self.basic_quals_df.loc[mask_series, 'is_qualified'] = 0
+        s.store_objects(basic_quals_df=self.basic_quals_df, verbose=False)
+        self.basic_quals_dict = self.basic_quals_df.set_index('qualification_str').is_qualified.to_dict()
+        s.store_objects(basic_quals_dict=self.basic_quals_dict, verbose=True)
+        
+        return self.basic_quals_dict
+    
+    def build_isqualified_logistic_regression_elements(
+        self, sampling_strategy_limit=None, verbose=False
+    ):
+        
+        # Get the basic qualifications data
+        self.basic_quals_dict = self.sync_basic_quals_dict(
+            sampling_strategy_limit=sampling_strategy_limit, verbose=False
+        )
         if not s.pickle_exists('ISQUALIFIED_LR'):
             rows_list = [{'qualification_str': qualification_str,
                           'is_qualified': is_fit} for qualification_str, is_fit in self.basic_quals_dict.items()]
@@ -414,10 +520,10 @@ class LrUtilities(object):
         for pred_array, (i, qual_str) in zip(prediction_list, enumerate(quals_list)):
             if qual_str in self.basic_quals_dict:
                 formatted_str = '\nquals_list[{}] = "{}" ({})'
-                prediction = float(self.basic_quals_dict[qual_str])
+                prediction = round(float(self.basic_quals_dict[qual_str]), 4)
             else:
                 formatted_str = '\n*quals_list[{}] = "{}" ({})'
-                prediction = pred_array[1]
+                prediction = round(float(pred_array[1]), 4)
             quals_str += formatted_str.format(i, qual_str, prediction)
             if prediction > 0.5:
                 qual_count += 1
@@ -524,40 +630,39 @@ class LrUtilities(object):
 
         return predict_percent_fit
     
-    def retrain_isqualified_classifier(self, verbose=True):
-        
+    def retrain_isqualified_classifier(self, verbose=False):
+
         # Get all our file names data
         cypher_str = '''
             MATCH (fn:FileNames)
             RETURN fn;'''
         row_objs_list = self.cu.get_execution_results(cypher_str, verbose=False)
-        self.hunting_df = pd.DataFrame([{k: v for k, v in row_obj['fn'].items()} for row_obj in row_objs_list])
+        self.hunting_df = pd.DataFrame(
+            [{k: v for k, v in row_obj['fn'].items()} for row_obj in row_objs_list]
+        )
         
-        # Rebuild the dataframe from the dictionary
+        # Get everything in the pickle
         self.basic_quals_dict = s.load_object('basic_quals_dict')
-        rows_list = [{'qualification_str': qualification_str,
-                      'is_qualified': is_fit} for qualification_str, is_fit in self.basic_quals_dict.items()]
+        rows_list = [
+            {
+                'qualification_str': qualification_str,
+                'is_qualified': is_fit
+            } for qualification_str, is_fit in self.basic_quals_dict.items()
+        ]
         self.basic_quals_df = pd.DataFrame(rows_list)
+
         if verbose:
             print(f'I have {self.basic_quals_df.shape[0]:,} hand-labeled qualification strings in here')
-        
-        # Clean up the data
-        mask_series = (self.basic_quals_df.is_qualified == True)
-        self.basic_quals_df.loc[mask_series, 'is_qualified'] = 1
-        mask_series = (self.basic_quals_df.is_qualified == False)
-        self.basic_quals_df.loc[mask_series, 'is_qualified'] = 0
-        s.store_objects(basic_quals_dict=self.basic_quals_df.set_index('qualification_str').is_qualified.to_dict(), verbose=False)
-        s.store_objects(basic_quals_df=self.basic_quals_df, verbose=False)
 
         # Get the new manual scores
         sents_list = self.basic_quals_df.qualification_str.tolist()
 
         # Re-transform the bag-of-words from the new manual scores
         self.ISQUALIFIED_CV = CountVectorizer(lowercase=True, tokenizer=self.ha.html_regex_tokenizer, ngram_range=(1, 3))
-        
+
         # Learn the vocabulary dictionary and return the document-term matrix
         bow_matrix = self.ISQUALIFIED_CV.fit_transform(sents_list)
-        
+
         self.ISQUALIFIED_VOCAB = self.ISQUALIFIED_CV.vocabulary_
         s.store_objects(ISQUALIFIED_VOCAB=self.ISQUALIFIED_VOCAB, verbose=False)
 
@@ -568,7 +673,7 @@ class LrUtilities(object):
 
         # Re-train the classifier
         self.refit_isqualified_lr(tfidf_matrix, verbose=False)
-        
+
         # Re-calibrate the inference engine
         self.predict_job_hunt_percent_fit = self.build_isqualified_lr_predict_percent(verbose=False)
         if verbose:

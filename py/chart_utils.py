@@ -70,7 +70,7 @@ class ChartUtilities(object):
     
     
     def visualize_cfr_child_str_predictions(self, file_name=None, use_explanation=False, verbose=False):
-        self.crf.lru.build_pos_logistic_regression_elements()
+        # self.crf.lru.build_pos_logistic_regression_elements()
         if file_name is None:
             files_list = self.cu.get_files_list(verbose=verbose)
             file_name = random.choice(files_list)

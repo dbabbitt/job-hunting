@@ -1,16 +1,19 @@
 
-# cd $Env:UserProfile\Documents\GitHub\job-hunting\ps1
+# Run this in a PowerShell window:
+# 
+# conda activate base
+# cd C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\ps1
 # cls
 # .\create_job_hunting_temp_environment_yml_file.ps1
 
 # Set up global variables
 $DisplayName = "Job Hunting"
 $RepositoryPath = "job-hunting"
-$EnvironmentName = "jh"
-$HomeDirectory = $Env:UserProfile
-$RepositoriesDirectory = "D:\Documents\GitHub"
-$EnvironmentPath = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}"
+$EnvironmentName = "jh_env"
 
+$HomeDirectory = $Env:UserProfile
+$RepositoriesDirectory = "C:\Users\daveb\OneDrive\Documents\GitHub"
+$EnvironmentPath = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}"
 $OldPath = Get-Location
 
 ."${RepositoriesDirectory}\${RepositoryPath}\ps1\create_temp_environment_yml_file.ps1"

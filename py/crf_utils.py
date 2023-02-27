@@ -20,7 +20,7 @@ def with_lru_pos_context(init_func):
     def _decorator(*args, **kwargs):
         from lr_utils import LrUtilities
         args[0].lru = LrUtilities(ha=kwargs['ha'], hc=kwargs['hc'], cu=kwargs['cu'], verbose=kwargs['verbose'])
-        args[0].lru.build_pos_logistic_regression_elements()
+        # args[0].lru.build_pos_logistic_regression_elements()
         
         return init_func(*args, **kwargs)
 
@@ -30,7 +30,7 @@ class CrfUtilities(object):
     """Conditional Random Fields utilities class."""
     
     @with_lru_pos_context
-    def __init__(self, ha=None, hc=None, cu=None, verbose=False):#, lru=None
+    def __init__(self, ha=None, hc=None, cu=None, lru=None, verbose=False):
         if ha is None:
             self.ha = HeaderAnalysis()
         else:
@@ -52,13 +52,7 @@ class CrfUtilities(object):
             self.cu = CypherUtilities(uri=uri, user=user, password=password, driver=None, s=self.s, ha=self.ha)
         else:
             self.cu = cu
-        # if lru is None:
-            # from lr_utils import LrUtilities
-            # self.lru = LrUtilities(ha=self.ha, hc=self.hc, cu=self.cu, verbose=verbose)
-            # self.lru.build_pos_logistic_regression_elements()
-            # self.verbose = verbose
-        # else:
-            # self.lru = lru
+        self.lru = lru
 
         # Build the CRF elements
         if self.s.pickle_exists('CRF'):
@@ -66,6 +60,8 @@ class CrfUtilities(object):
         else:
             self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs', c1=0.1, c2=0.1, max_iterations=100, all_possible_transitions=True)
             HEADER_PATTERN_DICT = self.s.load_object('HEADER_PATTERN_DICT')
+            if verbose:
+                print(f'I have {len(HEADER_PATTERN_DICT):,} hand-labeled parts-of-speech patterns in here')
             X_train = []
             y_train = []
             for file_name, feature_dict_list in HEADER_PATTERN_DICT.items():
@@ -93,7 +89,7 @@ class CrfUtilities(object):
         if header_pattern_dict is None:
             header_pattern_dict = self.cu.create_header_pattern_dictionary(verbose=verbose)
         if verbose:
-            print(f'I have {len(header_pattern_dict):,} hand-labeled header patterns in here')
+            print(f'I have {len(header_pattern_dict):,} hand-labeled parts-of-speech patterns in here')
         
         X_train = []
         y_train = []
@@ -105,7 +101,7 @@ class CrfUtilities(object):
         self.CRF = sklearn_crfsuite.CRF(algorithm='lbfgs', c1=0.1, c2=0.1, max_iterations=100, all_possible_transitions=True)
         try:
             if verbose:
-                print(f'Training the Conditional Random Fields model with {len(y_train)} parts-of-speech labels')
+                print(f'Training the Conditional Random Fields model with {len(y_train):,} parts-of-speech labels')
             self.CRF.fit(X_train, y_train)
         except Exception as e:
             print(f'Error in CrfUtilities init trying to self.CRF.fit(X_train, y_train): {str(e).strip()}')

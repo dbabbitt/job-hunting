@@ -80,7 +80,7 @@ Copy-Item $DllPath -Destination $DllsFolder
 # I solved this problem by removing jupyter-notebook, jupyter_contrib_nbextensions,
 # and jupyter_nbextensions_configurator, and starting it from scratch
 # Note: It only works on Anaconda environment
-$CommandString = "conda activate D:\Documents\GitHub\job-hunting\jh_env"
+$CommandString = "conda activate ${EnvironmentPath}"
 Write-Host "CommandString = '${CommandString}'" -ForegroundColor Red
 $ResultString = cmd /c $CommandString '2>&1'
 Write-Host "${ResultString}" -ForegroundColor Yellow

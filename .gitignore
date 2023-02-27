@@ -35,6 +35,10 @@ ipynb/plot_classifier_chain_yeast.ipynb
 ipynb/plot_feature_transformation.ipynb
 ipynb/pycrfsuite.ipynb
 ipynb/sklearn_crfsuite.ipynb
+builders/Reinsert All Files.ipynb
+
+# Exclude CSV files
+saves/csv/*.csv
 
 # Exclude images that I didn't make
 saves/png/JOB_SEARCH-512.png

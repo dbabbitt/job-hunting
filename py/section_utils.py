@@ -16,7 +16,7 @@ import os
 class SectionUtilities(object):
     """Section class."""
 
-    def __init__(self, s=None, ha=None, wsu=None, cu=None, hc=None, verbose=False):
+    def __init__(self, s=None, ha=None, wsu=None, cu=None, hc=None, crf=None, verbose=False):
         if s is None:
             from storage import Storage
             self.s = Storage()
@@ -50,6 +50,14 @@ class SectionUtilities(object):
         else:
             self.hc = hc
         
+        self.crf = crf
+        if self.crf is not None:
+            if hasattr(self.crf, 'lru'):
+                self.lru = self.crf.lru
+            else:
+                self.lru = None
+        else:
+            self.lru = None
         self.ascii_regex = re.compile('[^A-Za-z0-9]+')
     
     
@@ -116,10 +124,11 @@ class SectionUtilities(object):
             from hc_utils import HeaderCategories
             hc = HeaderCategories(cu=self.cu, verbose=False)
             if feature_tuple_list is None:
-                from lr_utils import LrUtilities
-                lru = LrUtilities(ha=self.ha, hc=hc, cu=self.cu, verbose=False)
-                lru.build_isheader_logistic_regression_elements()
-                lru.build_pos_logistic_regression_elements()
+                if self.lru is None:
+                    from lr_utils import LrUtilities
+                    self.lru = LrUtilities(ha=self.ha, hc=hc, cu=self.cu, verbose=False)
+                    self.lru.build_isheader_logistic_regression_elements()
+                    self.lru.build_pos_logistic_regression_elements()
                 if feature_dict_list is None:
                     if child_strs_list is None:
                         if file_name is None:
@@ -131,17 +140,15 @@ class SectionUtilities(object):
                     is_header_list = []
                     for is_header, child_str in zip(self.ha.get_is_header_list(child_strs_list), child_strs_list):
                         if is_header is None:
-                            probs_list = lru.ISHEADER_PREDICT_PERCENT_FIT(child_str)
+                            probs_list = self.lru.ISHEADER_PREDICT_PERCENT_FIT(child_str)
                             idx = probs_list.index(max(probs_list))
                             is_header = [True, False][idx]
                         is_header_list.append(is_header)
                     feature_dict_list = hc.get_feature_dict_list(child_tags_list, is_header_list, child_strs_list)
                 feature_tuple_list = []
                 for feature_dict in feature_dict_list:
-                    feature_tuple_list.append(hc.get_feature_tuple(feature_dict, lru.pos_lr_predict_single))
-            from crf_utils import CrfUtilities
-            crf = CrfUtilities(ha=self.ha, hc=hc, cu=self.cu, verbose=False)
-            crf_list = crf.CRF.predict_single(crf.sent2features(feature_tuple_list))
+                    feature_tuple_list.append(hc.get_feature_tuple(feature_dict, self.lru.pos_lr_predict_single))
+            crf_list = self.crf.CRF.predict_single(self.crf.sent2features(feature_tuple_list))
         db_pos_list = []
         for navigable_parent in child_strs_list:
             db_pos_list = self.cu.append_parts_of_speech_list(navigable_parent, pos_list=db_pos_list)
@@ -167,7 +174,9 @@ class SectionUtilities(object):
         if db_pos_list is None:
             db_pos_list = []
             for navigable_parent in child_strs_list:
-                db_pos_list = self.cu.append_parts_of_speech_list(navigable_parent, pos_list=db_pos_list)
+                db_pos_list = self.cu.append_parts_of_speech_list(
+                    navigable_parent, pos_list=db_pos_list
+                )
         for i, (crf_symbol, db_symbol) in enumerate(zip(crf_list, db_pos_list)):
             if db_symbol in [None, 'O', 'H']:
                 pos_list.append(crf_symbol)
@@ -198,31 +207,32 @@ class SectionUtilities(object):
         job_fitness = 0.0
         file_name = row_series.file_name
         child_strs_list = self.ha.get_child_strs_from_file(file_name=file_name)
-        indices_list = self.find_basic_quals_section_indexes(child_strs_list=child_strs_list, file_name=file_name)
+        indices_list = self.find_basic_quals_section_indexes(
+            child_strs_list=child_strs_list, file_name=file_name
+        )
         assert indices_list, f"Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)"
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
-        sentence_regex = re.compile(r'[;•➢\*]|\.(?!\w)')
+        sentence_regex = re.compile(r'[•➢\*]|\.(?!\w)')
         quals_set = set()
         fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.',
                            'i.e.', '&amp;']
         replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie', '&']
         for qual in prequals_list:
+            qual = re.sub('<([a-z][a-z0-9]*)[^<>]*>', r'<\g<1>>', qual.strip(), 0, re.MULTILINE)
             for fake_stop, replacement in zip(fake_stops_list, replacements_list):
                 qual = qual.replace(fake_stop, replacement)
             concatonated_quals_list = sentence_regex.split(qual)
             if len(concatonated_quals_list) > 2:
                 for q1 in sent_tokenize(qual):
                     for q2 in sentence_regex.split(q1):
-                        q2 = re.sub('</?[a-z][a-z0-9]*[^<>]*>', '', q2.strip(), 0, re.IGNORECASE)
-                        if q2:
+                        if q2.strip():
                             quals_set.add(q2)
             else:
                 quals_set.add(qual)
         quals_list = list(quals_set)
         assert all([isinstance(qual_str, str) for qual_str in quals_list]), f'Error in print_fit_job:\nquals_list = {quals_list}\nrow_series:\n{row_series}'
         if lru is None:
-            from lr_utils import LrUtilities
-            lru = LrUtilities(ha=self.ha, hc=self.hc, cu=self.cu, verbose=verbose)
+            lru = self.lru
         prediction_list = list(lru.predict_job_hunt_percent_fit(quals_list))
         quals_str, qual_count = lru.get_quals_str(prediction_list, quals_list)
         if len(prediction_list):
@@ -235,7 +245,7 @@ class SectionUtilities(object):
                 if verbose:
                     print()
                     print(f'Basic Qualifications for {job_title}:{quals_str}')
-                    print(job_fitness)
+                    print(f'{job_fitness:.2%}')
                     lru.print_loc_computation(row_index, quals_list, verbose=verbose)
         
         return quals_list, job_fitness

@@ -11,7 +11,6 @@
 WebScrapingUtilities: A set of utility functions common to web scraping
 """
 # from pathlib import Path
-# from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -19,7 +18,6 @@ from selenium.webdriver.support import expected_conditions as EC
 # from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 # from shutil import copyfile
-# from urllib.parse import quote_plus
 # from urllib.request import urlretrieve
 # import math
 # import numpy as np
@@ -507,3 +505,41 @@ class WebScrapingUtilities(object):
         except Exception as e:
             message = str(e).strip()
             raise Exception('Waiting for textarea field to show up: {}'.format(message))
+
+
+
+    def get_chatgpt_rephrasing(
+        self, driver, original_phrase, part_of_speech='minimum requirement', verbose=True
+    ):
+        youchat_text = ''
+        youchat_str = f'Rewrite this sentence so it sounds like a {part_of_speech}: "{original_phrase}"'
+        from urllib.parse import quote_plus
+        youchat_url = f'https://you.com/search?q={quote_plus(youchat_str)}&fromSearchBar=true&tbm=youchat'
+        self.driver_get_url(driver, youchat_url, verbose=False)
+        if verbose:
+            print(youchat_str)
+        div_css = 'div[data-testid="youchat-text"]'
+        # from selenium.common.exceptions import NoSuchElementException, InvalidSessionIdException
+        try:
+            div_obj = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, div_css))
+            )
+            
+            # Wait for the div to be in its final state
+            self.wait_for(2, verbose=False)
+            
+            # Assume its finished writing the answer
+            div_obj = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, div_css))
+            )
+            
+            youchat_text = div_obj.text
+            if verbose:
+                print(youchat_text)
+        # except NoSuchElementException as e:
+            # pass
+        except Exception as e:
+            print(f'{e.__class__} error: {str(e).strip()}')
+            raise
+        
+        return youchat_text
