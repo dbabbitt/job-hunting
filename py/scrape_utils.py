@@ -385,15 +385,6 @@ class WebScrapingUtilities(object):
     
     
     def log_into_indeed(self, driver, verbose=True):
-        # <input
-            # type="email"
-            # aria-labelledby="label-login-email-input"
-            # id="login-email-input"
-            # name="__email"
-            # value="dave.babbitt@gmail.com"
-            # class="icl-TextInput-control"
-            # aria-invalid="false"
-        # >
         self.driver_get_url(driver, self.indeed_url, verbose=verbose)
         self.fill_in_field(driver, field_name='email',
                            field_value=self.secrets_json['indeed']['email'],
@@ -402,15 +393,17 @@ class WebScrapingUtilities(object):
         button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form/button'
         self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
         
-        # Use password instead
+        # Look for password field
         link_xpath = '//*[@id="auth-page-google-password-fallback"]'
         self.click_web_element(driver, xpath=link_xpath, verbose=verbose)
-        
-        self.fill_in_field(driver, field_name='password',
-                           field_value=self.secrets_json['indeed']['password'],
-                           input_css='#ifl-InputFormField-121', verbose=verbose)
-        button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form[1]/button'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        try:
+            self.fill_in_field(driver, field_name='password',
+                               field_value=self.secrets_json['indeed']['password'],
+                               input_css='#ifl-InputFormField-121', verbose=verbose)
+            button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form[1]/button'
+            self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        except Exception as e:
+            print(f'Error trying to fill in the password field: {str(e).strip()}')
         
         # Stall for time while looking for the error message
         indeed_xpath = '/html/body/main/div/ul'

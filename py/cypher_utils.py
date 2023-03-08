@@ -380,17 +380,17 @@ class CypherUtilities(object):
     def set_accenture_data(
         self, file_name, assigned_role, career_level_from_to, client_name,
         project_metro_city, role_client_supply_contact,
-        role_end_date, role_id, is_role_sold, role_primary_contact,
+        role_end_date, role_id, role_primary_contact,
         role_primary_contact_email_id, role_start_date,
         role_title, verbose=False
     ):
         file_node_dict = {}
-
+        
         def do_cypher_tx(
             tx, file_name, role_id, client_name, role_title, assigned_role,
             project_metro_city, career_level_from_to, role_start_date,
             role_end_date, role_client_supply_contact, role_primary_contact,
-            role_primary_contact_email_id, is_role_sold, verbose=False
+            role_primary_contact_email_id, verbose=False
         ):
             cypher_str = """
                 MATCH (fn:FileNames {file_name: $file_name})
@@ -405,8 +405,7 @@ class CypherUtilities(object):
                     fn.role_end_date = $role_end_date,
                     fn.role_client_supply_contact = $role_client_supply_contact,
                     fn.role_primary_contact = $role_primary_contact,
-                    fn.role_primary_contact_email_id = $role_primary_contact_email_id,
-                    fn.is_role_sold = $is_role_sold
+                    fn.role_primary_contact_email_id = $role_primary_contact_email_id
                 RETURN fn;"""
             if verbose:
                 print_str = cypher_str
@@ -415,7 +414,7 @@ class CypherUtilities(object):
                     'project_metro_city', 'career_level_from_to',
                     'role_start_date', 'role_end_date',
                     'role_client_supply_contact', 'role_primary_contact',
-                    'role_primary_contact_email_id', 'is_role_sold'
+                    'role_primary_contact_email_id'
                 ]:
                     print_str = print_str.replace(
                         f'${var_name}', f'"{eval(var_name)}"'
@@ -434,8 +433,7 @@ class CypherUtilities(object):
                 'role_end_date': role_end_date,
                 'role_client_supply_contact': role_client_supply_contact,
                 'role_primary_contact': role_primary_contact,
-                'role_primary_contact_email_id': role_primary_contact_email_id,
-                'is_role_sold': is_role_sold
+                'role_primary_contact_email_id': role_primary_contact_email_id
             }
             rows_list = []
             for record in tx.run(query=cypher_str, parameters=parameter_dict):
@@ -458,7 +456,7 @@ class CypherUtilities(object):
                 role_client_supply_contact=role_client_supply_contact,
                 role_primary_contact=role_primary_contact,
                 role_primary_contact_email_id=role_primary_contact_email_id,
-                is_role_sold=is_role_sold, verbose=verbose
+                verbose=verbose
             )
             if verbose:
                 print(df.to_dict('records'))

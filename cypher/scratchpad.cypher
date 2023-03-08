@@ -11,27 +11,36 @@ RETURN
 ORDER BY fn.percent_fit DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["a7f9b8bd279918d6_Junior_Data_Analyst_Engineer_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["6ee357c64337b3b2_Associate_Director_Data_Consulting_Remote_Minneapolis_MN_55421_Indeed_com.html"]
 SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_email_date = date()
 RETURN fn;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["5baf40a03d54df24_Data_Scientist_Senior_Remote_Indeed_com.html"]
+WHERE
+    fn.file_name IN ["3c12fd2ee4ca9386_Lead_Data_Scientist_Lehi_UT_84043_Indeed_com.html", "c733cdcfb1373458_Sr_Data_Scientist_Lehi_UT_84043_Indeed_com.html", "cf1644fb7a4fb4fa_Senior_Data_Scientist_Lehi_UT_84043_Indeed_com.html", "cf1644fb7a4fb4fa_Sr_Data_Scientist_Lehi_UT_84043_Indeed_com.html"]
+    AND fn.opportunity_application_email_date IS NOT NULL
+RETURN
+    fn.file_name AS file_name,
+    fn.opportunity_application_email_date AS email_date
+ORDER BY fn.opportunity_application_email_date DESC;
+
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["cf1644fb7a4fb4fa_Sr_Data_Scientist_Lehi_UT_84043_Indeed_com.html", "cf1644fb7a4fb4fa_Senior_Data_Scientist_Lehi_UT_84043_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "Hi Dave – unfortunately this role has been filled.",
+    fn.rejection_email_text = "At this time, we've made the decision to move forward with other candidates who better fit our current needs.",
     fn.rejection_email_date = date(),
     fn.is_closed = true
+RETURN fn;
+
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["a0cdeb20b89ba401_Data_Scientist_Remote_Indeed_com.html"]
+SET fn.is_closed = true
 RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
     (fn.rejection_email_text IS NOT NULL)
     AND (fn.rejection_email_date IS NOT NULL)
-SET fn.is_closed = true
-RETURN fn;
-
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["4671458_0_COUCHE_TARD_INC_Splunk_Data_Engineering_PM.html", "4671459_0_COUCHE_TARD_INC_Splunk_Senior_Developer.html"]
 SET fn.is_closed = true
 RETURN fn;
 
@@ -53,15 +62,6 @@ SET
     np.is_interview_procedure = 'False',
     np.is_posting_date = 'False'
 RETURN COUNT(*);
-
-MATCH (fn:FileNames)
-WHERE
-    fn.file_name IN ["74a69d9b894f9ee2_Sr_Data_Scientist_Chicago_IL_Indeed_com.html", "74b13d50b9b61b64_Sr_Machine_Learning_Engineer_Chicago_IL_Indeed_com.html", "9021c8bf5ab1a757_Lead_Data_Scientist_Chicago_IL_Indeed_com.html", "9021c8bf5ab1a757_Lead_Machine_Learning_Data_Scientist_Chicago_IL_Indeed_com.html", "25806f11c7b36408_Sr_Data_Scientist_Chicago_IL_Indeed_com.html", "e7cafbf808c2ba69_Lead_Data_Scientist_Chicago_IL_Indeed_com.html"]
-    AND fn.opportunity_application_email_date IS NOT NULL
-RETURN
-    fn.file_name AS file_name,
-    fn.opportunity_application_email_date AS email_date
-ORDER BY fn.opportunity_application_email_date DESC;
 
 MATCH (fn:FileNames)
 WHERE
@@ -106,8 +106,7 @@ RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
-    (fn.opportunity_application_email_date < date("2022-08-14")) AND
-    (fn.opportunity_application_email_date >= date("2022-08-07"))
+    (fn.opportunity_application_email_date = date("	2023-03-01"))
 RETURN fn;
 
 MATCH (fn:FileNames)

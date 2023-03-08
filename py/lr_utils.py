@@ -355,9 +355,9 @@ class LrUtilities(object):
     ################################################
     ## Logistic Regression is-qualified functions ##
     ################################################
-    def sync_basic_quals_dict(self, sampling_strategy_limit=None, basic_quals_dict=None, verbose=False):
-        if sampling_strategy_limit is None:
-            sampling_strategy_limit = self.sampling_strategy_limit
+    def sync_basic_quals_dict(
+        self, sampling_strategy_limit=None, basic_quals_dict=None, verbose=False
+    ):
         
         # Ensure that everything in the pickle is also in the database
         if basic_quals_dict is None:
@@ -399,7 +399,7 @@ class LrUtilities(object):
                         do_cypher_tx, qualification_str=qualification_str, is_qualified=row_dict['is_qualified'], verbose=verbose
                     )
         
-        # Rebuild the dataframe from the both the dictionary and the database
+        # Rebuild the dataframe from the database
         cypher_str = '''
             MATCH (qs:QualificationStrings)
             RETURN qs;'''
@@ -408,21 +408,23 @@ class LrUtilities(object):
             [{k: v for k, v in row_obj['qs'].items()} for row_obj in row_objs_list]
         )
         
-        # Rebalance the data with the sampling strategy limit
-        counts_dict = self.basic_quals_df.groupby('is_qualified').count().qualification_str.to_dict()
-        sampling_strategy = {k: min(sampling_strategy_limit, v) for k, v in counts_dict.items()}
-        from imblearn.under_sampling import RandomUnderSampler
-        rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
-
-        # Define the tuple of arrays
-        data = rus.fit_resample(
-            self.basic_quals_df.qualification_str.values.reshape(-1, 1),
-            self.basic_quals_df.is_qualified.values.reshape(-1, 1)
-        )
-
-        # Recreate the Pandas DataFrame
-        self.basic_quals_df = pd.DataFrame(data[0], columns=['qualification_str'])
-        self.basic_quals_df['is_qualified'] = data[1]
+        if sampling_strategy_limit is not None:
+            
+            # Rebalance the data with the sampling strategy limit
+            counts_dict = self.basic_quals_df.groupby('is_qualified').count().qualification_str.to_dict()
+            sampling_strategy = {k: min(sampling_strategy_limit, v) for k, v in counts_dict.items()}
+            from imblearn.under_sampling import RandomUnderSampler
+            rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
+            
+            # Define the tuple of arrays
+            data = rus.fit_resample(
+                self.basic_quals_df.qualification_str.values.reshape(-1, 1),
+                self.basic_quals_df.is_qualified.values.reshape(-1, 1)
+            )
+            
+            # Recreate the Pandas DataFrame
+            self.basic_quals_df = pd.DataFrame(data[0], columns=['qualification_str'])
+            self.basic_quals_df['is_qualified'] = data[1]
         
         # Clean up the data
         mask_series = (self.basic_quals_df.is_qualified == True)
@@ -722,7 +724,8 @@ class LrUtilities(object):
         ax2 = fig.add_subplot(122)
         ax2.set_xlabel('Cumulative Histogram')
         self.hunting_df.percent_fit.hist(cumulative=True, density=1, bins=bin_count, ax=ax2)
-        mode = self.hunting_df.percent_fit.mode().squeeze()
-        ax2.axvline(mode, linewidth=1.5, color='r', linestyle='-.')
-        ax2.axhline(mode, linewidth=1.5, color='r', linestyle='-.')
+        median = self.hunting_df.percent_fit.median().squeeze()
+        # mode = self.hunting_df.percent_fit.mode().squeeze()
+        ax2.axvline(median, linewidth=1.5, color='r', linestyle='-.')
+        ax2.axhline(median, linewidth=1.5, color='r', linestyle='-.')
         plt.tight_layout()

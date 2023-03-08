@@ -148,7 +148,9 @@ class SectionUtilities(object):
                 feature_tuple_list = []
                 for feature_dict in feature_dict_list:
                     feature_tuple_list.append(hc.get_feature_tuple(feature_dict, self.lru.pos_lr_predict_single))
-            crf_list = self.crf.CRF.predict_single(self.crf.sent2features(feature_tuple_list))
+            crf_list = self.crf.CRF.predict_single(
+                self.crf.sent2features(feature_tuple_list)
+            )
         db_pos_list = []
         for navigable_parent in child_strs_list:
             db_pos_list = self.cu.append_parts_of_speech_list(navigable_parent, pos_list=db_pos_list)
@@ -214,9 +216,10 @@ class SectionUtilities(object):
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
         sentence_regex = re.compile(r'[•➢\*]|\.(?!\w)')
         quals_set = set()
-        fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.',
-                           'i.e.', '&amp;']
-        replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie', '&']
+        fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.',
+                           'U.S.', 'i.e.', '&amp;', 'E.g.', 'Bsc.', 'MSc.']
+        replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US',
+                             'ie', '&', 'eg', 'BS', 'MS']
         for qual in prequals_list:
             qual = re.sub('<([a-z][a-z0-9]*)[^<>]*>', r'<\g<1>>', qual.strip(), 0, re.MULTILINE)
             for fake_stop, replacement in zip(fake_stops_list, replacements_list):
@@ -225,7 +228,10 @@ class SectionUtilities(object):
             if len(concatonated_quals_list) > 2:
                 for q1 in sent_tokenize(qual):
                     for q2 in sentence_regex.split(q1):
-                        if q2.strip():
+                        q2 = q2.strip()
+                        
+                        # Don't add HTML tags or blanks
+                        if q2 and not re.search('^<[^><]+>$', q2):
                             quals_set.add(q2)
             else:
                 quals_set.add(qual)
@@ -298,11 +304,29 @@ class SectionUtilities(object):
     
     def load_dice_posting_url(self, viewjob_url, driver, files_list=[], verbose=True):
         file_node_dict = {}
-        tags_list = driver.find_elements_by_css_selector('h1.pull-left')
+        from selenium.webdriver.common.by import By
+        tags_list = driver.find_elements(By.CSS_SELECTOR, 'h1.pull-left')
         if not tags_list:
-            job_title_str = driver.find_elements_by_css_selector('#jt')[0].text
-            job_org_str = driver.find_elements_by_css_selector('#hiringOrganizationName')[0].text
-            job_location_str = driver.find_elements_by_css_selector('.location')[0].text
+            title_divs_list = driver.find_elements(By.CSS_SELECTOR, 'h1[id="jt"]')
+            if not title_divs_list:
+                title_divs_list = driver.find_elements(By.CSS_SELECTOR, 'h1[data-cy="jobTitle"]')
+            job_title_str = title_divs_list[0].text
+            org_objs_list = driver.find_elements(
+                By.CSS_SELECTOR, 'span[id="hiringOrganizationName"]'
+            )
+            if not org_objs_list:
+                org_objs_list = driver.find_elements(
+                    By.CSS_SELECTOR, 'a[data-cy="companyNameLink"]'
+                )
+            job_org_str = org_objs_list[0].text
+            location_objs_list = driver.find_elements(
+                By.CSS_SELECTOR, 'li[class="location"]'
+            )
+            if not location_objs_list:
+                location_objs_list = driver.find_elements(
+                    By.CSS_SELECTOR, 'li[data-cy="companyLocation"]'
+                )
+            job_location_str = location_objs_list[0].text
             page_title = f'{job_title_str} {job_org_str} {job_location_str}'
             file_name = self.ascii_regex.sub(' ', page_title).strip().replace(' ', '_')
             file_name = f'{file_name}.html'
@@ -314,7 +338,14 @@ class SectionUtilities(object):
                     f.write('<html><head><title>')
                     f.write(page_title)
                     f.write('</title></head><body><div id="jobDescriptionText">')
-                    web_obj = driver.find_elements_by_css_selector('#jobdescSec')[0]
+                    web_objs_list = driver.find_elements(
+                        By.CSS_SELECTOR, 'div[id="jobdescSec"]'
+                    )
+                    if not web_objs_list:
+                        web_objs_list = driver.find_elements(
+                            By.CSS_SELECTOR, 'div[data-cy="jobDescription"]'
+                        )
+                    web_obj = web_objs_list[0]
                     article_str = web_obj.get_attribute('innerHTML').strip()
                     f.write(article_str)
                     f.write('</div></body></html>')
