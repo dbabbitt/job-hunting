@@ -7,18 +7,26 @@
 /*
 !.gitignore
 !/builders
+!/creators
 !/cypher
 !/evaluators
+!/explorations
+!/flaskr
+!/inference
 !/ipynb
+!/labelers
 !/load_magic
+!/optimizers
 !/ps1
 !/py
 !/saves
+!/scrapers
 !/sh
 !/src
 !/templates
 !/tests
 !/trainers
+!/visualizations
 !README.md
 !environment.yml
 !jupyter_notebook_config.py
@@ -27,7 +35,7 @@
 !serverless.yml
 !workspace.json
 
-# Exclude job hunting notebooks that I didn't make
+# Exclude job hunting notebooks, etc., that I didn't make
 ipynb/benchmarking.ipynb
 ipynb/bert_language_model_with_sequence_classification.ipynb
 ipynb/grid_search_text_feature_extraction.ipynb
@@ -36,6 +44,8 @@ ipynb/plot_feature_transformation.ipynb
 ipynb/pycrfsuite.ipynb
 ipynb/sklearn_crfsuite.ipynb
 builders/Reinsert All Files.ipynb
+py/crf_utils_old.py
+ps1/test.ps1
 
 # Exclude CSV files
 saves/csv/*.csv
@@ -65,6 +75,12 @@ saves/csv/mrc_df.csv
 cypher/neo4j_job_hunting_export.cypher
 cypher/neo4j_job_hunting_export_import.cypher
 cypher/neo4j_job_hunting_import.cypher
+flaskr/saves/pkl/estimators_list.pkl
+flaskr/saves/pkl/FIT_ESTIMATORS_DICT.pkl
+flaskr/saves/pkl/fit_estimators_list.pkl
+flaskr/saves/pkl/GLOVE_BIG.pkl
+flaskr/saves/pkl/GLOVE_SMALL.pkl
+flaskr/saves/pkl/GN300_MODEL.pkl
 
 # Exclude executables
 *.exe
@@ -229,5 +245,3 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
-py/crf_utils_old.py
-ps1/test.ps1
