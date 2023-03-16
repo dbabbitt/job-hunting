@@ -458,3 +458,10 @@ RETURN np;
 CALL db.schema.nodeTypeProperties() YIELD nodeType, propertyName
 WHERE propertyName = 'is_qualified'
 RETURN DISTINCT nodeType;
+
+// Find all properties with a value of 'False'
+MATCH (np:NavigableParents)
+UNWIND keys(np) AS property
+WITH np, property
+WHERE np[property] = 'False'
+RETURN DISTINCT property;
