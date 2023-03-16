@@ -1,6 +1,6 @@
 
-# cd $Env:UserProfile\Documents\GitHub\job-hunting\ps1
-# clear
+# cd $Env:UserProfile\OneDrive\Documents\GitHub\job-hunting\ps1
+# cls
 # .\launch_job_hunting_flask_app.ps1
 # 
 # Or, just run it from another PowerShell script:
@@ -9,9 +9,9 @@
 
 # Set up global variables
 $RepositoryPath = "job-hunting"
-$EnvironmentName = "jh"
+$EnvironmentName = "jh_env"
 $HomeDirectory = $Env:UserProfile
-$RepositoriesDirectory = "D:\Documents\GitHub"
+$RepositoriesDirectory = "${HomeDirectory}\OneDrive\Documents\GitHub"
 
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
@@ -23,14 +23,11 @@ $env:FLASK_DEBUG = '1'
 $env:FLASK_APP = 'flaskr'
 $env:FLASK_ENV = 'development'
 
-<# Write-Host ""
-Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-Write-Host "          Initializing the flaskr db from the ${RepositoryPath} repository" -ForegroundColor Green
-Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-flask init-db #>
-
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "       Running the flaskr app from the ${RepositoryPath} repository" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-flask run --host localhost --port 5000
+cd "${RepositoriesDirectory}\${RepositoryPath}"
+
+# Use type myapp.wsgi > nul to manually trigger a soft reload
+flask run --no-reload --host localhost --port 5000

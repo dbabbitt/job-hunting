@@ -19,13 +19,19 @@ import csv
 class Storage(object):
     """Storage class."""
 
-    def __init__(self, verbose=False):
+    def __init__(self, data_folder_path=None, saves_folder_path=None, verbose=False):
 
         # Change this to your data and saves folders
-        self.data_folder = r'../data/'
+        if data_folder_path is None:
+            self.data_folder = r'../data/'
+        else:
+            self.data_folder = data_folder_path
         if verbose:
             print('data_folder: {}'.format(self.data_folder))
-        self.saves_folder = r'../saves/'
+        if saves_folder_path is None:
+            self.saves_folder = r'../saves/'
+        else:
+            self.saves_folder = saves_folder_path
         if verbose:
             print('saves_folder: {}'.format(self.saves_folder))
 

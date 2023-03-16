@@ -285,8 +285,10 @@ class HeaderCategories(object):
             pos_list.append('O')
 
         return pos_list
-
-    def get_feature_tuple(self, feature_dict, pos_lr_predict_single=None):
+    
+    def get_feature_tuple(
+        self, feature_dict, pos_lr_predict_single=None, pos_crf_predict_single=None
+    ):
         feature_list = [feature_dict['initial_tag'], feature_dict['child_str']]
         is_header = feature_dict.get('is_header')
         if (is_header == True):
@@ -319,10 +321,13 @@ class HeaderCategories(object):
             elif feature_dict.get('is_other', False):
                 feature_list.append('H-O')
             else:
-                if pos_lr_predict_single is None:
-                    feature_list.append('H')
+                if pos_crf_predict_single is None:
+                    if pos_lr_predict_single is None:
+                        feature_list.append('H')
+                    else:
+                        feature_list.append(pos_lr_predict_single(feature_dict['child_str']))
                 else:
-                    feature_list.append(pos_lr_predict_single(feature_dict['child_str']))
+                    feature_list.append(pos_crf_predict_single(feature_dict['child_str']))
         elif (is_header == False):
             if feature_dict.get('is_task_scope', False):
                 feature_list.append('O-TS')
@@ -351,29 +356,34 @@ class HeaderCategories(object):
             elif feature_dict.get('is_other', False):
                 feature_list.append('O-O')
             else:
+                if pos_crf_predict_single is None:
+                    if pos_lr_predict_single is None:
+                        feature_list.append('O')
+                    else:
+                        feature_list.append(pos_lr_predict_single(feature_dict['child_str']))
+                else:
+                    feature_list.append(pos_crf_predict_single(feature_dict['child_str']))
+        elif str(is_header) == 'nan':
+            if pos_crf_predict_single is None:
                 if pos_lr_predict_single is None:
                     feature_list.append('O')
                 else:
                     feature_list.append(pos_lr_predict_single(feature_dict['child_str']))
-        elif str(is_header) == 'nan':
-            if pos_lr_predict_single is None:
-                feature_list.append('O')
             else:
-                feature_list.append(pos_lr_predict_single(feature_dict['child_str']))
+                feature_list.append(pos_crf_predict_single(feature_dict['child_str']))
         else:
-            if pos_lr_predict_single is None:
-                feature_list.append('O')
+            if pos_crf_predict_single is None:
+                if pos_lr_predict_single is None:
+                    feature_list.append('O')
+                else:
+                    feature_list.append(pos_lr_predict_single(feature_dict['child_str']))
             else:
-                feature_list.append(pos_lr_predict_single(feature_dict['child_str']))
+                feature_list.append(pos_crf_predict_single(feature_dict['child_str']))
 
         return tuple(feature_list)
     
     
     def get_feature_dict_list(self, child_tags_list, is_header_list, child_strs_list):
-        # print('In ha.get_feature_dict_list:')
-        # print(f'child_tags_list=>{child_tags_list}')
-        # print(f'is_header_list=>{is_header_list}')
-        # print(f'child_strs_list=>{child_strs_list}')
         sql_dict = {False: None, True: 1}
         feature_dict_list = [{'initial_tag': tag, 'is_header': is_header, 
                               'is_task_scope': sql_dict[(child_str in self.TASK_SCOPE_HEADERS_LIST)], 

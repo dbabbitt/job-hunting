@@ -38,7 +38,7 @@ class WebScrapingUtilities(object):
     >>> u = scrape_utils.WebScrapingUtilities()
     """
     
-    def __init__(self, s=None, verbose=False):
+    def __init__(self, s=None, secrets_json_path=None, verbose=False):
         if s is None:
             from storage import Storage
             self.s = Storage()
@@ -46,7 +46,11 @@ class WebScrapingUtilities(object):
             self.s = s
         
         # Get secrets json
-        with open('../data/secrets/jh_secrets.json', 'r') as f:
+        if secrets_json_path is None:
+            self.secrets_json_path = '../data/secrets/jh_secrets.json'
+        else:
+            self.secrets_json_path = secrets_json_path
+        with open(self.secrets_json_path, 'r') as f:
             import json
             self.secrets_json = json.load(f)
         

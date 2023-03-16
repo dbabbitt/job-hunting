@@ -40,7 +40,10 @@ def with_debug_context(func):
 class CypherUtilities(object):
     """CYPHER class."""
 
-    def __init__(self, uri=None, user=None, password=None, driver=None, s=None, ha=None, verbose=False):
+    def __init__(
+        self, uri=None, user=None, password=None, driver=None, s=None,
+        ha=None, secrets_json_path=None, verbose=False
+    ):
         if uri is None:
             self.uri = 'bolt://localhost:7687'
         else:
@@ -50,7 +53,15 @@ class CypherUtilities(object):
         else:
             self.user = user
         if password is None:
-            self.password = 'neo4j@WSXcde3'
+            
+            # Get secrets json
+            if secrets_json_path is None:
+                secrets_json_path = '../data/secrets/jh_secrets.json'
+            with open(secrets_json_path, 'r') as f:
+                import json
+                secrets_json = json.load(f)
+            
+            self.password = secrets_json['neo4j']['password']
         else:
             self.password = password
         if driver is None:
@@ -64,7 +75,7 @@ class CypherUtilities(object):
             self.s = s
         if ha is None:
             from ha_utils import HeaderAnalysis
-            self.ha = HeaderAnalysis(verbose=verbose)
+            self.ha = HeaderAnalysis(s=self.s, verbose=verbose)
         else:
             self.ha = ha
         self.verbose = verbose
@@ -1436,7 +1447,22 @@ class CypherUtilities(object):
 
 
     # Relationships functions
-    def populate_relationships(self, verbose=False):
+    def populate_pos_relationships(self, verbose=False):
+        features_list = [
+            'is_task_scope',
+            'is_minimum_qualification',
+            'is_preferred_qualification',
+            'is_legal_notification', 
+            'is_job_title',
+            'is_office_location',
+            'is_job_duration',
+            'is_supplemental_pay',
+            'is_educational_requirement',
+            'is_interview_procedure',
+            'is_corporate_scope',
+            'is_posting_date',
+            'is_other'
+        ]
         cypher_str = """
             MATCH (:PartsOfSpeech)-[r:SUMMARIZES]->(:NavigableParents)
             DELETE r;"""
@@ -1446,9 +1472,7 @@ class CypherUtilities(object):
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
             for a in ['True', 'False']:
-                for b in ['is_task_scope', 'is_minimum_qualification', 'is_preferred_qualification', 'is_legal_notification', 'is_job_title',
-                          'is_office_location', 'is_job_duration', 'is_supplemental_pay', 'is_educational_requirement', 'is_interview_procedure',
-                          'is_corporate_scope', 'is_posting_date', 'is_other']:
+                for b in features_list:
                     cypher_str = f"""
                         MATCH (pos:PartsOfSpeech {{is_header: '{a}', {b}: 'True'}}), (np:NavigableParents {{is_header: '{a}', {b}: 'True'}})
                         MERGE (pos)-[r:SUMMARIZES]->(np);"""
@@ -1456,6 +1480,10 @@ class CypherUtilities(object):
                         clear_output(wait=True)
                         print(cypher_str)
                     session.write_transaction(self.do_cypher_tx, cypher_str)
+
+
+    def populate_relationships(self, verbose=False):
+        self.populate_pos_relationships(verbose=verbose)
         self.populate_headertag_sequences(verbose=verbose)
         self.populate_navigableparent_sequences(verbose=verbose)
 
@@ -1501,6 +1529,31 @@ class CypherUtilities(object):
 
 
 
+    def get_pos_relationships(self, verbose=False):
+        def do_cypher_tx(tx, verbose=False):
+            cypher_str = """
+                MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
+                RETURN
+                    np.navigable_parent AS navigable_parent, 
+                    pos.pos_symbol AS pos_symbol;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str)
+            parameter_dict = {}
+            results_list = tx.run(query=cypher_str, parameters=parameter_dict)
+            values_list = []
+            for record in results_list:
+                values_list.append(dict(record.items()))
+
+            return values_list
+        with self.driver.session() as session:
+            row_objs_list = session.read_transaction(do_cypher_tx, verbose=verbose)
+            pos_df = pd.DataFrame(row_objs_list)
+
+        return pos_df
+
+
+
     def get_child_strs_from_file(self, file_name, verbose=False):
         cypher_str = f'''
             // Get file name paths
@@ -1536,10 +1589,6 @@ class CypherUtilities(object):
                 child_tags_list.append(header_tag)
 
         return child_tags_list
-
-# def add_person(self, name):
-    # with self.driver.session() as session:
-        # session.run("CREATE (a:Person {name: $name})", name=name)
 
 
     def get_feature_dict_list(self, child_tags_list, child_strs_list, verbose=False):
@@ -1656,10 +1705,10 @@ class CypherUtilities(object):
                     pos = 'O'
                 if params_dict['is_minimum_qualification']:
                     pos += '-RQ'
-                elif params_dict['is_educational_requirement']:
-                    pos += '-ER'
                 elif params_dict['is_preferred_qualification']:
                     pos += '-PQ'
+                elif params_dict['is_educational_requirement']:
+                    pos += '-ER'
                 elif params_dict['is_task_scope']:
                     pos += '-TS'
                 elif params_dict['is_legal_notification']:

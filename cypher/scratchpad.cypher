@@ -11,13 +11,13 @@ RETURN
 ORDER BY fn.percent_fit DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["6ee357c64337b3b2_Associate_Director_Data_Consulting_Remote_Minneapolis_MN_55421_Indeed_com.html"]
+WHERE fn.file_name IN ["1fea112bf6198419_Data_Scientist_Chicago_IL_Indeed_com.html"]
 SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_email_date = date()
 RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
-    fn.file_name IN ["3c12fd2ee4ca9386_Lead_Data_Scientist_Lehi_UT_84043_Indeed_com.html", "c733cdcfb1373458_Sr_Data_Scientist_Lehi_UT_84043_Indeed_com.html", "cf1644fb7a4fb4fa_Senior_Data_Scientist_Lehi_UT_84043_Indeed_com.html", "cf1644fb7a4fb4fa_Sr_Data_Scientist_Lehi_UT_84043_Indeed_com.html"]
+    fn.file_name IN ["4681115_0_CIGNA_Sr_Process_Engineer.html", "4681115_CIGNA_Sr_Process_Engineer.html", "1007945232600_Controls_and_Automation_Engineer_I.html", "Hybrid_Process_Engineer_Data_Scientist_Primary_Talent_Partners_Devens_MA_01434.html"]
     AND fn.opportunity_application_email_date IS NOT NULL
 RETURN
     fn.file_name AS file_name,
@@ -25,15 +25,15 @@ RETURN
 ORDER BY fn.opportunity_application_email_date DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["cf1644fb7a4fb4fa_Sr_Data_Scientist_Lehi_UT_84043_Indeed_com.html", "cf1644fb7a4fb4fa_Senior_Data_Scientist_Lehi_UT_84043_Indeed_com.html"]
+WHERE fn.file_name IN ["769f8e90c65ab457_Data_Scientist_Chantilly_VA_20151_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "At this time, we've made the decision to move forward with other candidates who better fit our current needs.",
+    fn.rejection_email_text = "I hope all is well, I wanted to follow up to inform you that Data Scientist position has been closed.",
     fn.rejection_email_date = date(),
     fn.is_closed = true
 RETURN fn;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["a0cdeb20b89ba401_Data_Scientist_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["c0cbfde3d10e39b6_Experimentation_Data_Scientist_Remote_Indeed_com.html"]
 SET fn.is_closed = true
 RETURN fn;
 
@@ -433,3 +433,28 @@ SET np.is_interview_procedure = "True"
 RETURN
     np.is_header AS is_interview_procedure,
     np.navigable_parent AS navigable_parent;
+
+// Get all the parts-of-speech relationships that haven't been populated
+MATCH (np:NavigableParents)
+WHERE
+    (NOT (np)<-[:SUMMARIZES]-(:PartsOfSpeech))
+    AND (np.is_header IS NOT NULL)
+    AND (np.is_task_scope IS NOT NULL)
+    AND (np.is_minimum_qualification IS NOT NULL)
+    AND (np.is_preferred_qualification IS NOT NULL)
+    AND (np.is_legal_notification IS NOT NULL)
+    AND (np.is_job_title IS NOT NULL)
+    AND (np.is_office_location IS NOT NULL)
+    AND (np.is_job_duration IS NOT NULL)
+    AND (np.is_supplemental_pay IS NOT NULL)
+    AND (np.is_educational_requirement IS NOT NULL)
+    AND (np.is_interview_procedure IS NOT NULL)
+    AND (np.is_corporate_scope IS NOT NULL)
+    AND (np.is_posting_date IS NOT NULL)
+    AND (np.is_other IS NOT NULL)
+RETURN np;
+
+// Get all node types that have the is_qualified property defined
+CALL db.schema.nodeTypeProperties() YIELD nodeType, propertyName
+WHERE propertyName = 'is_qualified'
+RETURN DISTINCT nodeType;

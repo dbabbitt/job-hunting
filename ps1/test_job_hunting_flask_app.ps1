@@ -9,7 +9,7 @@
 
 # Set up global variables
 $RepositoryPath = "job-hunting"
-$EnvironmentName = "jh"
+$EnvironmentName = "jh_env"
 $HomeDirectory = $Env:UserProfile
 $RepositoriesDirectory = "D:\Documents\GitHub"
 $AppName = "flaskr"

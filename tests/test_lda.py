@@ -22,7 +22,7 @@ class TestLdaMethods(unittest.TestCase):
         self.s = Storage()
         
         from ha_utils import HeaderAnalysis
-        self.ha = HeaderAnalysis(verbose=False)
+        self.ha = HeaderAnalysis(s=s, verbose=False)
         
         from scrape_utils import WebScrapingUtilities
         wsu = WebScrapingUtilities()

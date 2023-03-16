@@ -10,14 +10,11 @@
 
 import re
 import os
-from storage import Storage
-
-s = Storage()
 
 class HeaderAnalysis(object):
     """Header analysis class."""
 
-    def __init__(self, verbose=False):
+    def __init__(self, s=None, verbose=False):
         self.verbose = verbose
         self.HTML_SCANNER_REGEX = re.compile(r'</?\w+|\w+[#\+]*|:|\.|\?')
         self.LT_REGEX = re.compile(r'\s+<')
@@ -26,22 +23,27 @@ class HeaderAnalysis(object):
         self.SAVES_HTML_FOLDER = os.path.join(s.saves_folder, 'html')
         import pylab
         self.CMAP = pylab.cm.get_cmap('coolwarm')
-        if s.pickle_exists('CHILDLESS_TAGS_LIST'):
-            self.CHILDLESS_TAGS_LIST = s.load_object('CHILDLESS_TAGS_LIST')
+        if s is None:
+            from storage import Storage
+            self.s = Storage()
+        else:
+            self.s = s
+        if self.s.pickle_exists('CHILDLESS_TAGS_LIST'):
+            self.CHILDLESS_TAGS_LIST = self.s.load_object('CHILDLESS_TAGS_LIST')
         else:
             self.CHILDLESS_TAGS_LIST = ['template', 'script']
-            s.store_objects(CHILDLESS_TAGS_LIST=self.CHILDLESS_TAGS_LIST)
-        if s.pickle_exists('NAVIGABLE_PARENT_IS_HEADER_DICT'):
-            self.NAVIGABLE_PARENT_IS_HEADER_DICT = s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
+            self.s.store_objects(CHILDLESS_TAGS_LIST=self.CHILDLESS_TAGS_LIST)
+        if self.s.pickle_exists('NAVIGABLE_PARENT_IS_HEADER_DICT'):
+            self.NAVIGABLE_PARENT_IS_HEADER_DICT = self.s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
         else:
             assert False, "You're in deep doodoo: you lost your basic tags dictionary"
             self.NAVIGABLE_PARENT_IS_HEADER_DICT = {}
-            s.store_objects(NAVIGABLE_PARENT_IS_HEADER_DICT=self.NAVIGABLE_PARENT_IS_HEADER_DICT)
-        if s.pickle_exists('NAVIGABLE_PARENT_IS_QUAL_DICT'):
-            self.NAVIGABLE_PARENT_IS_QUAL_DICT = s.load_object('NAVIGABLE_PARENT_IS_QUAL_DICT')
+            self.s.store_objects(NAVIGABLE_PARENT_IS_HEADER_DICT=self.NAVIGABLE_PARENT_IS_HEADER_DICT)
+        if self.s.pickle_exists('NAVIGABLE_PARENT_IS_QUAL_DICT'):
+            self.NAVIGABLE_PARENT_IS_QUAL_DICT = self.s.load_object('NAVIGABLE_PARENT_IS_QUAL_DICT')
         else:
             self.NAVIGABLE_PARENT_IS_QUAL_DICT = {}
-            s.store_objects(NAVIGABLE_PARENT_IS_QUAL_DICT=self.NAVIGABLE_PARENT_IS_QUAL_DICT)
+            self.s.store_objects(NAVIGABLE_PARENT_IS_QUAL_DICT=self.NAVIGABLE_PARENT_IS_QUAL_DICT)
 
     def html_regex_tokenizer(self, corpus):
 
@@ -56,21 +58,21 @@ class HeaderAnalysis(object):
         return html_str
 
     def store_unique_list(self, list_name, tag_str):
-        if s.pickle_exists(list_name):
-            list_obj = s.load_object(list_name)
+        if self.s.pickle_exists(list_name):
+            list_obj = self.s.load_object(list_name)
         else:
             list_obj = []
         list_obj.append(tag_str)
         list_obj = list(set(list_obj))
-        s.store_objects(**{list_name: list_obj})
+        self.s.store_objects(**{list_name: list_obj})
 
     def store_true_or_false_dictionary(self, dict_name, tag_str, true_or_false=False):
-        if s.pickle_exists(dict_name):
-            dict_obj = s.load_object(dict_name)
+        if self.s.pickle_exists(dict_name):
+            dict_obj = self.s.load_object(dict_name)
         else:
             dict_obj = {}
         dict_obj[tag_str] = true_or_false
-        s.store_objects(**{dict_name: dict_obj})
+        self.s.store_objects(**{dict_name: dict_obj})
 
     def get_navigable_children(self, tag, result_list=[]):
         from bs4.element import NavigableString

@@ -21,7 +21,7 @@ class TestCuMethods(unittest.TestCase):
         sys.path.insert(1, '../py')
         
         from ha_utils import HeaderAnalysis
-        self.ha = HeaderAnalysis(verbose=False)
+        self.ha = HeaderAnalysis(s=s, verbose=False)
         
         from scrape_utils import WebScrapingUtilities
         wsu = WebScrapingUtilities()

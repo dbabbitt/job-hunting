@@ -22,7 +22,7 @@ class TestHcMethods(unittest.TestCase):
         self.s = Storage()
         
         from ha_utils import HeaderAnalysis
-        self.ha = HeaderAnalysis(verbose=False)
+        self.ha = HeaderAnalysis(s=s, verbose=False)
         
         from scrape_utils import WebScrapingUtilities
         wsu = WebScrapingUtilities()
@@ -61,7 +61,7 @@ class TestHcMethods(unittest.TestCase):
             'is_legal_notifs': False, 'is_job_title': False, 'is_office_loc': True, 'is_job_duration': False, 'is_supp_pay': False,
             'is_educ_reqs': False, 'is_interv_proc': False, 'is_corp_scope': False, 'is_post_date': False, 'is_other': False,
             'child_str': '<p>Work Remotely:</p>'}
-        self.assertEqual(self.hc.get_feature_tuple(feature_dict), ('p', '<p>Work Remotely:</p>', 'H-OL'))
+        self.assertEqual(self.hc.get_feature_tuple(feature_dict, pos_lr_predict_single=None, pos_crf_predict_single=None), ('p', '<p>Work Remotely:</p>', 'H-OL'))
     
     def test_get_feature_dict_list(self):
         child_tags_list = ['b', 'p', 'p', 'b', 'li', 'li', 'li', 'li', 'li', 'li', 'li', 'b', 'li', 'li',

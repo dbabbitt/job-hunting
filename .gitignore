@@ -229,3 +229,5 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
+py/crf_utils_old.py
+ps1/test.ps1

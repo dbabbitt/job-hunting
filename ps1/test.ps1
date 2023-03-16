@@ -10,7 +10,7 @@
 [string]$HomeDirectory = "${Env:UserProfile}"
 [string]$RepositoriesDirectory = "D:\Documents\GitHub"
 [string]$RepositoryPath = "job-hunting"
-[string]$EnvironmentName = "jh"
+[string]$EnvironmentName = "jh_env"
 
 ."${RepositoriesDirectory}\${RepositoryPath}\ps1\function_definitions.ps1"
 

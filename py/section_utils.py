@@ -25,7 +25,7 @@ class SectionUtilities(object):
         
         if ha is None:
             from ha_utils import HeaderAnalysis
-            self.ha = HeaderAnalysis(verbose=verbose)
+            self.ha = HeaderAnalysis(s=self.s, verbose=verbose)
         else:
             self.ha = ha
         
@@ -118,8 +118,10 @@ class SectionUtilities(object):
         return child_str
 
 
-    def find_basic_quals_section_indexes(self, crf_list=None, feature_tuple_list=None, feature_dict_list=None, child_strs_list=None,
-                                         child_tags_list=None, file_name=None, verbose=False):
+    def find_basic_quals_section_indexes(
+        self, crf_list=None, feature_tuple_list=None, feature_dict_list=None,
+        child_strs_list=None, child_tags_list=None, file_name=None, verbose=False
+    ):
         if crf_list is None:
             from hc_utils import HeaderCategories
             hc = HeaderCategories(cu=self.cu, verbose=False)
@@ -132,7 +134,7 @@ class SectionUtilities(object):
                 if feature_dict_list is None:
                     if child_strs_list is None:
                         if file_name is None:
-                            files_list = files_list = sorted([fn for fn in os.listdir(self.cu.SAVES_HTML_FOLDER) if fn.endswith('.html')])
+                            files_list = sorted([fn for fn in os.listdir(self.cu.SAVES_HTML_FOLDER) if fn.endswith('.html')])
                             file_name = random.choice(files_list)
                         child_strs_list = self.ha.get_child_strs_from_file(file_name=file_name)
                     if child_tags_list is None:
@@ -146,8 +148,21 @@ class SectionUtilities(object):
                         is_header_list.append(is_header)
                     feature_dict_list = hc.get_feature_dict_list(child_tags_list, is_header_list, child_strs_list)
                 feature_tuple_list = []
+                if hasattr(self.lru, 'POS_PREDICT_PERCENT_FIT_DICT'):
+                    pos_lr_predict_single = self.lru.pos_lr_predict_single
+                else:
+                    pos_lr_predict_single = self.crf.get_pos_lr_predict_single_from_api
+                if hasattr(self.crf, 'pos_crf_predict_single'):
+                    pos_crf_predict_single = self.crf.pos_crf_predict_single
+                else:
+                    pos_crf_predict_single = self.crf.get_pos_crf_predict_single_from_api
                 for feature_dict in feature_dict_list:
-                    feature_tuple_list.append(hc.get_feature_tuple(feature_dict, self.lru.pos_lr_predict_single))
+                    feature_tuple_list.append(
+                        hc.get_feature_tuple(
+                            feature_dict, pos_lr_predict_single=pos_lr_predict_single,
+                            pos_crf_predict_single=pos_crf_predict_single
+                        )
+                    )
             crf_list = self.crf.CRF.predict_single(
                 self.crf.sent2features(feature_tuple_list)
             )
@@ -239,7 +254,9 @@ class SectionUtilities(object):
         assert all([isinstance(qual_str, str) for qual_str in quals_list]), f'Error in print_fit_job:\nquals_list = {quals_list}\nrow_series:\n{row_series}'
         if lru is None:
             lru = self.lru
-        prediction_list = list(lru.predict_job_hunt_percent_fit(quals_list))
+        prediction_list = list(lru.predict_job_hunt_percent_fit(
+            quals_list, verbose=verbose
+        ))
         quals_str, qual_count = lru.get_quals_str(prediction_list, quals_list)
         if len(prediction_list):
             job_fitness = qual_count/len(prediction_list)
@@ -281,11 +298,12 @@ class SectionUtilities(object):
         if len(jk_str):
             file_name = f'{jk_str}_{file_name}.html'
         else:
-            # file_name = datetime.now().strftime('%Y%m%d%H%M%S%f') + f'_{file_name}.html'
             file_name = f'{file_name}.html'
         file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, file_name)
         file_node_dict['file_name'] = file_name
         if not os.path.isfile(file_path):
+            
+            # Save the HTML to the file
             with open(file_path, 'w', encoding=self.s.encoding_type) as f:
                 if verbose:
                     print(f'Saving to {file_path}')
@@ -296,6 +314,14 @@ class SectionUtilities(object):
                 for div_soup in row_div_list:
                     f.write(str(div_soup))
                 f.write('</body></html>')
+            
+            # Delete the svg tags for easier viewing
+            with open(file_path, 'r', encoding=self.s.encoding_type) as f:
+                html_str = f.read()
+            html_str = re.sub('<svg[^>]*>(<path[^>]*></path>)+</svg>', '', html_str)
+            with open(file_path, 'w', encoding=self.s.encoding_type) as f:
+                f.write(html_str)
+            
             files_list.append(file_name)
         self.cu.ensure_filename(file_name, verbose=False)
         file_node_dict.update(self.cu.set_posting_url(file_name, viewjob_url, verbose=verbose))

@@ -39,7 +39,7 @@ X = []
 y = []
 for file_name, feature_dict_list in HEADER_PATTERN_DICT.items():
     X.append(feature_dict_list)
-    pos_list = [hc.get_feature_tuple(feature_dict)[2] for feature_dict in feature_dict_list]
+    pos_list = [hc.get_feature_tuple(feature_dict, pos_lr_predict_single=None, pos_crf_predict_single=None)[2] for feature_dict in feature_dict_list]
     y.append(pos_list)
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, random_state=101)
 

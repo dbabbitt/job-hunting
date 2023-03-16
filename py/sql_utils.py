@@ -1057,7 +1057,7 @@ class SqlUtilities(object):
 		child_tags_list = self.get_child_tags_list(cursor, child_strs_list)
 		is_header_list = self.get_is_header_list(cursor, child_strs_list)
 		feature_dict_list = self.get_feature_dict_list(cursor, child_tags_list, child_strs_list)
-		feature_tuple_list = [hc.get_feature_tuple(feature_dict) for feature_dict in feature_dict_list]
+		feature_tuple_list = [hc.get_feature_tuple(feature_dict, pos_lr_predict_single=None, pos_crf_predict_single=None) for feature_dict in feature_dict_list]
 		
 		crf_list = ea.CRF.predict_single(ea.sent2features(feature_tuple_list))
 		pos_list = []
