@@ -75,12 +75,6 @@ saves/csv/mrc_df.csv
 cypher/neo4j_job_hunting_export.cypher
 cypher/neo4j_job_hunting_export_import.cypher
 cypher/neo4j_job_hunting_import.cypher
-flaskr/saves/pkl/estimators_list.pkl
-flaskr/saves/pkl/FIT_ESTIMATORS_DICT.pkl
-flaskr/saves/pkl/fit_estimators_list.pkl
-flaskr/saves/pkl/GLOVE_BIG.pkl
-flaskr/saves/pkl/GLOVE_SMALL.pkl
-flaskr/saves/pkl/GN300_MODEL.pkl
 
 # Exclude executables
 *.exe
@@ -98,6 +92,7 @@ saves/pkl/GN300_MODEL.pkl
 saves/pkl/JAYZ_*
 saves/pkl/DAVEZ_*
 saves/pkl/davez_*
+flaskr/saves/pkl/*.pkl
 
 # Exclude Mac, Jupyter, R, and Octave admin files
 **/octave-workspace
@@ -245,3 +240,4 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
+flaskr/static/style.css
