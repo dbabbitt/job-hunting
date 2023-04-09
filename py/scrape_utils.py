@@ -39,11 +39,7 @@ class WebScrapingUtilities(object):
     """
     
     def __init__(self, s=None, secrets_json_path=None, verbose=False):
-        if s is None:
-            from storage import Storage
-            self.s = Storage()
-        else:
-            self.s = s
+        self.s = s
         
         # Get secrets json
         if secrets_json_path is None:
@@ -394,8 +390,10 @@ class WebScrapingUtilities(object):
                            field_value=self.secrets_json['indeed']['email'],
                            input_css='#ifl-InputFormField-3',
                            verbose=verbose)
-        button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form/button'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        # button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form/button'
+        # self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        button_css = 'button.i-unmask > span:nth-child(1)'
+        self.click_by_css(driver, button_css, wait=10, verbose=verbose)
         
         # Look for password field
         link_xpath = '//*[@id="auth-page-google-password-fallback"]'

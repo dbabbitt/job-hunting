@@ -1057,7 +1057,7 @@ class SqlUtilities(object):
 		child_tags_list = self.get_child_tags_list(cursor, child_strs_list)
 		is_header_list = self.get_is_header_list(cursor, child_strs_list)
 		feature_dict_list = self.get_feature_dict_list(cursor, child_tags_list, child_strs_list)
-		feature_tuple_list = [hc.get_feature_tuple(feature_dict, pos_lr_predict_single=None, pos_crf_predict_single=None) for feature_dict in feature_dict_list]
+		feature_tuple_list = [hc.get_feature_tuple(feature_dict, pos_lr_predict_single=None, pos_crf_predict_single=None, pos_sgd_predict_single=None) for feature_dict in feature_dict_list]
 		
 		crf_list = ea.CRF.predict_single(ea.sent2features(feature_tuple_list))
 		pos_list = []
@@ -1296,8 +1296,8 @@ class SqlUtilities(object):
 		req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.astype('bool')
 		
 		# Initialize and populate the req quals list
-		REQ_QUALS_HEADERS_LIST = req_quals_df[req_quals_df.is_minimum_qualification].navigable_parent.tolist()
-		self.s.store_objects(REQ_QUALS_HEADERS_LIST=REQ_QUALS_HEADERS_LIST, verbose=verbose)
+		MINIMUM_QUALIFICATION_HEADERS_LIST = req_quals_df[req_quals_df.is_minimum_qualification].navigable_parent.tolist()
+		self.s.store_objects(MINIMUM_QUALIFICATION_HEADERS_LIST=MINIMUM_QUALIFICATION_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_o_rq_pickle(self, cursor, verbose=False):
@@ -1371,8 +1371,8 @@ class SqlUtilities(object):
 		preff_quals_df.is_preferred_qualification = preff_quals_df.is_preferred_qualification.astype('bool')
 		
 		# Initialize and populate the preff quals list
-		PREFF_QUALS_HEADERS_LIST = preff_quals_df[preff_quals_df.is_preferred_qualification].navigable_parent.tolist()
-		self.s.store_objects(PREFF_QUALS_HEADERS_LIST=PREFF_QUALS_HEADERS_LIST, verbose=verbose)
+		PREFERRED_QUALIFICATION_HEADERS_LIST = preff_quals_df[preff_quals_df.is_preferred_qualification].navigable_parent.tolist()
+		self.s.store_objects(PREFERRED_QUALIFICATION_HEADERS_LIST=PREFERRED_QUALIFICATION_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_legal_notifs_pickle(self, cursor, verbose=False):
@@ -1388,8 +1388,8 @@ class SqlUtilities(object):
 		legal_notifs_df.is_legal_notification = legal_notifs_df.is_legal_notification.astype('bool')
 		
 		# Initialize and populate the legal notifs list
-		LEGAL_NOTIFS_HEADERS_LIST = legal_notifs_df[legal_notifs_df.is_legal_notification].navigable_parent.tolist()
-		self.s.store_objects(LEGAL_NOTIFS_HEADERS_LIST=LEGAL_NOTIFS_HEADERS_LIST, verbose=verbose)
+		LEGAL_NOTIFICATION_HEADERS_LIST = legal_notifs_df[legal_notifs_df.is_legal_notification].navigable_parent.tolist()
+		self.s.store_objects(LEGAL_NOTIFICATION_HEADERS_LIST=LEGAL_NOTIFICATION_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_job_title_pickle(self, cursor, verbose=False):
@@ -1422,8 +1422,8 @@ class SqlUtilities(object):
 		office_loc_df.is_office_location = office_loc_df.is_office_location.astype('bool')
 		
 		# Initialize and populate the office location list
-		OFFICE_LOC_HEADERS_LIST = office_loc_df[office_loc_df.is_office_location].navigable_parent.tolist()
-		self.s.store_objects(OFFICE_LOC_HEADERS_LIST=OFFICE_LOC_HEADERS_LIST, verbose=verbose)
+		OFFICE_LOCATION_HEADERS_LIST = office_loc_df[office_loc_df.is_office_location].navigable_parent.tolist()
+		self.s.store_objects(OFFICE_LOCATION_HEADERS_LIST=OFFICE_LOCATION_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_job_duration_pickle(self, cursor, verbose=False):
@@ -1456,8 +1456,8 @@ class SqlUtilities(object):
 		supp_pay_df.is_supplemental_pay = supp_pay_df.is_supplemental_pay.astype('bool')
 		
 		# Initialize and populate the supplemental pay list
-		SUPP_PAY_HEADERS_LIST = supp_pay_df[supp_pay_df.is_supplemental_pay].navigable_parent.tolist()
-		self.s.store_objects(SUPP_PAY_HEADERS_LIST=SUPP_PAY_HEADERS_LIST, verbose=verbose)
+		SUPPLEMENTAL_PAY_HEADERS_LIST = supp_pay_df[supp_pay_df.is_supplemental_pay].navigable_parent.tolist()
+		self.s.store_objects(SUPPLEMENTAL_PAY_HEADERS_LIST=SUPPLEMENTAL_PAY_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_educ_reqs_pickle(self, cursor, verbose=False):
@@ -1473,8 +1473,8 @@ class SqlUtilities(object):
 		educ_reqs_df.is_educational_requirement = educ_reqs_df.is_educational_requirement.astype('bool')
 		
 		# Initialize and populate the educational requirements list
-		EDUC_REQS_HEADERS_LIST = educ_reqs_df[educ_reqs_df.is_educational_requirement].navigable_parent.tolist()
-		self.s.store_objects(EDUC_REQS_HEADERS_LIST=EDUC_REQS_HEADERS_LIST, verbose=verbose)
+		EDUCATIONAL_REQUIREMENT_HEADERS_LIST = educ_reqs_df[educ_reqs_df.is_educational_requirement].navigable_parent.tolist()
+		self.s.store_objects(EDUCATIONAL_REQUIREMENT_HEADERS_LIST=EDUCATIONAL_REQUIREMENT_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_interv_proc_pickle(self, cursor, verbose=False):
@@ -1490,8 +1490,8 @@ class SqlUtilities(object):
 		interv_proc_df.is_interview_procedure = interv_proc_df.is_interview_procedure.astype('bool')
 		
 		# Initialize and populate the interview procedure list
-		INTERV_PROC_HEADERS_LIST = interv_proc_df[interv_proc_df.is_interview_procedure].navigable_parent.tolist()
-		self.s.store_objects(INTERV_PROC_HEADERS_LIST=INTERV_PROC_HEADERS_LIST, verbose=verbose)
+		INTERVIEW_PROCEDURE_HEADERS_LIST = interv_proc_df[interv_proc_df.is_interview_procedure].navigable_parent.tolist()
+		self.s.store_objects(INTERVIEW_PROCEDURE_HEADERS_LIST=INTERVIEW_PROCEDURE_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_corp_scope_pickle(self, cursor, verbose=False):
@@ -1507,8 +1507,8 @@ class SqlUtilities(object):
 		corp_scope_df.is_corporate_scope = corp_scope_df.is_corporate_scope.astype('bool')
 		
 		# Initialize and populate the corporate scope list
-		CORP_SCOPE_HEADERS_LIST = corp_scope_df[corp_scope_df.is_corporate_scope].navigable_parent.tolist()
-		self.s.store_objects(CORP_SCOPE_HEADERS_LIST=CORP_SCOPE_HEADERS_LIST, verbose=verbose)
+		CORPORATE_SCOPE_HEADERS_LIST = corp_scope_df[corp_scope_df.is_corporate_scope].navigable_parent.tolist()
+		self.s.store_objects(CORPORATE_SCOPE_HEADERS_LIST=CORPORATE_SCOPE_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_post_date_pickle(self, cursor, verbose=False):
@@ -1524,8 +1524,8 @@ class SqlUtilities(object):
 		post_date_df.is_posting_date = post_date_df.is_posting_date.astype('bool')
 		
 		# Initialize and populate the posting date list
-		POST_DATE_HEADERS_LIST = post_date_df[post_date_df.is_posting_date].navigable_parent.tolist()
-		self.s.store_objects(POST_DATE_HEADERS_LIST=POST_DATE_HEADERS_LIST, verbose=verbose)
+		POSTING_DATE_HEADERS_LIST = post_date_df[post_date_df.is_posting_date].navigable_parent.tolist()
+		self.s.store_objects(POSTING_DATE_HEADERS_LIST=POSTING_DATE_HEADERS_LIST, verbose=verbose)
 	
 	
 	def create_other_pickle(self, cursor, verbose=False):

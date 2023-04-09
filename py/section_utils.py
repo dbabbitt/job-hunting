@@ -16,48 +16,66 @@ import os
 class SectionUtilities(object):
     """Section class."""
 
-    def __init__(self, s=None, ha=None, wsu=None, cu=None, hc=None, crf=None, verbose=False):
-        if s is None:
-            from storage import Storage
-            self.s = Storage()
-        else:
-            self.s = s
-        
-        if ha is None:
-            from ha_utils import HeaderAnalysis
-            self.ha = HeaderAnalysis(s=self.s, verbose=verbose)
-        else:
-            self.ha = ha
-        
-        if wsu is None:
-            from scrape_utils import WebScrapingUtilities
-            self.wsu = WebScrapingUtilities()
-        else:
-            self.wsu = wsu
-        
-        if cu is None:
-            from cypher_utils import CypherUtilities
-            uri = self.wsu.secrets_json['neo4j']['connect_url']
-            user =  self.wsu.secrets_json['neo4j']['username']
-            password = self.wsu.secrets_json['neo4j']['password']
-            self.cu = CypherUtilities(uri=uri, user=user, password=password, driver=None, s=self.s, ha=self.ha)
-        else:
-            self.cu = cu
-        
-        if hc is None:
-            from hc_utils import HeaderCategories
-            self.hc = HeaderCategories(cu=self.cu, verbose=verbose)
-        else:
-            self.hc = hc
-        
+    def __init__(
+        self, wsu=None, ihu=None, hc=None, crf=None,
+        slrcu=None, scrfcu=None, ssgdcu=None, verbose=False
+    ):
+        self.wsu = wsu
+        self.ihu = ihu
+        self.hc = hc
         self.crf = crf
-        if self.crf is not None:
-            if hasattr(self.crf, 'lru'):
-                self.lru = self.crf.lru
-            else:
-                self.lru = None
+        
+        # Seek a SectionLRClassifierUtilities object
+        if self.crf and hasattr(self.crf, 'slrcu'):
+            self.slrcu = self.crf.slrcu
+        else:
+            self.slrcu = slrcu
+        
+        self.scrfcu = scrfcu
+        self.ssgdcu = ssgdcu
+        
+        # Seek a CypherUtilities object
+        if self.ihu and hasattr(self.ihu, 'cu'):
+            self.cu = self.ihu.cu
+        elif self.hc and hasattr(self.hc, 'cu'):
+            self.cu = self.hc.cu
+        elif self.crf and hasattr(self.crf, 'cu'):
+            self.cu = self.crf.cu
+        elif self.slrcu and hasattr(self.slrcu, 'cu'):
+            self.cu = self.slrcu.cu
+        else:
+            self.cu = None
+        
+        # Seek a HeaderAnalysis object
+        if self.ihu and hasattr(self.ihu, 'ha'):
+            self.ha = self.ihu.ha
+        elif self.crf and hasattr(self.crf, 'ha'):
+            self.ha = self.crf.ha
+        elif self.slrcu and hasattr(self.slrcu, 'ha'):
+            self.ha = self.slrcu.ha
+        elif self.cu and hasattr(self.cu, 'ha'):
+            self.ha = self.cu.ha
+        else:
+            self.ha = None
+        
+        # Seek a Storage object
+        if self.wsu and hasattr(self.wsu, 's'):
+            self.s = self.wsu.s
+        elif self.cu and hasattr(self.cu, 's'):
+            self.s = self.cu.s
+        elif self.ha and hasattr(self.ha, 's'):
+            self.s = self.ha.s
+        elif self.crf and hasattr(self.crf, 's'):
+            self.s = self.crf.s
+        else:
+            self.s = None
+        
+        # Seek an LrUtilities object
+        if self.crf and hasattr(self.crf, 'lru'):
+            self.lru = self.crf.lru
         else:
             self.lru = None
+        
         self.ascii_regex = re.compile('[^A-Za-z0-9]+')
     
     
@@ -128,9 +146,10 @@ class SectionUtilities(object):
             if feature_tuple_list is None:
                 if self.lru is None:
                     from lr_utils import LrUtilities
-                    self.lru = LrUtilities(ha=self.ha, hc=hc, cu=self.cu, verbose=False)
-                    self.lru.build_isheader_logistic_regression_elements()
-                    self.lru.build_pos_logistic_regression_elements()
+                    self.lru = LrUtilities(
+                        ha=self.ha, hc=hc, cu=self.cu, verbose=False
+                    )
+                    self.slrcu.build_pos_logistic_regression_elements()
                 if feature_dict_list is None:
                     if child_strs_list is None:
                         if file_name is None:
@@ -139,30 +158,50 @@ class SectionUtilities(object):
                         child_strs_list = self.ha.get_child_strs_from_file(file_name=file_name)
                     if child_tags_list is None:
                         child_tags_list = self.ha.get_child_tags_list(child_strs_list)
-                    is_header_list = []
-                    for is_header, child_str in zip(self.ha.get_is_header_list(child_strs_list), child_strs_list):
-                        if is_header is None:
-                            probs_list = self.lru.ISHEADER_PREDICT_PERCENT_FIT(child_str)
-                            idx = probs_list.index(max(probs_list))
-                            is_header = [True, False][idx]
-                        is_header_list.append(is_header)
-                    feature_dict_list = hc.get_feature_dict_list(child_tags_list, is_header_list, child_strs_list)
-                feature_tuple_list = []
-                if hasattr(self.lru, 'POS_PREDICT_PERCENT_FIT_DICT'):
-                    pos_lr_predict_single = self.lru.pos_lr_predict_single
-                else:
-                    pos_lr_predict_single = self.crf.get_pos_lr_predict_single_from_api
-                if hasattr(self.crf, 'pos_crf_predict_single'):
-                    pos_crf_predict_single = self.crf.pos_crf_predict_single
-                else:
-                    pos_crf_predict_single = self.crf.get_pos_crf_predict_single_from_api
-                for feature_dict in feature_dict_list:
-                    feature_tuple_list.append(
-                        hc.get_feature_tuple(
-                            feature_dict, pos_lr_predict_single=pos_lr_predict_single,
-                            pos_crf_predict_single=pos_crf_predict_single
-                        )
+                    feature_dict_list = self.cu.get_feature_dict_list(
+                        child_tags_list, child_strs_list, verbose=verbose
                     )
+                feature_tuple_list = []
+                
+                # Seek a SectionLRClassifierUtilities object
+                if hasattr(self.slrcu, 'pos_predict_percent_fit_dict'):
+                    pos_lr_predict_single = self.slrcu.predict_single
+                    if verbose:
+                        print('slrcu.predict_single is now available')
+                # elif self.crf.is_flask_running():
+                    # pos_lr_predict_single = self.crf.get_pos_lr_predict_single_from_api
+                else:
+                    pos_lr_predict_single = None
+                
+                # Seek a SectionCRFClassifierUtilities object
+                if self.scrfcu:
+                    pos_crf_predict_single = self.scrfcu.predict_single
+                    if verbose:
+                        print('scrfcu.predict_single is now available')
+                # elif self.crf.is_flask_running():
+                    # pos_crf_predict_single = self.crf.get_pos_crf_predict_single_from_api
+                else:
+                    pos_crf_predict_single = None
+                
+                # Seek a SectionSGDClassifierUtilities object
+                if self.ssgdcu:
+                    pos_sgd_predict_single = self.ssgdcu.predict_single
+                    if verbose:
+                        print('ssgdcu.predict_single is now available')
+                # elif self.crf.is_flask_running():
+                    # pos_sgd_predict_single = self.crf.get_pos_sgd_predict_single_from_api
+                else:
+                    pos_sgd_predict_single = None
+                
+                for feature_dict in feature_dict_list:
+                    feature_tuple = hc.get_feature_tuple(
+                        feature_dict, pos_lr_predict_single=pos_lr_predict_single,
+                        pos_crf_predict_single=pos_crf_predict_single,
+                        pos_sgd_predict_single=pos_sgd_predict_single
+                    )
+                    if len(feature_tuple) < 3:
+                        print(feature_dict)
+                    feature_tuple_list.append(feature_tuple)
             crf_list = self.crf.CRF.predict_single(
                 self.crf.sent2features(feature_tuple_list)
             )
@@ -224,17 +263,19 @@ class SectionUtilities(object):
         job_fitness = 0.0
         file_name = row_series.file_name
         child_strs_list = self.ha.get_child_strs_from_file(file_name=file_name)
+        if lru is None:
+            lru = self.lru
         indices_list = self.find_basic_quals_section_indexes(
-            child_strs_list=child_strs_list, file_name=file_name
+            child_strs_list=child_strs_list, file_name=file_name, verbose=False
         )
-        assert indices_list, f"Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)"
+        assert indices_list, f"Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)\n## OR, edit the file directly then run this: ##\ncu.rebuild_filename_node(file_name, wsu, verbose=True)"
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
         sentence_regex = re.compile(r'[•➢\*]|\.(?!\w)')
         quals_set = set()
         fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.',
-                           'U.S.', 'i.e.', '&amp;', 'E.g.', 'Bsc.', 'MSc.']
+                           'U.S.', 'i.e.', '&amp;', 'E.g.', 'Bsc.', 'MSc.', 'incl.']
         replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US',
-                             'ie', '&', 'eg', 'BS', 'MS']
+                             'ie', '&', 'eg', 'BS', 'MS', 'include']
         for qual in prequals_list:
             qual = re.sub('<([a-z][a-z0-9]*)[^<>]*>', r'<\g<1>>', qual.strip(), 0, re.MULTILINE)
             for fake_stop, replacement in zip(fake_stops_list, replacements_list):
@@ -252,8 +293,6 @@ class SectionUtilities(object):
                 quals_set.add(qual)
         quals_list = list(quals_set)
         assert all([isinstance(qual_str, str) for qual_str in quals_list]), f'Error in print_fit_job:\nquals_list = {quals_list}\nrow_series:\n{row_series}'
-        if lru is None:
-            lru = self.lru
         prediction_list = list(lru.predict_job_hunt_percent_fit(
             quals_list, verbose=verbose
         ))
@@ -273,7 +312,9 @@ class SectionUtilities(object):
         
         return quals_list, job_fitness
     
-    def load_indeed_posting_url(self, viewjob_url, driver=None, jk_str=None, files_list=[], verbose=True):
+    def load_indeed_posting_url(
+        self, viewjob_url, driver=None, jk_str=None, files_list=[], verbose=True
+    ):
         file_node_dict = {}
         if jk_str is None:
             from urllib.parse import urlparse, parse_qs

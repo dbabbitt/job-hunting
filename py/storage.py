@@ -8,9 +8,12 @@
 
 
 try:
-    import pickle5 as pickle
+    import dill as pickle
 except:
-    import pickle
+    try:
+        import pickle5 as pickle
+    except:
+        import pickle
 import pandas as pd
 import os
 import sys
@@ -164,8 +167,8 @@ class Storage(object):
     # Classes, functions, and methods cannot be pickled
     def store_objects(self, verbose=True, **kwargs):
         for obj_name in kwargs:
-            if hasattr(kwargs[obj_name], '__call__'):
-                raise RuntimeError('Functions cannot be pickled.')
+            # if hasattr(kwargs[obj_name], '__call__'):
+                # raise RuntimeError('Functions cannot be pickled.')
             pickle_path = os.path.join(self.saves_pickle_folder, '{}.pkl'.format(obj_name))
             if isinstance(kwargs[obj_name], pd.DataFrame):
                 self.attempt_to_pickle(kwargs[obj_name], pickle_path, raise_exception=False, verbose=verbose)
@@ -201,3 +204,39 @@ class Storage(object):
                 print(e, ": Couldn't save {:,} cells as a pickle.".format(df.shape[0]*df.shape[1]))
             if raise_exception:
                 raise
+    
+    def store_dir_tree(self, module_name, prefix_str='', max_level=3, verbose=False):
+        if max_level==0:
+            
+            return None
+        param_name = f'{prefix_str}{module_name}'
+        successfully_pickled = True
+        try:
+            s.store_objects(**{param_name: eval(param_name)}, verbose=False)
+        except Exception as e:
+            # print(f'Pickling the module {param_name} gets a {e.__class__} error: {str(e).strip()}')
+            successfully_pickled = False
+        if successfully_pickled:
+            if verbose:
+                pickle_path = os.path.join(s.saves_pickle_folder, f'{param_name}.pkl')
+                print(f'Pickling to {os.path.abspath(pickle_path)}')
+        else:
+            try:
+                if verbose:
+                    print(param_name, type(eval(param_name)))
+            except Exception as e:
+                pass
+            base_eval_str = f"[f'{param_name}.{{fn}}' for fn in dir({param_name}) if not fn.startswith('_')]"
+            base_dir_list = []
+            try:
+                base_dir_list = eval(base_eval_str)
+            except Exception as e:
+                # print(f'The evaluated list {base_eval_str} gets a {e.__class__} error: {str(e).strip()}')
+                pass
+            for sub_obj in base_dir_list:
+
+                # Check the type of the object
+                if type(eval(sub_obj)) not in [
+                    type(ihu.build_pos_stochastic_gradient_descent_elements), type(None), float, bool, type(ihu.classifier.classes_), str, dict, int, set
+                ]:
+                    self.store_dir_tree(sub_obj, prefix_str=f'', max_level=max_level-1, verbose=verbose)
