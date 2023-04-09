@@ -1,4 +1,6 @@
 
+# Run this in a PowerShell window:
+# 
 # cd $Env:UserProfile\OneDrive\Documents\GitHub\job-hunting\ps1
 # cls
 # .\launch_job_hunting_flask_app.ps1
