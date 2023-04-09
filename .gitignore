@@ -243,3 +243,4 @@ package.json
 serverless.yml
 py/crf_utils_new.py
 py/crf_utils_old2.py
+explorations/Brainstorming_Story_Ideas_with_Cohere_and_Stable_Diffusion.ipynb
