@@ -24,16 +24,18 @@ class TestCuMethods(unittest.TestCase):
         self.ha = HeaderAnalysis(s=s, verbose=False)
         
         from scrape_utils import WebScrapingUtilities
-        wsu = WebScrapingUtilities()
-        uri = wsu.secrets_json['neo4j']['connect_url']
-        user =  wsu.secrets_json['neo4j']['username']
-        password = wsu.secrets_json['neo4j']['password']
+        self.wsu = WebScrapingUtilities()
+        uri = self.wsu.secrets_json['neo4j']['connect_url']
+        user =  self.wsu.secrets_json['neo4j']['username']
+        password = self.wsu.secrets_json['neo4j']['password']
         
         from storage import Storage
         self.s = Storage()
         
         from cypher_utils import CypherUtilities
-        self.cu = CypherUtilities(uri=uri, user=user, password=password, driver=None, s=self.s, ha=self.ha)
+        self.cu = CypherUtilities(
+            uri=uri, user=user, password=password, driver=None, s=self.s, ha=self.ha
+        )
         
         from hc_utils import HeaderCategories
         self.hc = HeaderCategories(cu=self.cu, verbose=False)
@@ -55,38 +57,61 @@ class TestCuMethods(unittest.TestCase):
             os.remove(self.test_file_path)
     
     def test_get_child_tags_list1(self):
-        self.assertEqual(self.cu.get_child_tags_list(self.test_child_strs_list1), self.ha.get_child_tags_list(self.test_child_strs_list1))
+        self.assertEqual(
+            self.cu.get_child_tags_list(self.test_child_strs_list1),
+            self.ha.get_child_tags_list(self.test_child_strs_list1)
+        )
         
     def test_get_child_tags_list2(self):
-        self.assertEqual(self.cu.get_child_tags_list(self.test_child_strs_list2), self.ha.get_child_tags_list(self.test_child_strs_list2))
+        self.assertEqual(
+            self.cu.get_child_tags_list(self.test_child_strs_list2),
+            self.ha.get_child_tags_list(self.test_child_strs_list2)
+        )
     
     def test_get_is_header_list1(self):
-        self.assertEqual(self.cu.get_is_header_list(self.test_child_strs_list1), self.ha.get_is_header_list(self.test_child_strs_list1))
+        self.assertEqual(
+            self.cu.get_is_header_list(self.test_child_strs_list1),
+            self.ha.get_is_header_list(self.test_child_strs_list1)
+        )
         
     def test_get_is_header_list2(self):
-        self.assertEqual(self.cu.get_is_header_list(self.test_child_strs_list2), self.ha.get_is_header_list(self.test_child_strs_list2))
+        self.assertEqual(
+            self.cu.get_is_header_list(self.test_child_strs_list2),
+            self.ha.get_is_header_list(self.test_child_strs_list2)
+        )
     
     def test_get_feature_dict_list1(self):
         child_tags_list1 = self.cu.get_child_tags_list(self.test_child_strs_list1)
         is_header_list1 = self.cu.get_is_header_list(self.test_child_strs_list1)
-        self.assertEqual(self.cu.get_feature_dict_list(child_tags_list1, self.test_child_strs_list1),
-                         self.hc.get_feature_dict_list(child_tags_list1, is_header_list1, self.test_child_strs_list1))
+        self.assertEqual(
+            self.cu.get_feature_dict_list(child_tags_list1, self.test_child_strs_list1),
+            self.hc.get_feature_dict_list(
+                child_tags_list1, is_header_list1, self.test_child_strs_list1
+            )
+        )
         
     def test_get_feature_dict_list2(self):
         child_tags_list2 = self.cu.get_child_tags_list(self.test_child_strs_list2)
         is_header_list2 = self.cu.get_is_header_list(self.test_child_strs_list2)
-        self.assertEqual(self.cu.get_feature_dict_list(child_tags_list2, self.test_child_strs_list2),
-                         self.hc.get_feature_dict_list(child_tags_list2, is_header_list2, self.test_child_strs_list2))
+        self.assertEqual(
+            self.cu.get_feature_dict_list(child_tags_list2, self.test_child_strs_list2),
+            self.hc.get_feature_dict_list(
+                child_tags_list2, is_header_list2, self.test_child_strs_list2
+            )
+        )
         
     def test_get_child_strs_from_file2(self):
-        import sys
-        sys.path.insert(1, '../load_magic')
-        from dataframes import get_page_soup
         file_path = os.path.join(self.cu.SAVES_HTML_FOLDER, self.test_file_name2)
-        page_soup = get_page_soup(file_path)
+        # import sys
+        # sys.path.insert(1, '../load_magic')
+        # from dataframes import get_page_soup
+        # page_soup = get_page_soup(file_path)
+        page_soup = self.wsu.get_page_soup(file_path)
         row_div_list = page_soup.find_all(name='div', id='jobDescriptionText')
         child_strs_list = self.ha.get_navigable_children(row_div_list[0], [])
-        self.assertEqual(self.cu.get_child_strs_from_file(file_name=self.test_file_name2), child_strs_list)
+        self.assertEqual(
+            self.cu.get_child_strs_from_file(file_name=self.test_file_name2), child_strs_list
+        )
     
     # def test_ensure_navigableparents_relationship(self):
         # navigable_parent1 = 
