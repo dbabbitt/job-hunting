@@ -244,3 +244,13 @@ serverless.yml
 py/crf_utils_new.py
 py/crf_utils_old2.py
 explorations/Brainstorming_Story_Ideas_with_Cohere_and_Stable_Diffusion.ipynb
+saves/pkl/CHILD_STRS_LIST_DICT_old.pkl
+saves/pkl/CRF.pkl
+saves/pkl/CRF.pkl
+saves/pkl/crf_CRF_20230324.pkl
+saves/pkl/crf_CRF_20230401.pkl
+saves/pkl/crf_CRF_20230402.pkl
+saves/pkl/HEADER_PATTERN_DICT_old.pkl
+saves/pkl/slrcu_classifier_dict_20230324.pkl
+saves/pkl/slrcu_classifier_dict_20230402.pkl
+saves/pkl/slrcu_classifier_dict_20230405.pkl
