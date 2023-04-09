@@ -46,24 +46,27 @@ def create_app(test_config=None):
     lru = crf = None
     
     def load_needed_libraries():
+        nonlocal lru, crf
+        t0 = time.time()
         
         print('Load needed libraries and functions')
-        t0 = time.time()
-        nonlocal lru, crf
+        t1 = time.time()
         
         # Insert at 1, 0 is the script path (or '' in REPL)
         sys.path.insert(1, 'py')
-
-        print('Get the Neo4j driver')
+        
+        print('Get the Storage object')
         from storage import Storage
         s = Storage(
             data_folder_path=os.path.abspath('data'),
             saves_folder_path=os.path.abspath('saves')
         )
-
+        
+        print('Get the HeaderAnalysis object')
         from ha_utils import HeaderAnalysis
         ha = HeaderAnalysis(s=s, verbose=False)
-
+        
+        print('Get the WebScrapingUtilities object')
         from scrape_utils import WebScrapingUtilities
         wsu = WebScrapingUtilities(
             s=s,
@@ -72,8 +75,8 @@ def create_app(test_config=None):
         uri = wsu.secrets_json['neo4j']['connect_url']
         user =  wsu.secrets_json['neo4j']['username']
         password = wsu.secrets_json['neo4j']['password']
-
-        print('Get the neo4j object')
+        
+        print('Get the CypherUtilities object and Neo4j driver')
         from cypher_utils import CypherUtilities
         cu = CypherUtilities(
             uri=uri, user=user, password=password, driver=None, s=s, ha=ha
@@ -88,61 +91,115 @@ def create_app(test_config=None):
         except Exception as e:
             print(f'{e.__class__}: {str(e).strip()}')
         
+        print('Get the IsHeaderSgdClassifier object')
+        from is_header_sgd_classifier import IsHeaderSgdClassifier
+        ihu = IsHeaderSgdClassifier(ha=ha, cu=cu, verbose=False)
+        
+        print('Get the HeaderCategories object')
         from hc_utils import HeaderCategories
         hc = HeaderCategories(cu=cu, verbose=False)
         
+        print('Get the LrUtilities object')
         from lr_utils import LrUtilities
         lru = LrUtilities(ha=ha, cu=cu, hc=hc, verbose=False)
         
+        print('Get the SectionLRClassifierUtilities object')
+        from section_classifier_utils import SectionLRClassifierUtilities
+        slrcu = SectionLRClassifierUtilities(ha=ha, cu=cu, verbose=False)
+        
+        print('Get the SectionSGDClassifierUtilities object')
+        from section_classifier_utils import SectionSGDClassifierUtilities
+        ssgdcu = SectionSGDClassifierUtilities(ha=ha, cu=cu, verbose=False)
+        
+        print('Get the SectionCRFClassifierUtilities object')
+        from section_classifier_utils import SectionCRFClassifierUtilities
+        scrfcu = SectionCRFClassifierUtilities(cu=cu, ha=ha, verbose=False)
+        
+        print('Get the CrfUtilities object')
         from crf_utils import CrfUtilities
-        crf = CrfUtilities(ha=ha, hc=hc, cu=cu, lru=lru, verbose=True)
+        crf = CrfUtilities(
+            ha=ha, hc=hc, cu=cu, lru=lru, slrcu=slrcu, scrfcu=scrfcu, ssgdcu=ssgdcu, verbose=True
+        )
         
+        print('Get the SectionUtilities object')
         from section_utils import SectionUtilities
-        su = SectionUtilities(s=s, ha=ha, wsu=wsu, cu=cu, crf=crf, verbose=False)
-        
-        duration_str = humanize.precisedelta(time.time() - t0, minimum_unit='seconds', format='%0.0f')
+        su = SectionUtilities(
+            wsu=wsu, ihu=ihu, hc=hc, crf=crf, slrcu=slrcu, scrfcu=scrfcu, ssgdcu=ssgdcu, verbose=False
+        )
+
+        duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
         winsound.Beep(freq, duration)
         print(f'Utility libraries created in {duration_str}')
-
-        print('\nCheck if the lru has built its parts-of-speech logistic regression elements')
-        t0 = time.time()
-        if not hasattr(lru, 'POS_PREDICT_PERCENT_FIT_DICT'):
-            lru.build_pos_logistic_regression_elements(sampling_strategy_limit=None, verbose=True)#6_400
-        duration_str = humanize.precisedelta(time.time() - t0, minimum_unit='seconds', format='%0.0f')
+        
+        print('\nCheck if the slrcu has built its parts-of-speech logistic regression elements')
+        t1 = time.time()
+        if not hasattr(slrcu, 'pos_predict_percent_fit_dict'):
+            slrcu.build_pos_logistic_regression_elements(sampling_strategy_limit=None, verbose=True)
+        duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
         print(f'Parts-of-speech logistic regression elements built in {duration_str}')
 
-        print('\nCheck if the crf has built its parts-of-speech classifier')
-        t0 = time.time()
-        if not hasattr(crf, 'pos_crf_predict_single'):
-            crf.build_pos_conditional_random_field_elements(verbose=True)
-        duration_str = humanize.precisedelta(time.time() - t0, minimum_unit='seconds', format='%0.0f')
-        print(f'Parts-of-speech CRF elements built in {duration_str}')
-
-        print('\nCheck if the lru has built its is-qualified classifier')
-        t0 = time.time()
-        if not hasattr(lru, 'ISQUALIFIED_LR'):
-            lru.build_isqualified_logistic_regression_elements(sampling_strategy_limit=5_000, verbose=True)
-        duration_str = humanize.precisedelta(time.time() - t0, minimum_unit='seconds', format='%0.0f')
-        print(f'Is-qualified LR elements built in {duration_str}')
-
-        print('\nCheck if the lru has retrained its is-header classifier')
-        t0 = time.time()
-        if not hasattr(lru, 'ISHEADER_PREDICT_PERCENT_FIT'):
-            if not hasattr(lru, 'ISHEADER_LR'):
-                lru.build_isheader_logistic_regression_elements(verbose=True)
-            lru.retrain_isheader_classifier(verbose=True)
-        duration_str = humanize.precisedelta(time.time() - t0, minimum_unit='seconds', format='%0.0f')
-        print(f'Is-header classifier retrained in {duration_str}')
+        print('\nCheck if the scrfcu has built its parts-of-speech conditional random field elements')
+        t1 = time.time()
+        if not hasattr(scrfcu, 'pos_symbol_crf'):
+            scrfcu.build_pos_conditional_random_field_elements(verbose=True)
+        duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
+        print(f'Parts-of-speech conditional random field elements built in {duration_str}')
+        
+        print('\nCheck if the ssgdcu has built its parts-of-speech stochastic gradient decent elements')
+        t1 = time.time()
+        if not hasattr(ssgdcu, 'pos_predict_percent_fit_dict'):
+            ssgdcu.build_pos_stochastic_gradient_descent_elements(
+                sampling_strategy_limit=None, verbose=True
+            )
+        duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
+        print(f'Parts-of-speech stochastic gradient decent elements built in {duration_str}')
 
         winsound.Beep(freq, duration)
         print(f'\nLast run on {datetime.now()}')
+        duration_str = humanize.precisedelta(
+            time.time() - t0, minimum_unit='seconds', format='%0.0f'
+        )
+        print(f'Running load_needed_libraries took {duration_str} to complete')
     
-    # Register the commands
-    @app.route('/load_needed_libraries')
-    def hello():
+    def train_pos_classifier():
+        nonlocal crf
+        t0 = time.time()
         load_needed_libraries()
         
-        return 'Hello, World!'
+        print('\nBuild the conditional random field classifier')
+        t1 = time.time()
+        crf.build_pos_conditional_random_field_elements(verbose=True)
+        duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
+        print(f'POS classifier trained in {duration_str}')
+        
+        winsound.Beep(freq, duration)
+        print(f'\nLast run on {datetime.now()}')
+        duration_str = humanize.precisedelta(
+            time.time() - t0, minimum_unit='seconds', format='%0.0f'
+        )
+        print(f'Running train_pos_classifier took {duration_str} to complete')
+    
+    # Register the load_needed_libraries command
+    @app.route('/load_needed_libraries')
+    def load_needed_libraries_command():
+        t0 = time.time()
+        load_needed_libraries()
+        duration_str = humanize.precisedelta(
+            time.time() - t0, minimum_unit='seconds', format='%0.0f'
+        )
+        
+        return f'Running the load_needed_libraries command took {duration_str} to complete'
+    
+    # Register the train_pos_classifier command
+    @app.route('/train_pos_classifier')
+    def train_pos_classifier_command():
+        t0 = time.time()
+        train_pos_classifier()
+        duration_str = humanize.precisedelta(
+            time.time() - t0, minimum_unit='seconds', format='%0.0f'
+        )
+        
+        return f'Running the train_pos_classifier command took {duration_str} to complete'
 
     # Define a new endpoint with a string parameter
     @app.route('/new_endpoint/<string_parameter>')
@@ -172,7 +229,8 @@ def create_app(test_config=None):
         # Code to handle JSON data
         data_dict = request.get_json()
         navigable_parent = data_dict['navigable_parent']
-        y_pred = lru.pos_lr_predict_single(navigable_parent)
+        
+        y_pred = slrcu.predict_single(navigable_parent)
         
         response = {'y_pred': y_pred}
         
