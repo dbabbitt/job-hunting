@@ -11,29 +11,31 @@ RETURN
 ORDER BY fn.percent_fit DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1fea112bf6198419_Data_Scientist_Chicago_IL_Indeed_com.html"]
+WHERE fn.file_name IN ["f9eb1389644151d9_Data_Operations_Engineer_Remote_Remote_Indeed_com.html"]
 SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_email_date = date()
 RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
-    fn.file_name IN ["4681115_0_CIGNA_Sr_Process_Engineer.html", "4681115_CIGNA_Sr_Process_Engineer.html", "1007945232600_Controls_and_Automation_Engineer_I.html", "Hybrid_Process_Engineer_Data_Scientist_Primary_Talent_Partners_Devens_MA_01434.html"]
+    fn.file_name IN ["be63c60ac6e2bb01_Senior_Data_Scientist_Remote_Indeed_com.html"]
     AND fn.opportunity_application_email_date IS NOT NULL
+    AND fn.rejection_email_date IS NULL
 RETURN
+    fn.opportunity_application_email_date AS email_date,
     fn.file_name AS file_name,
-    fn.opportunity_application_email_date AS email_date
+    fn.posting_url AS posting_url
 ORDER BY fn.opportunity_application_email_date DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["769f8e90c65ab457_Data_Scientist_Chantilly_VA_20151_Indeed_com.html"]
+WHERE fn.file_name IN ["be63c60ac6e2bb01_Senior_Data_Scientist_Remote_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "I hope all is well, I wanted to follow up to inform you that Data Scientist position has been closed.",
+    fn.rejection_email_text = "At this time, however, we'll not pursue your candidacy since we have recently fulfilled our hiring needs for this role.",
     fn.rejection_email_date = date(),
     fn.is_closed = true
 RETURN fn;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["c0cbfde3d10e39b6_Experimentation_Data_Scientist_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["J308sa7JJ0om_gnKGHbw6w_Data_Scientist_hackajob_London_England_United_Kingdom_Remote.html"]
 SET fn.is_closed = true
 RETURN fn;
 
@@ -47,20 +49,20 @@ RETURN fn;
 MATCH (np:NavigableParents)
 WHERE (np.navigable_parent STARTS WITH "<li>7 - ")
 SET
-    np.is_header = 'False',
-    np.is_task_scope = 'False',
-    np.is_minimum_qualification = 'True',
-    np.is_preferred_qualification = 'False',
-    np.is_educational_requirement = 'False',
-    np.is_legal_notification = 'False',
-    np.is_other = 'False',
-    np.is_corporate_scope = 'False',
-    np.is_job_title = 'False',
-    np.is_office_location = 'False',
-    np.is_job_duration = 'False',
-    np.is_supplemental_pay = 'False',
-    np.is_interview_procedure = 'False',
-    np.is_posting_date = 'False'
+    np.is_header = "False",
+    np.is_task_scope = "False",
+    np.is_minimum_qualification = "True",
+    np.is_preferred_qualification = "False",
+    np.is_educational_requirement = "False",
+    np.is_legal_notification = "False",
+    np.is_other = "False",
+    np.is_corporate_scope = "False",
+    np.is_job_title = "False",
+    np.is_office_location = "False",
+    np.is_job_duration = "False",
+    np.is_supplemental_pay = "False",
+    np.is_interview_procedure = "False",
+    np.is_posting_date = "False"
 RETURN COUNT(*);
 
 MATCH (fn:FileNames)
@@ -145,14 +147,14 @@ SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_ema
 RETURN fn
 
 MATCH (np:NavigableParents)
-WHERE np.is_qualification = 'True'
+WHERE np.is_qualification = "True"
 RETURN np.navigable_parent;
 
 MATCH (np:NavigableParents {navigable_parent: "<li>GIS: 3 years (Required)</li>"})
-SET np.is_minimum_qualification = 'True';
+SET np.is_minimum_qualification = "True";
 
 MATCH (np:NavigableParents {navigable_parent: "<li>Python: 10 years (Preferred)</li>"})
-SET np.is_preferred_qualification = 'True';
+SET np.is_preferred_qualification = "True";
 
 MATCH (np:NavigableParents {navigable_parent: "Hope you are doing safe and fine amidst pandemic!"})
 SET np.is_qualification = NULL;
@@ -161,25 +163,24 @@ SET np.is_qualification = NULL;
 MATCH (np:NavigableParents)
 WHERE
     (
-        np.is_qualification = 'True'
+        np.is_qualification = "True"
         AND np.is_minimum_qualification IS NULL
         AND np.is_preferred_qualification IS NULL
         )
     OR (
-        np.is_qualification = 'True'
-        AND np.is_minimum_qualification = 'False'
-        AND np.is_preferred_qualification = 'False'
+        np.is_qualification = "True"
+        AND np.is_minimum_qualification = "False"
+        AND np.is_preferred_qualification = "False"
         )
 RETURN np.navigable_parent;
 
 MATCH (np:NavigableParents {navigable_parent: "<b>based products and applications.</b>"})
 SET np.is_qualification = NULL;
 
+// Find the navigable parents that are "about the job" and what POS symbol they are tagged with
 MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
 WHERE
-    np.is_qualification = 'True'
-    AND np.is_minimum_qualification = 'False'
-    AND np.is_preferred_qualification = 'False'
+    np.navigable_parent CONTAINS "About the job"
 RETURN
     pos.pos_symbol AS pos_symbol,
     np.navigable_parent AS navigable_parent;
@@ -297,9 +298,9 @@ RETURN
 
 MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
 WHERE
-    np.is_qualification = 'True'
-    AND np.is_minimum_qualification = 'False'
-    AND np.is_preferred_qualification = 'False'
+    np.is_qualification = "True"
+    AND np.is_minimum_qualification = "False"
+    AND np.is_preferred_qualification = "False"
 RETURN
     pos.pos_symbol AS pos_symbol,
     np.navigable_parent AS navigable_parent;
@@ -311,7 +312,7 @@ RETURN ht, np, summarizes
 LIMIT 1;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["4712948_0_SYNEOS_HEALTH_Data_Governance_AD.html", "4712958_0_SYNEOS_HEALTH_Data_Governance_AM.html"]
+WHERE fn.file_name IN [""]
 SET fn.percent_fit = 0.5
 RETURN fn;
 
@@ -434,7 +435,7 @@ RETURN
     np.is_header AS is_interview_procedure,
     np.navigable_parent AS navigable_parent;
 
-// Get all the parts-of-speech relationships that haven't been populated
+// Get all the parts-of-speech relationships that haven`t been populated
 MATCH (np:NavigableParents)
 WHERE
     (NOT (np)<-[:SUMMARIZES]-(:PartsOfSpeech))
@@ -456,12 +457,113 @@ RETURN np;
 
 // Get all node types that have the is_qualified property defined
 CALL db.schema.nodeTypeProperties() YIELD nodeType, propertyName
-WHERE propertyName = 'is_qualified'
+WHERE propertyName = "is_qualified"
 RETURN DISTINCT nodeType;
 
-// Find all properties with a value of 'False'
+// Find all properties with a value of False
 MATCH (np:NavigableParents)
 UNWIND keys(np) AS property
 WITH np, property
-WHERE np[property] = 'False'
+WHERE np[property] = "False"
 RETURN DISTINCT property;
+
+// Rename the technical_interview_date properties in the FileNames nodes
+// to technical_interview_dates and convert their date values into a list of one date
+MATCH (fn:FileNames)
+WHERE fn.technical_interview_date IS NOT NULL
+SET fn.technical_interview_dates = [fn.technical_interview_date]
+REMOVE fn.technical_interview_date;
+
+// Get all possible paths
+MATCH path = (np:NavigableParents)-[rels:NEXT*]->(np2:NavigableParents)
+
+// Check that the property is uniform and
+// the first node is a minqual header
+WHERE
+    np.is_minimum_qualification = "True" AND
+    np.is_header = "True" AND
+    ALL(r in rels WHERE rels[0]["file_name"] = r.file_name)
+RETURN rels[0]["file_name"] AS file_name;
+
+// Set all the HTML that are strangely marked as a header to NULL
+MATCH (np:NavigableParents)
+WHERE
+    (np.is_header IS NOT NULL)
+    AND (np.is_task_scope IS NULL)
+    AND (np.is_minimum_qualification IS NULL)
+    AND (np.is_preferred_qualification IS NULL)
+    AND (np.is_legal_notification IS NULL)
+    AND (np.is_job_title IS NULL)
+    AND (np.is_office_location IS NULL)
+    AND (np.is_job_duration IS NULL)
+    AND (np.is_supplemental_pay IS NULL)
+    AND (np.is_educational_requirement IS NULL)
+    AND (np.is_interview_procedure IS NULL)
+    AND (np.is_corporate_scope IS NULL)
+    AND (np.is_posting_date IS NULL)
+    AND (np.is_other IS NULL)
+SET np.is_header = NULL
+RETURN COUNT(np);
+
+// Define the input date range as a string
+WITH "Sunday, 03/12/2023 - Saturday, 03/18/2023" AS date_range
+
+// Split the input string into two parts, one for the start date and one for the end date
+WITH split(date_range, " - ") AS dates
+
+// Split the start and end dates into their components
+WITH
+    split(dates[0], ", ") AS start_components,
+    split(dates[1], ", ") AS end_components
+
+// Reassemble the start date components into a
+// format that the date() function can recognize
+WITH
+    [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
+    [item in split(end_components[1], "/") | toInteger(item)] AS end_components
+
+// Convert the integer date partss into Neo4j date objects using the date() function
+WITH
+    date({
+        day: start_components[1],
+        month: start_components[0],
+        year: start_components[2]
+        }) AS date_start,
+    date({
+        day: end_components[1],
+        month: end_components[0],
+        year: end_components[2]
+        }) AS date_end
+
+// Find all FileNames nodes and filter them by opportunity_application_email_date property
+MATCH (fn:FileNames)
+WHERE
+    (fn.opportunity_application_email_date >= date_start) AND
+    (fn.opportunity_application_email_date <= date_end)
+
+// Return the filtered nodes
+RETURN fn;
+
+// Find all properties with a name like "is_qual"
+MATCH (np:NavigableParents)
+UNWIND keys(np) AS property
+WITH np, property
+WHERE property =~ "^is_.*qual.+$"
+RETURN DISTINCT property;
+
+// Record the recruiter screen calender invite date
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["8fc0ed7481ff426b_Data_Scientist_Gainesville_FL_Indeed_com.html"]
+SET fn.recruiter_screen_date = date("2023-03-23")
+RETURN fn;
+
+// Delete all but one of the duplicate HeaderTags
+// nodes based on the header_tag property
+MATCH (ht:HeaderTags)
+WITH
+    ht.header_tag AS header_tag,
+    collect(ht) AS nodes,
+    count(*) AS tag_count
+WHERE tag_count > 1
+UNWIND tail(nodes) AS node
+DETACH DELETE node;
