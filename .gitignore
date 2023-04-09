@@ -254,3 +254,10 @@ saves/pkl/HEADER_PATTERN_DICT_old.pkl
 saves/pkl/slrcu_classifier_dict_20230324.pkl
 saves/pkl/slrcu_classifier_dict_20230402.pkl
 saves/pkl/slrcu_classifier_dict_20230405.pkl
+saves/xml/notepad_sessions/config_session.xml
+saves/xml/notepad_sessions/flaskr_session.xml
+saves/xml/notepad_sessions/jobs_emails_html_session.xml
+saves/xml/notepad_sessions/llm_session.xml
+saves/xml/notepad_sessions/sgd_window.xml
+saves/xml/notepad_sessions/test_window.xml
+saves/xml/notepad_sessions/utils_window.xml
