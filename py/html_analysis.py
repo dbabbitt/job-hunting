@@ -57,7 +57,7 @@ def with_lru_pos_context(init_func):
     def _decorator(*args, **kwargs):
         from lr_utils import LrUtilities
         args[0].lru = LrUtilities(ha=kwargs['ha'], hc=kwargs['hc'], cu=kwargs['cu'], verbose=kwargs['verbose'])
-        # args[0].lru.build_pos_logistic_regression_elements()
+        # args[0].slrcu.build_pos_logistic_regression_elements()
         return init_func(*args, **kwargs)
 
     return wraps(init_func)(_decorator)

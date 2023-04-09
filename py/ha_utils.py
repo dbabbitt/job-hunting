@@ -15,19 +15,16 @@ class HeaderAnalysis(object):
     """Header analysis class."""
 
     def __init__(self, s=None, verbose=False):
+        self.s = s
         self.verbose = verbose
+        
         self.HTML_SCANNER_REGEX = re.compile(r'</?\w+|\w+[#\+]*|:|\.|\?')
         self.LT_REGEX = re.compile(r'\s+<')
         self.GT_REGEX = re.compile(r'>\s+')
         self.CLF_NAME = 'LogisticRegression'
         self.SAVES_HTML_FOLDER = os.path.join(s.saves_folder, 'html')
-        import pylab
-        self.CMAP = pylab.cm.get_cmap('coolwarm')
-        if s is None:
-            from storage import Storage
-            self.s = Storage()
-        else:
-            self.s = s
+        import matplotlib
+        self.CMAP = matplotlib.colormaps.get_cmap('coolwarm')
         if self.s.pickle_exists('CHILDLESS_TAGS_LIST'):
             self.CHILDLESS_TAGS_LIST = self.s.load_object('CHILDLESS_TAGS_LIST')
         else:
@@ -98,7 +95,10 @@ class HeaderAnalysis(object):
     def get_body_soup(self, html_str):
         from bs4 import BeautifulSoup
         page_soup = BeautifulSoup(html_str, 'lxml')
+        
+        # Assume at least on body tag
         body_soup = page_soup.find_all(name='body')[0]
+        
         for tag in self.CHILDLESS_TAGS_LIST:
             for s in body_soup.select(tag):
                 s.extract()

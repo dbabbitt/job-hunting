@@ -70,14 +70,14 @@ class ChartUtilities(object):
     
     
     def visualize_cfr_child_str_predictions(self, file_name=None, use_explanation=False, verbose=False):
-        # self.crf.lru.build_pos_logistic_regression_elements()
+        # self.crf.slrcu.build_pos_logistic_regression_elements()
         if file_name is None:
             files_list = self.cu.get_files_list(verbose=verbose)
             file_name = random.choice(files_list)
         child_strs_list = self.cu.get_child_strs_from_file(file_name, verbose=verbose)
         child_tags_list = self.cu.get_child_tags_list(child_strs_list, verbose=verbose)
         feature_dict_list = self.cu.get_feature_dict_list(child_tags_list, child_strs_list, verbose=verbose)
-        feature_tuple_list = [self.hc.get_feature_tuple(f, pos_lr_predict_single=self.crf.lru.pos_lr_predict_single, pos_crf_predict_single=None) for f in feature_dict_list]
+        feature_tuple_list = [self.hc.get_feature_tuple(f, pos_lr_predict_single=self.crf.slrcu.predict_single, pos_crf_predict_single=None, pos_sgd_predict_single=None) for f in feature_dict_list]
         crf_list = self.crf.CRF.predict_single(self.crf.sent2features(feature_tuple_list))
         rgba_dict = self.get_pos_color_dictionary(verbose=verbose)
         html_str = ''
@@ -110,7 +110,7 @@ class ChartUtilities(object):
                     feature_dict_list = self.cu.get_feature_dict_list(child_tags_list, child_strs_list, verbose=verbose)
                 feature_tuple_list = []
                 for feature_dict in feature_dict_list:
-                    feature_tuple_list.append(self.hc.get_feature_tuple(feature_dict, pos_lr_predict_single=self.crf.lru.pos_lr_predict_single, pos_crf_predict_single=None))
+                    feature_tuple_list.append(self.hc.get_feature_tuple(feature_dict, pos_lr_predict_single=self.crf.slrcu.predict_single, pos_crf_predict_single=None, pos_sgd_predict_single=None))
             crf_list = self.crf.CRF.predict_single(self.crf.sent2features(feature_tuple_list))
         rq_initial_idx, rq_final_idx = ea.get_rq_section(crf_list)
         html_str = ''
