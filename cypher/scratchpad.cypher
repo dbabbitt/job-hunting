@@ -506,7 +506,7 @@ SET np.is_header = NULL
 RETURN COUNT(np);
 
 // Define the input date range as a string
-WITH "Sunday, 03/12/2023 - Saturday, 03/18/2023" AS date_range
+WITH "Sunday, 04/02/2023 - Saturday, 04/08/2023" AS date_range
 
 // Split the input string into two parts, one for the start date and one for the end date
 WITH split(date_range, " - ") AS dates
@@ -522,7 +522,7 @@ WITH
     [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
     [item in split(end_components[1], "/") | toInteger(item)] AS end_components
 
-// Convert the integer date partss into Neo4j date objects using the date() function
+// Convert the integer date parts into Neo4j date objects using the date() function
 WITH
     date({
         day: start_components[1],
@@ -567,3 +567,17 @@ WITH
 WHERE tag_count > 1
 UNWIND tail(nodes) AS node
 DETACH DELETE node;
+
+// Get all node types that have the file_name property defined
+CALL db.schema.nodeTypeProperties() YIELD nodeType, propertyName
+WHERE propertyName = "file_name"
+RETURN DISTINCT nodeType as node_type;
+
+// Get all relationship types
+CALL db.relationshipTypes() YIELD relationshipType
+RETURN DISTINCT relationshipType;
+
+// Find all the relationship types in the graph with a file_name property
+MATCH (nt1)-[r:NEXT]-(nt2)
+WHERE exists(r.file_name)
+RETURN DISTINCT labels(nt1) AS nt1_types;
