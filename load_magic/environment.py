@@ -55,7 +55,7 @@ def get_module_version(python_module):
 
 
 
-def get_dir_tree(module_name, max_levels=2, contains_str=None, not_contains_str=None, verbose=False):
+def print_dir_tree(module_name, max_levels=2, contains_str=None, not_contains_str=None, verbose=False):
     if max_levels < 1:
         return None
     base_eval_str = f"['{module_name}.{{}}'.format(fn) for fn in dir({module_name}) if not fn.startswith('_')]"
