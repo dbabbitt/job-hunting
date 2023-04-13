@@ -554,23 +554,27 @@ class CypherUtilities(object):
     
     
     
-    def delete_filename_node(self, file_name, remove_file=True, verbose=False):
+    def delete_filename_node(
+        self, file_name, remove_node=True, remove_file=True, verbose=False
+    ):
         self.delete_navigableparent_relationships(file_name, verbose=verbose)
         self.delete_headertag_relationships(file_name, verbose=verbose)
-
-        def do_cypher_tx(tx, file_name, verbose=False):
-            cypher_str = """
-                MATCH (fn:FileNames {file_name: $file_name})
-                DETACH DELETE fn;"""
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str.replace('$file_name', f'"{file_name}"'))
-            parameter_dict = {'file_name': file_name}
-            tx.run(query=cypher_str, parameters=parameter_dict)
-
-        with self.driver.session() as session:
-            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
         
+        # Delete this particular node and all its features
+        if remove_node:
+            def do_cypher_tx(tx, file_name, verbose=False):
+                cypher_str = """
+                    MATCH (fn:FileNames {file_name: $file_name})
+                    DETACH DELETE fn;"""
+                if verbose:
+                    clear_output(wait=True)
+                    print(cypher_str.replace('$file_name', f'"{file_name}"'))
+                parameter_dict = {'file_name': file_name}
+                tx.run(query=cypher_str, parameters=parameter_dict)
+            with self.driver.session() as session:
+                session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
+        
+        # Remove the file from the HTML folder
         if remove_file:
             file_path = os.path.join(self.SAVES_HTML_FOLDER, file_name)
             if os.path.isfile(file_path):
@@ -580,9 +584,30 @@ class CypherUtilities(object):
     
     
     
-    def rebuild_filename_node(self, file_name, wsu, verbose=False):
-        self.delete_filename_node(file_name, remove_file=False, verbose=verbose)
-        self.ensure_filename(file_name, verbose=False)
+    def rebuild_filename_node(self, file_name, wsu, navigable_parent=None, verbose=False):
+        
+        # Remove the O-RQ designation for this no-longer-existing HTML
+        if navigable_parent is not None:
+            def do_cypher_tx(tx, navigable_parent):
+                cypher_str = '''
+                    // Find all our NavigableParents nodes in the graph with
+                    // an incoming SUMMARIZES relationship to our PartsOfSpeech node
+                    // and delete that relationship
+                    MATCH (np:NavigableParents)<-[r:SUMMARIZES]-(pos:PartsOfSpeech)
+                    WHERE
+                        pos.pos_symbol = "O-RQ"
+                        AND (np.navigable_parent = $navigable_parent)
+                    DELETE r;'''
+                tx.run(query=cypher_str, parameters={'navigable_parent': navigable_parent})
+            with self.driver.session() as session: session.write_transaction(
+                do_cypher_tx, navigable_parent=navigable_parent
+            )
+        
+        # Retain the node features and folder storage
+        self.delete_filename_node(
+            file_name, remove_node=False, remove_file=False, verbose=verbose
+        )
+        
         self.ensure_navigableparent('END', verbose=False)
         file_path = os.path.join(self.SAVES_HTML_FOLDER, file_name)
         page_soup = wsu.get_page_soup(file_path)

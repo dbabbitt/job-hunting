@@ -141,7 +141,7 @@ class SectionLRClassifierUtilities(object):
         X_train_tfidf = self.tfidf_transformer.fit_transform(bow_matrix)
         
         from sklearn.linear_model import LogisticRegression
-        def fit_classifier_dict():
+        def fit_classifier_dict(pos_symbol, X_train_tfidf, train_data_list):
             try:
                 
                 # Train on initial data
@@ -169,9 +169,9 @@ class SectionLRClassifierUtilities(object):
                     C=375.0, class_weight='balanced', max_iter=1000, penalty='l1',
                     solver='liblinear', verbose=False, warm_start=True
                 )
-                fit_classifier_dict()
+                fit_classifier_dict(pos_symbol, X_train_tfidf, train_data_list)
             elif not is_already_fitted:
-                fit_classifier_dict()
+                fit_classifier_dict(pos_symbol, X_train_tfidf, train_data_list)
             else:
                 try:
                     inference_func = self.build_predict_percent_fit_function(
