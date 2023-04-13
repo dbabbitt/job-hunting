@@ -55,27 +55,59 @@ def get_module_version(python_module):
 
 
 
-def get_dir_tree(module_name, max_levels=2, contains_str=None):
+def get_dir_tree(module_name, max_levels=2, contains_str=None, not_contains_str=None, verbose=False):
     if max_levels < 1:
         return None
     base_eval_str = f"['{module_name}.{{}}'.format(fn) for fn in dir({module_name}) if not fn.startswith('_')]"
-    if contains_str is None:
+    if not (bool(contains_str) or bool(not_contains_str)):
         eval_str = base_eval_str
-    else:
-        eval_str = f"['{module_name}.{{}}'.format(fn) for fn in dir({module_name}) if '{contains_str.lower()}' in fn.lower()]"
+    elif (not bool(contains_str)) and bool(not_contains_str):
+        eval_str = f"['{module_name}.{{}}'.format(fn) for fn in dir({module_name}) if ('{not_contains_str.lower()}' not in fn.lower())]"
+    elif bool(contains_str) and (not bool(not_contains_str)):
+        eval_str = f"['{module_name}.{{}}'.format(fn) for fn in dir({module_name}) if ('{contains_str.lower()}' in fn.lower())]"
+    elif bool(contains_str) and bool(not_contains_str):
+        eval_str = f"['{module_name}.{{}}'.format(fn) for fn in dir({module_name}) if ('{contains_str.lower()}' in fn.lower())"
+        eval_str += f" and ('{not_contains_str.lower()}' not in fn.lower())]"
     try:
         dir_list = eval(eval_str)
         if len(dir_list):
-            print()
-            print(module_name)
-            print(dir_list)
+            if verbose:
+                print(f'bool(contains_str) = "{bool(contains_str)}"')
+                print(f'bool(not_contains_str) = "{bool(not_contains_str)}"')
+                try:
+                    print(f'(contains_str.lower() in module_name.lower()) = "{(contains_str.lower() in module_name.lower())}"')
+                except:
+                    pass
+                try:
+                    print(f'(not_contains_str.lower() not in module_name.lower()) = "{(not_contains_str.lower() not in module_name.lower())}"')
+                except:
+                    pass
+            if not (bool(contains_str) or bool(not_contains_str)):
+                print()
+                print(module_name)
+                print(dir_list)
+            elif (not bool(contains_str)) and bool(not_contains_str):
+                if (not_contains_str.lower() not in module_name.lower()):
+                    print()
+                    print(module_name)
+                    print(dir_list)
+            elif bool(contains_str) and (not bool(not_contains_str)):
+                if (contains_str.lower() in module_name.lower()):
+                    print()
+                    print(module_name)
+                    print(dir_list)
+            elif bool(contains_str) and bool(not_contains_str):
+                if (contains_str.lower() in module_name.lower()) and (not_contains_str.lower() not in module_name.lower()):
+                    print()
+                    print(module_name)
+                    print(dir_list)
     except Exception as e:
         print(f'The evaluated list {eval_str} gets this error: {str(e).strip()}')
     try:
         base_dir_list = eval(base_eval_str)
         if len(base_dir_list):
             for base_module_name in base_dir_list:
-                get_dir_tree(base_module_name, max_levels=max_levels-1, contains_str=contains_str)
+                get_dir_tree(base_module_name, max_levels=max_levels-1, contains_str=contains_str, not_contains_str=not_contains_str, verbose=verbose)
     except:
         return None
 
