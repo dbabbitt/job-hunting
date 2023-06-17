@@ -10,6 +10,8 @@ Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                Creating the temporary conda environment.yml file" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-$CommandString = "cd ${RepositoriesDirectory}\${RepositoryPath} & conda activate ${EnvironmentPath} & conda env export -f tmp_environment.yml --no-builds & conda deactivate"
-Write-Host $CommandString -ForegroundColor Yellow
-# cmd /c $CommandString '2>&1'
+cd ${RepositoriesDirectory}\${RepositoryPath}\${RepositoryName}
+conda activate ${EnvironmentPath}
+conda info --envs
+conda env export -f ${RepositoriesDirectory}\${RepositoryName}\tmp_environment.yml --no-builds
+conda deactivate
