@@ -194,12 +194,12 @@ class LdaUtilities(object):
         if alpha is None:
             import numpy as np
             cypher_str = """
-                MATCH (np:NavigableParents {is_header: 'True'})
+                MATCH (np:NavigableParents {is_header: true})
                 RETURN COUNT(np.navigable_parent) AS header_count;"""
             is_header_df = pd.DataFrame(self.cu.get_execution_results(self.cursor, cypher_str))
             header_count = is_header_df.header_count.squeeze()
             cypher_str = """
-                MATCH (np:NavigableParents {is_header: 'False'})
+                MATCH (np:NavigableParents {is_header: false})
                 RETURN COUNT(np.navigable_parent) AS nonheader_count;"""
             is_nonheader_df = pd.DataFrame(self.cu.get_execution_results(self.cursor, cypher_str))
             nonheader_count = is_nonheader_df.nonheader_count.squeeze()
@@ -272,31 +272,31 @@ class LdaUtilities(object):
             elif pos_symbol.startswith('O-'):
                 cypher_str = cypher_prefix + "False', "
             if pos_symbol.endswith('-TS'):
-                cypher_str += "is_task_scope: 'True'"
+                cypher_str += "is_task_scope: true"
             elif pos_symbol.endswith('-RQ'):
-                cypher_str += "is_minimum_qualification]: 'True'"
+                cypher_str += "is_minimum_qualification]: true"
             elif pos_symbol.endswith('-PQ'):
-                cypher_str += "is_preferred_qualification]: 'True'"
+                cypher_str += "is_preferred_qualification]: true"
             elif pos_symbol.endswith('-LN'):
-                cypher_str += "is_legal_notification]: 'True'"
+                cypher_str += "is_legal_notification]: true"
             elif pos_symbol.endswith('-JT'):
-                cypher_str += "is_job_title]: 'True'"
+                cypher_str += "is_job_title]: true"
             elif pos_symbol.endswith('-OL'):
-                cypher_str += "is_office_location]: 'True'"
+                cypher_str += "is_office_location]: true"
             elif pos_symbol.endswith('-JD'):
-                cypher_str += "is_job_duration]: 'True'"
+                cypher_str += "is_job_duration]: true"
             elif pos_symbol.endswith('-SP'):
-                cypher_str += "is_supplemental_pay]: 'True'"
+                cypher_str += "is_supplemental_pay]: true"
             elif pos_symbol.endswith('-ER'):
-                cypher_str += "is_educational_requirement]: 'True'"
+                cypher_str += "is_educational_requirement]: true"
             elif pos_symbol.endswith('-IP'):
-                cypher_str += "is_interview_procedure]: 'True'"
+                cypher_str += "is_interview_procedure]: true"
             elif pos_symbol.endswith('-CS'):
-                cypher_str += "is_corporate_scope]: 'True'"
+                cypher_str += "is_corporate_scope]: true"
             elif pos_symbol.endswith('-PD'):
-                cypher_str += "is_posting_date]: 'True'"
+                cypher_str += "is_posting_date]: true"
             elif pos_symbol.endswith('-O'):
-                cypher_str += "is_other]: 'True'"
+                cypher_str += "is_other]: true"
             cypher_str += '})\nRETURN COUNT(np) AS row_count'
             count_df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=False))
             if count_df.row_count.squeeze() > 0:

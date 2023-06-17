@@ -21,12 +21,12 @@ class IsQualificationSgdClassifier(PosSymbolSgdClassifier):
         cypher_str = """
             MATCH (np:NavigableParents)
             WHERE
-                ((np.is_preferred_qualification = "True") OR
-                (np.is_minimum_qualification = "True") OR
-                (np.is_educational_requirement = "True")) AND
+                ((np.is_preferred_qualification = true) OR
+                (np.is_minimum_qualification = true) OR
+                (np.is_educational_requirement = true)) AND
                 ((np.is_qualification IS NULL) OR
-                (np.is_qualification = "False"))
-            SET np.is_qualification = "True"
+                (np.is_qualification = false))
+            SET np.is_qualification = true
             RETURN COUNT(np);"""
         with self.cu.driver.session() as session:
             session.write_transaction(self.cu.do_cypher_tx, cypher_str)
@@ -41,7 +41,7 @@ class IsQualificationSgdClassifier(PosSymbolSgdClassifier):
             self.cu.get_execution_results(cypher_str, verbose=False)
         )
         df.is_qualification = df.is_qualification.map(
-            lambda x: {'True': 1, 'False': 0, True: 1, False: 0}.get(x, x)
+            lambda x: {true: 1, false: 0, True: 1, False: 0}.get(x, x)
         )
         if verbose:
             print(f'I have {df.shape[0]:,} hand-labeled qualification htmls prepared')

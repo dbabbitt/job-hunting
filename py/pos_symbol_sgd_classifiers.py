@@ -28,7 +28,7 @@ class PosSymbolSgdClassifier:
         self.total_trained = 0
     
     def prepare_updating_data(self, new_data_list, new_labels_list, verbose=False):
-        new_labels_list = [{'True': 1, 'False': 0, True: 1, False: 0}.get(
+        new_labels_list = [{true: 1, false: 0, True: 1, False: 0}.get(
             x, x
         ) for x in new_labels_list]
         
