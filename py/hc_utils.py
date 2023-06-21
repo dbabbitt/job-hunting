@@ -22,7 +22,7 @@ class HeaderCategories(object):
 
         # Get the task scope headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_task_scope: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_task_scope: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -37,7 +37,7 @@ class HeaderCategories(object):
 
         # Get the req quals headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_minimum_qualification: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_minimum_qualification: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -52,7 +52,7 @@ class HeaderCategories(object):
 
         # Get the preff quals headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_preferred_qualification: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_preferred_qualification: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -67,7 +67,7 @@ class HeaderCategories(object):
 
         # Get the legal notifs headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_legal_notification: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_legal_notification: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -82,7 +82,7 @@ class HeaderCategories(object):
 
         # Get the job title headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_job_title: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_job_title: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -97,7 +97,7 @@ class HeaderCategories(object):
 
         # Get the office loc headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_office_location: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_office_location: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -112,7 +112,7 @@ class HeaderCategories(object):
 
         # Get the job duration headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_job_duration: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_job_duration: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -127,7 +127,7 @@ class HeaderCategories(object):
 
         # Get the supp pay headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_supplemental_pay: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_supplemental_pay: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -142,7 +142,7 @@ class HeaderCategories(object):
 
         # Get the educ reqs headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_educational_requirement: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_educational_requirement: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -157,7 +157,7 @@ class HeaderCategories(object):
 
         # Get the interv proc headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_interview_procedure: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_interview_procedure: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -172,7 +172,7 @@ class HeaderCategories(object):
 
         # Get the corp scope headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_corporate_scope: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_corporate_scope: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -187,7 +187,7 @@ class HeaderCategories(object):
 
         # Get the post date headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_posting_date: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_posting_date: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -202,7 +202,7 @@ class HeaderCategories(object):
         
         # Get the other headers
         cypher_str = """
-            MATCH (np:NavigableParents {is_other: 'True', is_header: 'True'})
+            MATCH (np:NavigableParents {is_other: true, is_header: true})
             RETURN np.navigable_parent AS navigable_parent;"""
         df = pd.DataFrame(self.cu.get_execution_results(cypher_str, verbose=verbose))
         
@@ -265,7 +265,7 @@ class HeaderCategories(object):
         
         # Convert the values of params_dict to only True and False values
         params_dict = {
-            k: True if v in [1, 'True', True] else False
+            k: True if v in [1, true, True] else False
             for k, v in params_dict.items()
         }
         

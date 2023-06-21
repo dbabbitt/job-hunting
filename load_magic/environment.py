@@ -107,7 +107,7 @@ def print_dir_tree(module_name, max_levels=2, contains_str=None, not_contains_st
         base_dir_list = eval(base_eval_str)
         if len(base_dir_list):
             for base_module_name in base_dir_list:
-                get_dir_tree(base_module_name, max_levels=max_levels-1, contains_str=contains_str, not_contains_str=not_contains_str, verbose=verbose)
+                print_dir_tree(base_module_name, max_levels=max_levels-1, contains_str=contains_str, not_contains_str=not_contains_str, verbose=verbose)
     except:
         return None
 

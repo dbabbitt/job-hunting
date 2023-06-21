@@ -17,7 +17,7 @@ RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
-    fn.file_name IN ["be63c60ac6e2bb01_Senior_Data_Scientist_Remote_Indeed_com.html"]
+    fn.file_name IN ["8f2d5bc52d1ba263_Audio_Machine_Learning_Co_op_Framingham_MA_Indeed_com.html", "146c4a1b4e7a9648_Data_Science_Co_Op_Remote_Indeed_com.html", "1007999989567_Senior_Automation_Engineer.html", "ca155dc54a89aa86_Acoustic_Control_and_Signal_Processing_Co_op_Framingham_MA_Indeed_com.html", "eb543318e5a0a74c_Quality_Engineer_I_Python_ML_QA_Remote_Remote_Indeed_com.html", "Senior_Physiological_Data_Scientist_-_Amherst,_MA_01003_-_Indeed.com_a90c3116d8d36525.html"]
     AND fn.opportunity_application_email_date IS NOT NULL
     AND fn.rejection_email_date IS NULL
 RETURN
@@ -27,9 +27,9 @@ RETURN
 ORDER BY fn.opportunity_application_email_date DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["be63c60ac6e2bb01_Senior_Data_Scientist_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["abb463527203e94c_Travel_Demand_Modeling_Analyst_Remote_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "At this time, however, we'll not pursue your candidacy since we have recently fulfilled our hiring needs for this role.",
+    fn.rejection_email_text = "Unfortunately, at this time the Travel Demand Modeling Analyst position has been filled.",
     fn.rejection_email_date = date(),
     fn.is_closed = true
 RETURN fn;
@@ -49,20 +49,20 @@ RETURN fn;
 MATCH (np:NavigableParents)
 WHERE (np.navigable_parent STARTS WITH "<li>7 - ")
 SET
-    np.is_header = "False",
-    np.is_task_scope = "False",
-    np.is_minimum_qualification = "True",
-    np.is_preferred_qualification = "False",
-    np.is_educational_requirement = "False",
-    np.is_legal_notification = "False",
-    np.is_other = "False",
-    np.is_corporate_scope = "False",
-    np.is_job_title = "False",
-    np.is_office_location = "False",
-    np.is_job_duration = "False",
-    np.is_supplemental_pay = "False",
-    np.is_interview_procedure = "False",
-    np.is_posting_date = "False"
+    np.is_header = false,
+    np.is_task_scope = false,
+    np.is_minimum_qualification = true,
+    np.is_preferred_qualification = false,
+    np.is_educational_requirement = false,
+    np.is_legal_notification = false,
+    np.is_other = false,
+    np.is_corporate_scope = false,
+    np.is_job_title = false,
+    np.is_office_location = false,
+    np.is_job_duration = false,
+    np.is_supplemental_pay = false,
+    np.is_interview_procedure = false,
+    np.is_posting_date = false
 RETURN COUNT(*);
 
 MATCH (fn:FileNames)
@@ -147,14 +147,14 @@ SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_ema
 RETURN fn
 
 MATCH (np:NavigableParents)
-WHERE np.is_qualification = "True"
+WHERE np.is_qualification = true
 RETURN np.navigable_parent;
 
 MATCH (np:NavigableParents {navigable_parent: "<li>GIS: 3 years (Required)</li>"})
-SET np.is_minimum_qualification = "True";
+SET np.is_minimum_qualification = true;
 
 MATCH (np:NavigableParents {navigable_parent: "<li>Python: 10 years (Preferred)</li>"})
-SET np.is_preferred_qualification = "True";
+SET np.is_preferred_qualification = true;
 
 MATCH (np:NavigableParents {navigable_parent: "Hope you are doing safe and fine amidst pandemic!"})
 SET np.is_qualification = NULL;
@@ -163,14 +163,14 @@ SET np.is_qualification = NULL;
 MATCH (np:NavigableParents)
 WHERE
     (
-        np.is_qualification = "True"
+        np.is_qualification = true
         AND np.is_minimum_qualification IS NULL
         AND np.is_preferred_qualification IS NULL
         )
     OR (
-        np.is_qualification = "True"
-        AND np.is_minimum_qualification = "False"
-        AND np.is_preferred_qualification = "False"
+        np.is_qualification = true
+        AND np.is_minimum_qualification = false
+        AND np.is_preferred_qualification = false
         )
 RETURN np.navigable_parent;
 
@@ -298,9 +298,9 @@ RETURN
 
 MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
 WHERE
-    np.is_qualification = "True"
-    AND np.is_minimum_qualification = "False"
-    AND np.is_preferred_qualification = "False"
+    np.is_qualification = true
+    AND np.is_minimum_qualification = false
+    AND np.is_preferred_qualification = false
 RETURN
     pos.pos_symbol AS pos_symbol,
     np.navigable_parent AS navigable_parent;
@@ -419,8 +419,8 @@ RETURN qs.qualification_str AS qualification_str;
 MATCH (np:NavigableParents)
 WHERE
     (np.navigable_parent =~ "^.+:</[a-z]+>$")
-    AND NOT (np.is_header = "True")
-SET np.is_header = "True"
+    AND NOT (np.is_header = true)
+SET np.is_header = true
 RETURN
     np.is_header AS is_header,
     np.navigable_parent AS navigable_parent;
@@ -429,8 +429,8 @@ RETURN
 MATCH (np:NavigableParents)
 WHERE
     (np.navigable_parent =~ "^(<[^><]+>)?Learn more at .+$")
-    AND NOT (np.is_interview_procedure = "True")
-SET np.is_interview_procedure = "True"
+    AND NOT (np.is_interview_procedure = true)
+SET np.is_interview_procedure = true
 RETURN
     np.is_header AS is_interview_procedure,
     np.navigable_parent AS navigable_parent;
@@ -460,13 +460,6 @@ CALL db.schema.nodeTypeProperties() YIELD nodeType, propertyName
 WHERE propertyName = "is_qualified"
 RETURN DISTINCT nodeType;
 
-// Find all properties with a value of False
-MATCH (np:NavigableParents)
-UNWIND keys(np) AS property
-WITH np, property
-WHERE np[property] = "False"
-RETURN DISTINCT property;
-
 // Rename the technical_interview_date properties in the FileNames nodes
 // to technical_interview_dates and convert their date values into a list of one date
 MATCH (fn:FileNames)
@@ -480,8 +473,8 @@ MATCH path = (np:NavigableParents)-[rels:NEXT*]->(np2:NavigableParents)
 // Check that the property is uniform and
 // the first node is a minqual header
 WHERE
-    np.is_minimum_qualification = "True" AND
-    np.is_header = "True" AND
+    np.is_minimum_qualification = true AND
+    np.is_header = true AND
     ALL(r in rels WHERE rels[0]["file_name"] = r.file_name)
 RETURN rels[0]["file_name"] AS file_name;
 
@@ -507,21 +500,17 @@ RETURN COUNT(np);
 
 // Define the input date range as a string
 WITH "Sunday, 04/02/2023 - Saturday, 04/08/2023" AS date_range
-
 // Split the input string into two parts, one for the start date and one for the end date
 WITH split(date_range, " - ") AS dates
-
 // Split the start and end dates into their components
 WITH
     split(dates[0], ", ") AS start_components,
     split(dates[1], ", ") AS end_components
-
 // Reassemble the start date components into a
 // format that the date() function can recognize
 WITH
     [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
     [item in split(end_components[1], "/") | toInteger(item)] AS end_components
-
 // Convert the integer date parts into Neo4j date objects using the date() function
 WITH
     date({
@@ -534,13 +523,11 @@ WITH
         month: end_components[0],
         year: end_components[2]
         }) AS date_end
-
 // Find all FileNames nodes and filter them by opportunity_application_email_date property
 MATCH (fn:FileNames)
 WHERE
     (fn.opportunity_application_email_date >= date_start) AND
     (fn.opportunity_application_email_date <= date_end)
-
 // Return the filtered nodes
 RETURN fn;
 
@@ -581,3 +568,18 @@ RETURN DISTINCT relationshipType;
 MATCH (nt1)-[r:NEXT]-(nt2)
 WHERE exists(r.file_name)
 RETURN DISTINCT labels(nt1) AS nt1_types;
+
+// Find all properties with a value of "False"
+CALL db.propertyKeys() YIELD propertyKey AS prop_name
+MATCH (n)
+WHERE n[prop_name] = "False"
+WITH DISTINCT prop_name, labels(n)[0] AS node_name
+RETURN prop_name, node_name;
+
+// Replace "True" with true and "False" with false
+MATCH (n)
+SET n.property = CASE n.property
+  WHEN "False" THEN false
+  WHEN "True" THEN true
+  ELSE n.property
+END;

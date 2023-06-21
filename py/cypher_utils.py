@@ -188,10 +188,10 @@ class CypherUtilities(object):
         # Navigable Parents CYPHER strings
         self.set_is_header1_cypher_str = """
             MERGE (np:NavigableParents {{navigable_parent: '{}'}})
-            SET np.is_header = 'True';"""
+            SET np.is_header = true;"""
         self.set_is_header0_cypher_str = """
             MERGE (np:NavigableParents {{navigable_parent: '{}'}})
-            SET np.is_header = 'False';"""
+            SET np.is_header = false;"""
 
 
         # Header Tags Sequence CYPHER strings
@@ -810,7 +810,7 @@ class CypherUtilities(object):
         # Set the Corporate Scope is_header
         set_is_corporate_scope1_cypher_str = """
             MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-            SET np.is_header = 'True', np.is_corporate_scope = 'True';"""
+            SET np.is_header = true, np.is_corporate_scope = true;"""
         corp_scope_headers_list = self.s.load_object('corp_scope_headers_list')
         for navigable_parent in corp_scope_headers_list:
 
@@ -851,7 +851,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_task_scope = 'True';"""
+                    SET np.is_header = true, np.is_task_scope = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -868,7 +868,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_office_location = 'True';"""
+                    SET np.is_header = true, np.is_office_location = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -885,7 +885,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_minimum_qualification = 'True', np.is_qualification = 'True';"""
+                    SET np.is_header = true, np.is_minimum_qualification = true, np.is_qualification = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -899,9 +899,9 @@ class CypherUtilities(object):
             is_nonheader_minimum_qualification_cypher_str = """
                 MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
                 SET
-                    np.is_header = 'False',
-                    np.is_minimum_qualification = 'True',
-                    np.is_qualification = 'True';"""
+                    np.is_header = false,
+                    np.is_minimum_qualification = true,
+                    np.is_qualification = true;"""
             for navigable_parent, is_nonheader_minimum_qualification in req_quals_nonheaders_dict.items():
                 if is_nonheader_minimum_qualification:
 
@@ -919,9 +919,9 @@ class CypherUtilities(object):
             is_header_minimum_qualification_cypher_str = """
                 MATCH (np:NavigableParents {{navigable_parent: '{}'}})
                 SET
-                    np.is_header = 'True',
-                    np.is_minimum_qualification = 'True',
-                    np.is_qualification = 'True';"""
+                    np.is_header = true,
+                    np.is_minimum_qualification = true,
+                    np.is_qualification = true;"""
             for navigable_parent, is_header_minimum_qualification in req_quals_headers_dict.items():
                 if is_header_minimum_qualification:
                     cypher_str = is_header_minimum_qualification_cypher_str.format(navigable_parent)
@@ -938,7 +938,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_supplemental_pay = 'True';"""
+                    SET np.is_header = true, np.is_supplemental_pay = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -955,7 +955,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'False', np.is_supplemental_pay = 'True';"""
+                    SET np.is_header = false, np.is_supplemental_pay = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -972,7 +972,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_preferred_qualification = 'True';"""
+                    SET np.is_header = true, np.is_preferred_qualification = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -989,7 +989,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_legal_notification = 'True';"""
+                    SET np.is_header = true, np.is_legal_notification = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -1005,7 +1005,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_other = 'True';"""
+                    SET np.is_header = true, np.is_other = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -1020,7 +1020,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_educational_requirement = 'True';"""
+                    SET np.is_header = true, np.is_educational_requirement = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -1035,7 +1035,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_interview_procedure = 'True';"""
+                    SET np.is_header = true, np.is_interview_procedure = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -1050,7 +1050,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_posting_date = 'True';"""
+                    SET np.is_header = true, np.is_posting_date = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -1065,7 +1065,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, is_header, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_job_duration = 'True';"""
+                    SET np.is_header = true, np.is_job_duration = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -1081,7 +1081,7 @@ class CypherUtilities(object):
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
                     MATCH (np:NavigableParents {navigable_parent: $navigable_parent})
-                    SET np.is_header = 'True', np.is_job_title = 'True';"""
+                    SET np.is_header = true, np.is_job_title = true;"""
                 if verbose:
                     clear_output(wait=True)
                     print(cypher_str.replace('$navigable_parent', f'"{navigable_parent}"'))
@@ -1093,9 +1093,9 @@ class CypherUtilities(object):
 
         # SET other subtypes as False; assume 0 rows affected if primary and secondary columns are the same
         set_secondary_column0_formatted_cypher_str = """
-            MATCH (np:NavigableParents {{{}: 'True'}})
+            MATCH (np:NavigableParents {{{}: true}})
             WHERE NOT EXISTS(np.{})
-            SET np.{} = 'False';"""
+            SET np.{} = false;"""
         for primary_column in self.subtypes_list:
             for secondary_column in self.subtypes_list:
                 cypher_str = set_secondary_column0_formatted_cypher_str.format(secondary_column, primary_column, secondary_column)
@@ -1109,9 +1109,9 @@ class CypherUtilities(object):
         cypher_str = """
             MATCH (np:NavigableParents)
             WHERE
-                np.is_minimum_qualification = 'True' OR
-                np.is_preferred_qualification = 'True'
-            SET np.is_qualification = 'True';"""
+                np.is_minimum_qualification = true OR
+                np.is_preferred_qualification = true
+            SET np.is_qualification = true;"""
         if verbose:
             clear_output(wait=True)
             print(cypher_str)
@@ -1364,12 +1364,12 @@ class CypherUtilities(object):
             print(cypher_str)
         with self.driver.session() as session:
             session.write_transaction(self.do_cypher_tx, cypher_str)
-            for a in ['True', 'False']:
+            for a in [true, false]:
                 for b in self.subtypes_list:
                     cypher_str = f"""
                         MATCH
-                            (pos:PartsOfSpeech {{is_header: '{a}', {b}: 'True'}}),
-                            (np:NavigableParents {{is_header: '{a}', {b}: 'True'}})
+                            (pos:PartsOfSpeech {{is_header: '{a}', {b}: true}}),
+                            (np:NavigableParents {{is_header: '{a}', {b}: true}})
                         MERGE (pos)-[r:SUMMARIZES]->(np);"""
                     if verbose:
                         clear_output(wait=True)
@@ -1385,7 +1385,7 @@ class CypherUtilities(object):
 
     def get_is_header_list(self, child_strs_list, verbose=False):
         is_header_list = []
-        eval_dict = {'False': False, 'True': True}
+        eval_dict = {false: False, true: True}
         for navigable_parent in child_strs_list:
             def do_cypher_tx(tx, navigable_parent, verbose=False):
                 cypher_str = """
@@ -1542,7 +1542,7 @@ class CypherUtilities(object):
         with self.driver.session() as session:
             row_objs_list = session.read_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
             if row_objs_list:
-                conversion_dict = {'True': True, 'False': False, True: True, False: False}
+                conversion_dict = {true: True, false: False, True: True, False: False}
                 params_dict = {k: conversion_dict.get(v) for k, v in row_objs_list[0].items()}
                 if params_dict['is_header']:
                     pos = 'H'
@@ -1635,7 +1635,7 @@ class CypherUtilities(object):
                 np.navigable_parent AS navigable_parent,
                 np.is_qualification AS is_qualification;"""
         is_qualification_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        is_qualification_df.is_qualification = is_qualification_df.is_qualification.map(lambda x: {'True': True, 'False': False}[x])
+        is_qualification_df.is_qualification = is_qualification_df.is_qualification.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the header pattern dictionary
         NAVIGABLE_PARENT_IS_QUAL_DICT = {}
@@ -1658,7 +1658,7 @@ class CypherUtilities(object):
                 np.navigable_parent AS navigable_parent,
                 np.is_header AS is_header;"""
         is_header_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        is_header_df.is_header = is_header_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
+        is_header_df.is_header = is_header_df.is_header.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the navigable parent is header dictionary
         NAVIGABLE_PARENT_IS_HEADER_DICT = {}
@@ -1751,7 +1751,7 @@ class CypherUtilities(object):
     def get_filenames_by_sequence(self, sequence_list=[], verbose=False):
         all_filenames_list = []
         if len(sequence_list):
-            start_num = 'False'
+            start_num = false
             header_tag_sequence_table_df = self.create_header_tag_sequence_table_dataframe()
             max_num = header_tag_sequence_table_df.sequence_order.max() - len(sequence_list) + 1
             while start_num < max_num:
@@ -1812,13 +1812,13 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_task_scope) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_task_scope AS is_task_scope,
                 np.is_header AS is_header;"""
         task_scope_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        task_scope_df.is_task_scope = task_scope_df.is_task_scope.map(lambda x: {'True': True, 'False': False}[x])
+        task_scope_df.is_task_scope = task_scope_df.is_task_scope.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the task scope list
         TASK_SCOPE_HEADERS_LIST = task_scope_df[task_scope_df.is_task_scope].navigable_parent.tolist()
@@ -1832,12 +1832,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_minimum_qualification) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_minimum_qualification AS is_minimum_qualification;"""
         req_quals_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {'True': True, 'False': False}[x])
+        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the req quals list
         MINIMUM_QUALIFICATION_HEADERS_LIST = req_quals_df[req_quals_df.is_minimum_qualification].navigable_parent.tolist()
@@ -1857,8 +1857,8 @@ class CypherUtilities(object):
                 np.is_minimum_qualification AS is_minimum_qualification,
                 np.is_header AS is_header;"""
         req_quals_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {'True': True, 'False': False}[x])
-        req_quals_df.is_header = req_quals_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
+        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {true: True, false: False}[x])
+        req_quals_df.is_header = req_quals_df.is_header.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the req quals non-headers dictionary
         O_RQ_DICT = {}
@@ -1882,7 +1882,7 @@ class CypherUtilities(object):
                 np.navigable_parent AS navigable_parent,
                 np.is_header AS is_header;"""
         headers_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        headers_df.is_header = headers_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
+        headers_df.is_header = headers_df.is_header.map(lambda x: {true: True, false: False}[x])
 
         # Load and populate the headers dictionary
         NAVIGABLE_PARENT_IS_HEADER_DICT = self.s.load_object('NAVIGABLE_PARENT_IS_HEADER_DICT')
@@ -1907,8 +1907,8 @@ class CypherUtilities(object):
                 np.is_minimum_qualification AS is_minimum_qualification,
                 np.is_header AS is_header;"""
         req_quals_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {'True': True, 'False': False}[x])
-        req_quals_df.is_header = req_quals_df.is_header.map(lambda x: {'True': True, 'False': False}[x])
+        req_quals_df.is_minimum_qualification = req_quals_df.is_minimum_qualification.map(lambda x: {true: True, false: False}[x])
+        req_quals_df.is_header = req_quals_df.is_header.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the req quals headers dictionary
         H_RQ_DICT = {}
@@ -1931,12 +1931,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_preferred_qualification) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_preferred_qualification AS is_preferred_qualification;"""
         preff_quals_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        preff_quals_df.is_preferred_qualification = preff_quals_df.is_preferred_qualification.map(lambda x: {'True': True, 'False': False}[x])
+        preff_quals_df.is_preferred_qualification = preff_quals_df.is_preferred_qualification.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the preff quals list
         PREFERRED_QUALIFICATION_HEADERS_LIST = preff_quals_df[preff_quals_df.is_preferred_qualification].navigable_parent.tolist()
@@ -1950,12 +1950,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_legal_notification) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_legal_notification AS is_legal_notification;"""
         legal_notifs_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        legal_notifs_df.is_legal_notification = legal_notifs_df.is_legal_notification.map(lambda x: {'True': True, 'False': False}[x])
+        legal_notifs_df.is_legal_notification = legal_notifs_df.is_legal_notification.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the legal notifs list
         LEGAL_NOTIFICATION_HEADERS_LIST = legal_notifs_df[legal_notifs_df.is_legal_notification].navigable_parent.tolist()
@@ -1969,12 +1969,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_job_title) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_job_title AS is_job_title;"""
         job_title_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        job_title_df.is_job_title = job_title_df.is_job_title.map(lambda x: {'True': True, 'False': False}[x])
+        job_title_df.is_job_title = job_title_df.is_job_title.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the job title list
         JOB_TITLE_HEADERS_LIST = job_title_df[job_title_df.is_job_title].navigable_parent.tolist()
@@ -1988,12 +1988,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_office_location) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_office_location AS is_office_location;"""
         office_loc_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        office_loc_df.is_office_location = office_loc_df.is_office_location.map(lambda x: {'True': True, 'False': False}[x])
+        office_loc_df.is_office_location = office_loc_df.is_office_location.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the office location list
         OFFICE_LOCATION_HEADERS_LIST = office_loc_df[office_loc_df.is_office_location].navigable_parent.tolist()
@@ -2007,12 +2007,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_job_duration) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_job_duration AS is_job_duration;"""
         job_duration_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        job_duration_df.is_job_duration = job_duration_df.is_job_duration.map(lambda x: {'True': True, 'False': False}[x])
+        job_duration_df.is_job_duration = job_duration_df.is_job_duration.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the job duration list
         JOB_DURATION_HEADERS_LIST = job_duration_df[job_duration_df.is_job_duration].navigable_parent.tolist()
@@ -2026,12 +2026,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_supplemental_pay) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_supplemental_pay AS is_supplemental_pay;"""
         supp_pay_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        supp_pay_df.is_supplemental_pay = supp_pay_df.is_supplemental_pay.map(lambda x: {'True': True, 'False': False}[x])
+        supp_pay_df.is_supplemental_pay = supp_pay_df.is_supplemental_pay.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the supplemental pay list
         SUPPLEMENTAL_PAY_HEADERS_LIST = supp_pay_df[supp_pay_df.is_supplemental_pay].navigable_parent.tolist()
@@ -2045,12 +2045,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_educational_requirement) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_educational_requirement AS is_educational_requirement;"""
         educ_reqs_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        educ_reqs_df.is_educational_requirement = educ_reqs_df.is_educational_requirement.map(lambda x: {'True': True, 'False': False}[x])
+        educ_reqs_df.is_educational_requirement = educ_reqs_df.is_educational_requirement.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the educational requirements list
         EDUCATIONAL_REQUIREMENT_HEADERS_LIST = educ_reqs_df[educ_reqs_df.is_educational_requirement].navigable_parent.tolist()
@@ -2064,12 +2064,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_interview_procedure) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_interview_procedure AS is_interview_procedure;"""
         interv_proc_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        interv_proc_df.is_interview_procedure = interv_proc_df.is_interview_procedure.map(lambda x: {'True': True, 'False': False}[x])
+        interv_proc_df.is_interview_procedure = interv_proc_df.is_interview_procedure.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the interview procedure list
         INTERVIEW_PROCEDURE_HEADERS_LIST = interv_proc_df[interv_proc_df.is_interview_procedure].navigable_parent.tolist()
@@ -2083,12 +2083,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_corporate_scope) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_corporate_scope AS is_corporate_scope;"""
         corp_scope_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        corp_scope_df.is_corporate_scope = corp_scope_df.is_corporate_scope.map(lambda x: {'True': True, 'False': False}[x])
+        corp_scope_df.is_corporate_scope = corp_scope_df.is_corporate_scope.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the corporate scope list
         CORPORATE_SCOPE_HEADERS_LIST = corp_scope_df[corp_scope_df.is_corporate_scope].navigable_parent.tolist()
@@ -2102,12 +2102,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_posting_date) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_posting_date AS is_posting_date;"""
         post_date_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        post_date_df.is_posting_date = post_date_df.is_posting_date.map(lambda x: {'True': True, 'False': False}[x])
+        post_date_df.is_posting_date = post_date_df.is_posting_date.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the posting date list
         POSTING_DATE_HEADERS_LIST = post_date_df[post_date_df.is_posting_date].navigable_parent.tolist()
@@ -2121,12 +2121,12 @@ class CypherUtilities(object):
             MATCH (np:NavigableParents)
             WHERE
                 EXISTS(np.is_other) AND
-                np.is_header = 'True'
+                np.is_header = true
             RETURN
                 np.navigable_parent AS navigable_parent,
                 np.is_other AS is_other;"""
         other_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
-        other_df.is_other = other_df.is_other.map(lambda x: {'True': True, 'False': False}[x])
+        other_df.is_other = other_df.is_other.map(lambda x: {true: True, false: False}[x])
 
         # Initialize and populate the other list
         OTHER_HEADERS_LIST = other_df[other_df.is_other].navigable_parent.tolist()

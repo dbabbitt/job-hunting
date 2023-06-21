@@ -29,7 +29,7 @@ class IsCorporateScopeSgdClassifier(PosSymbolSgdClassifier):
             self.cu.get_execution_results(cypher_str, verbose=False)
         )
         df.is_corporate_scope = df.is_corporate_scope.map(
-            lambda x: {'True': 1, 'False': 0, True: 1, False: 0}.get(x, x)
+            lambda x: {true: 1, false: 0, True: 1, False: 0}.get(x, x)
         )
         if verbose:
             print(

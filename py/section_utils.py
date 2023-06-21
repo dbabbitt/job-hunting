@@ -98,7 +98,7 @@ class SectionUtilities(object):
     
     def get_pos_color_dictionary(self, verbose=False):
         cypher_str = """
-            MATCH (pos:PartsOfSpeech {is_header: 'True'})
+            MATCH (pos:PartsOfSpeech {is_header: true})
             RETURN pos.pos_symbol as pos_symbol
             ORDER BY pos.pos_symbol;"""
         from pandas import DataFrame
