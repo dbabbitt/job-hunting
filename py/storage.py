@@ -10,10 +10,7 @@
 try:
     import dill as pickle
 except:
-    try:
-        import pickle5 as pickle
-    except:
-        import pickle
+    import pickle
 import pandas as pd
 import os
 import sys
@@ -151,7 +148,12 @@ class Storage(object):
                 object = pd.read_pickle(pickle_path)
             except:
                 with open(pickle_path, 'rb') as handle:
-                    object = pickle.load(handle)
+                    try:
+                        import dill as pickle
+                        object = pickle.load(handle)
+                    except:
+                        import pickle
+                        object = pickle.load(handle)
 
         return(object)
 

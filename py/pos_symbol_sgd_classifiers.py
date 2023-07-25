@@ -26,11 +26,10 @@ class PosSymbolSgdClassifier:
         )
         self.classifier = SGDClassifier(loss='log', warm_start=True)
         self.total_trained = 0
+        self.tf_dict = {'true': 1, 'false': 0, True: 1, False: 0}
     
     def prepare_updating_data(self, new_data_list, new_labels_list, verbose=False):
-        new_labels_list = [{true: 1, false: 0, True: 1, False: 0}.get(
-            x, x
-        ) for x in new_labels_list]
+        new_labels_list = [self.tf_dict.get(x, x) for x in new_labels_list]
         
         return new_data_list, new_labels_list
 

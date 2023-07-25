@@ -16,6 +16,7 @@ from sklearn.linear_model import SGDClassifier
 class IsQualificationSgdClassifier(PosSymbolSgdClassifier):
     def __init__(self, ha, cu, verbose=False):
         super().__init__(ha, cu, verbose=False)
+        self.tf_dict = {'true': 1, 'false': 0, True: 1, False: 0}
 
     def prepare_training_data(self, verbose=False):
         cypher_str = """
@@ -40,9 +41,7 @@ class IsQualificationSgdClassifier(PosSymbolSgdClassifier):
         df = DataFrame(
             self.cu.get_execution_results(cypher_str, verbose=False)
         )
-        df.is_qualification = df.is_qualification.map(
-            lambda x: {true: 1, false: 0, True: 1, False: 0}.get(x, x)
-        )
+        df.is_qualification = df.is_qualification.map(lambda x: self.tf_dict.get(x, x))
         if verbose:
             print(f'I have {df.shape[0]:,} hand-labeled qualification htmls prepared')
         train_data_list = df.navigable_parent.tolist()

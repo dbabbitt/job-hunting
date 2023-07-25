@@ -266,7 +266,7 @@ class SectionUtilities(object):
         if lru is None:
             lru = self.lru
         indices_list = self.find_basic_quals_section_indexes(
-            child_strs_list=child_strs_list, file_name=file_name, verbose=False
+            child_strs_list=child_strs_list, file_name=file_name, verbose=verbose
         )
         assert indices_list, f"Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)\n## OR, edit the file directly then run this: ##\ncu.rebuild_filename_node(file_name, wsu, verbose=True)"
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]

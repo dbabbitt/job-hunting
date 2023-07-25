@@ -291,7 +291,7 @@ class WebScrapingUtilities(object):
             version_str = parser.GetFileVersion(file_path)
             version_num = int(version_str.split('.')[0])
         except Exception as e:
-            print('Error getting chrome version: {str(e).strip()}')
+            print(f'Error getting chrome version: {str(e).strip()}')
 
         return f'chromedriver{version_num}'
     

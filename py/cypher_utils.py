@@ -212,6 +212,7 @@ class CypherUtilities(object):
         self.BACKSLASH = chr(92)
         self.SINGLE_QUOTE = chr(39)
         self.DOUBLE_QUOTE = chr(34)
+        self.conversion_dict = {'true': True, 'false': False, True: True, False: False}
 
 
 
@@ -1508,11 +1509,13 @@ class CypherUtilities(object):
                 )
                 params_dict = row_objs_list[0] if row_objs_list else None
                 if params_dict is not None:
-                    if params_dict['is_header'] is not None:
-                        feature_dict['is_header'] = eval(params_dict['is_header'])
+                    is_header = params_dict['is_header']
+                    if is_header is not None:
+                        feature_dict['is_header'] = self.conversion_dict.get(is_header, is_header)
                     for subtype in self.subtypes_list:
-                        if params_dict[subtype] is not None:
-                            feature_dict[subtype] = eval(params_dict[subtype])
+                        sub_type = params_dict[subtype]
+                        if sub_type is not None:
+                            feature_dict[subtype] = self.conversion_dict.get(sub_type, sub_type)
                 feature_dict['child_str'] = navigable_parent
                 feature_dict_list.append(feature_dict)
 
@@ -1542,8 +1545,7 @@ class CypherUtilities(object):
         with self.driver.session() as session:
             row_objs_list = session.read_transaction(do_cypher_tx, navigable_parent=navigable_parent, verbose=verbose)
             if row_objs_list:
-                conversion_dict = {true: True, false: False, True: True, False: False}
-                params_dict = {k: conversion_dict.get(v) for k, v in row_objs_list[0].items()}
+                params_dict = {k: self.conversion_dict.get(v) for k, v in row_objs_list[0].items()}
                 if params_dict['is_header']:
                     pos = 'H'
                 else:

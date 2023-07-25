@@ -17,7 +17,7 @@ RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
-    fn.file_name IN ["8f2d5bc52d1ba263_Audio_Machine_Learning_Co_op_Framingham_MA_Indeed_com.html", "146c4a1b4e7a9648_Data_Science_Co_Op_Remote_Indeed_com.html", "1007999989567_Senior_Automation_Engineer.html", "ca155dc54a89aa86_Acoustic_Control_and_Signal_Processing_Co_op_Framingham_MA_Indeed_com.html", "eb543318e5a0a74c_Quality_Engineer_I_Python_ML_QA_Remote_Remote_Indeed_com.html", "Senior_Physiological_Data_Scientist_-_Amherst,_MA_01003_-_Indeed.com_a90c3116d8d36525.html"]
+    fn.file_name IN ["4K3iiuvyiHXy6Ww_3pjwYA_Master_Data_Scientist_HP_New_Jersey_United_States_Remote.html"]
     AND fn.opportunity_application_email_date IS NOT NULL
     AND fn.rejection_email_date IS NULL
 RETURN
@@ -27,15 +27,15 @@ RETURN
 ORDER BY fn.opportunity_application_email_date DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["abb463527203e94c_Travel_Demand_Modeling_Analyst_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["4K3iiuvyiHXy6Ww_3pjwYA_Master_Data_Scientist_HP_New_Jersey_United_States_Remote.html"]
 SET
-    fn.rejection_email_text = "Unfortunately, at this time the Travel Demand Modeling Analyst position has been filled.",
+    fn.rejection_email_text = "We regret to inform that we will not be progressing with your candidacy for this particular requisition.",
     fn.rejection_email_date = date(),
     fn.is_closed = true
 RETURN fn;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["J308sa7JJ0om_gnKGHbw6w_Data_Scientist_hackajob_London_England_United_Kingdom_Remote.html"]
+WHERE fn.file_name IN ["4_3vra1_cWiZ4hdknGCBcQ_Data_Scientist_CVS_Health_New_York_NY_Remote.html"]
 SET fn.is_closed = true
 RETURN fn;
 
@@ -108,7 +108,7 @@ RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
-    (fn.opportunity_application_email_date = date("	2023-03-01"))
+    (fn.opportunity_application_email_date = date("2023-03-01"))
 RETURN fn;
 
 MATCH (fn:FileNames)
