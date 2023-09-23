@@ -11,26 +11,29 @@ RETURN
 ORDER BY fn.percent_fit DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["f9eb1389644151d9_Data_Operations_Engineer_Remote_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["99ff2ff0f6339645_Data_Scientist_South_San_Francisco_CA_Indeed_com.html"]
 SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_email_date = date()
 RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
-    fn.file_name IN ["4K3iiuvyiHXy6Ww_3pjwYA_Master_Data_Scientist_HP_New_Jersey_United_States_Remote.html"]
+    fn.file_name IN ["99ff2ff0f6339645_Data_Scientist_South_San_Francisco_CA_Indeed_com.html"]
     AND fn.opportunity_application_email_date IS NOT NULL
     AND fn.rejection_email_date IS NULL
 RETURN
     fn.opportunity_application_email_date AS email_date,
     fn.file_name AS file_name,
-    fn.posting_url AS posting_url
+    fn.posting_url AS posting_url,
+    fn.rejection_email_text,
+    fn.rejection_email_date,
+    fn.is_closed
 ORDER BY fn.opportunity_application_email_date DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["4K3iiuvyiHXy6Ww_3pjwYA_Master_Data_Scientist_HP_New_Jersey_United_States_Remote.html"]
+WHERE fn.file_name IN ["99ff2ff0f6339645_Data_Scientist_South_San_Francisco_CA_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "We regret to inform that we will not be progressing with your candidacy for this particular requisition.",
-    fn.rejection_email_date = date(),
+    fn.rejection_email_text = "We recognize this news is disappointing, but we have made the decision not to move forward with your candidacy for the position at this time.",
+    fn.rejection_email_date = date("2023-05-23"),
     fn.is_closed = true
 RETURN fn;
 
