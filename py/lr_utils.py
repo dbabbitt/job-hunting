@@ -454,7 +454,7 @@ class LrUtilities(object):
             ))
         
         return quals_list, file_name
-    
+        
     def display_hunting_dataframe_as_histogram(
         self, width_inches=18.0, height_inches=3.0, bin_count=10, verbose=False
     ):
@@ -477,4 +477,17 @@ class LrUtilities(object):
         xy = self.hunting_df.percent_fit.mode().squeeze()
         ax2.axvline(xy, linewidth=1.5, color='r', linestyle='-.')
         ax2.axhline(xy, linewidth=1.5, color='r', linestyle='-.')
+        
+        # Turn off the grid
+        ax1.grid(False)
+        ax2.grid(False)
+        
+        # Turn off the y ticks
+        ax1.set_yticks([])
+        ax2.set_yticks([])
+        
+        # Turn off the y tick labels
+        ax1.set_yticklabels([])
+        ax2.set_yticklabels([])
+    
         plt.tight_layout()
