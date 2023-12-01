@@ -14,31 +14,88 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from nltk import pos_tag
 
 def rebalance_data(
-    unbalanced_df, name_column, value_column, sampling_strategy_limit, verbose=False
+    unbalanced_df: pd.DataFrame,
+    name_column: str,
+    value_column: str,
+    sampling_strategy_limit: int,
+    verbose: bool = False,
 ):
+    """
+    Rebalances the given unbalanced DataFrame by under-sampling the majority
+    class(es) to the specified sampling_strategy_limit.
     
-    # Create the random under-sampler
+    Parameters:
+        unbalanced_df (pandas.DataFrame): The unbalanced DataFrame to rebalance.
+        name_column (str): The name of the column containing the class labels.
+        value_column (str): The name of the column containing the values associated
+            with each class label.
+        sampling_strategy_limit (int): The maximum number of samples to keep for
+            each class label.
+        verbose (bool, optional): Whether to print debug output during the
+            rebalancing process. Defaults to False.
+    
+    Returns:
+        pandas.DataFrame: A rebalanced DataFrame with an undersampled majority class.
+    """
+    
+    # Step 1: Create the random under-sampler
+    if verbose: print("Creating the random under-sampler...")
+    
     counts_dict = unbalanced_df.groupby(value_column).count()[name_column].to_dict()
     sampling_strategy = {k: min(sampling_strategy_limit, v) for k, v in counts_dict.items()}
+    
     from imblearn.under_sampling import RandomUnderSampler
     rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
     
-    # Define the tuple of arrays
+    # Step 2: Define the tuple of arrays
+    if verbose: print("Resampling the data...")
+    
     data = rus.fit_resample(
         unbalanced_df[name_column].values.reshape(-1, 1),
-        unbalanced_df[value_column].values.reshape(-1, 1)
+        unbalanced_df[value_column].values.reshape(-1, 1),
     )
     
-    # Recreate the Pandas DataFrame
+    # Step 3: Recreate the Pandas DataFrame
+    if verbose: print("Converting data to Pandas DataFrame...")
+    
     rebalanced_df = DataFrame(data[0], columns=[name_column])
     rebalanced_df[value_column] = data[1]
     
     return rebalanced_df
 
 class HtmlVectorizer:
+    """
+    Convert a collection of HTML documents to a matrix of token counts.
+
+    This class uses the CountVectorizer from scikit-learn to vectorize HTML documents
+    into a matrix of token counts, considering n-grams in the specified range.
+
+    Parameters:
+        ha (HtmlAnalyzer): An instance of the HtmlAnalyzer class providing an HTML-specific tokenizer.
+        verbose (bool, optional): Whether to print debug output during the vectorization process. Defaults to False.
+
+    Attributes:
+        ha (HtmlAnalyzer): The provided HtmlAnalyzer instance.
+        verbose (bool): Flag indicating whether to print verbose output.
+        vectorizer (CountVectorizer): The scikit-learn CountVectorizer configured for HTML tokenization.
+        pos_relationships_vocab (dict): Vocabulary mapping words to indices after fitting.
+
+    Methods:
+        fit_transform(corpus): Fit the vectorizer to the corpus and transform it.
+        transform(corpus): Transform a given corpus using the already fitted vectorizer.
+        restore_vocabulary(): Restore the vocabulary using the stored pos_relationships_vocab.
+        validate_and_restore_vocab(): Validate and restore the vocabulary if needed.
+    """
     pos_relationships_vocab = None
 
     def __init__(self, ha, verbose=False):
+        """
+        Constructs an HtmlVectorizer instance.
+
+        Parameters:
+            ha (HtmlAnalyzer): An instance of the HtmlAnalyzer class providing an HTML-specific tokenizer.
+            verbose (bool, optional): Whether to print debug output during the vectorization process. Defaults to False.
+        """
         self.ha = ha
         self.verbose = verbose
         self.vectorizer = CountVectorizer(
@@ -47,80 +104,149 @@ class HtmlVectorizer:
         )
     
     def fit_transform(self, corpus):
+        """
+        Fits the vectorizer to the given corpus and transforms the corpus into a document-term matrix.
+
+        Parameters:
+            corpus (list[str]): A list of HTML documents.
+
+        Returns:
+            scipy.sparse.csr_matrix: Transformed matrix of token counts.
+        """
         self.vectorizer.fit(corpus)
         HtmlVectorizer.pos_relationships_vocab = self.vectorizer.vocabulary_
         
         return self.vectorizer.transform(corpus)
     
     def transform(self, corpus):
+        """
+        Transform a given corpus using the already fitted vectorizer.
+
+        Parameters:
+            corpus (list[str]): A list of HTML documents.
+
+        Returns:
+            scipy.sparse.csr_matrix: Transformed matrix of token counts.
+        """
         
         return self.vectorizer.transform(corpus)
 
     @classmethod
     def restore_vocabulary(cls):
-        if cls.pos_relationships_vocab is None:
-            raise ValueError('Vocabulary has not been trained yet')
+        """
+        Restores the vocabulary from a previously trained vectorizer.
+
+        Raises:
+            ValueError: If the vocabulary has not been trained yet.
+
+        Returns:
+            CountVectorizer: A CountVectorizer instance with the restored vocabulary.
+        """
+        if cls.pos_relationships_vocab is None: raise ValueError('Vocabulary has not been trained yet')
         vectorizer = CountVectorizer(
-            lowercase=True, tokenizer=self.ha.html_regex_tokenizer,
+            lowercase=True, tokenizer=HtmlVectorizer.ha.html_regex_tokenizer,
             ngram_range=(1, 3), vocabulary=cls.pos_relationships_vocab
         )
         
         return vectorizer
 
     def validate_and_restore_vocab(self):
+        """
+        Validates and restores the vocabulary if necessary.
+
+        Raises:
+            ValueError: If the vocabulary is empty or has not been trained yet.
+        """
         if not hasattr(self.vectorizer, 'vocabulary_'):
             self.vectorizer._validate_vocabulary()
-            if not self.vectorizer.fixed_vocabulary_:
-                self.vectorizer = HtmlVectorizer.restore_vocabulary()
-        if len(self.vectorizer.vocabulary_) == 0:
-            raise ValueError('Vocabulary is empty')
+            if not self.vectorizer.fixed_vocabulary_: self.vectorizer = HtmlVectorizer.restore_vocabulary()
+        if len(self.vectorizer.vocabulary_) == 0: raise ValueError('Vocabulary is empty')
 
 
 ###################################################
 ## Logistic Regression parts-of-speech functions ##
 ###################################################
 class SectionLRClassifierUtilities(object):
-    '''A class for all the job-posting-section logistic regression predictive models'''
+    '''
+    A class for all the job-posting-section logistic regression predictive models
+    
+    Parameters:
+        ha (HeaderAnalysis): An HTML header analysis object.
+        cu (CypherUtilities): The Utility object for common Cypher scripts to send to the Net4j server.
+        verbose (bool, optional): Whether to print debug output (default: False)
+    
+    Attributes:
+        ha (HeaderAnalysis): An HeaderAnalysis object.
+        cu (CypherUtilities): A CypherUtilities object.
+        verbose (bool): If True, print debug output during processing.
+        s (Storage or None): A Storage object obtained from cu or ha, or None if not
+            available.
+    '''
     def __init__(self, ha, cu, verbose=False):
+        '''
+        Constructor for the SectionLRClassifierUtilities class
+        
+        Initialize class attributes:
+            ha (HeaderAnalysis): The HeaderAnalysis object
+            cu (CypherUtilities): The CypherUtilities object
+            verbose (bool, optional): Whether to print debug output (default: False)
+        '''
         self.ha = ha
         self.cu = cu
         self.verbose = verbose
         
-        # Seek a Storage object
-        if self.cu and hasattr(self.cu, 's'):
-            self.s = self.cu.s
-        elif self.ha and hasattr(self.ha, 's'):
-            self.s = self.ha.s
-        else:
-            self.s = None
-
+        # Seek a Storage object. First, check if cu has an attribute 's'
+        if self.cu and hasattr(self.cu, 's'): self.s = self.cu.s
+        
+        # Check if ha has an attribute 's'
+        elif self.ha and hasattr(self.ha, 's'): self.s = self.ha.s
+        
+        # Set s to None if no Storage object is found
+        else: self.s = None
+    
     
     def build_pos_logistic_regression_elements(
         self, sampling_strategy_limit=None, verbose=False
     ):
-        '''Train a model for each labeled POS symbol'''
+        '''
+        Train a model for each labeled POS symbol.
+        
+        Parameters:
+            sampling_strategy_limit (int or None, optional): Limit for sampling
+                strategy, by default None.
+            verbose (bool, optional): If True, print additional information during
+                execution, by default False.
+        '''
+        
+        # Check if count_vect has been saved and load it, otherwise create a new one
         if self.s and self.s.pickle_exists('slrcu.count_vect'):
             self.count_vect = self.s.load_object('slrcu.count_vect')
         else:
             self.count_vect = HtmlVectorizer(ha=self.ha, verbose=verbose)
+        
+        # Load or create the TF-IDF transformer
         if self.s and self.s.pickle_exists('slrcu.tfidf_transformer'):
             self.tfidf_transformer = self.s.load_object('slrcu.tfidf_transformer')
         else:
             self.tfidf_transformer = TfidfTransformer(
                 norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True
             )
+        
+        # Load or create the logistic regression classifiers
         if self.s and self.s.pickle_exists('slrcu_classifier_dict'):
             self.classifier_dict = self.s.load_object('slrcu_classifier_dict')
             is_already_fitted = True
         else:
             self.classifier_dict = {}
             is_already_fitted = False
+        
+        # Initialize the percent-fit dictionary
         self.pos_predict_percent_fit_dict = {}
         
         # Get the labeled training data
         pos_df = self.cu.get_pos_relationships(verbose=False)
 
-        # Rebalance the data with the sampling strategy limit
+        # Rebalance the data with the sampling strategy limit if necessary
         if sampling_strategy_limit is not None:
             pos_df = self.rebalance_data(
                 pos_df, name_column='navigable_parent', value_column='pos_symbol',
@@ -132,14 +258,15 @@ class SectionLRClassifierUtilities(object):
         if verbose:
             print(f'I have {len(sents_list):,} labeled parts of speech in here')
 
-        # The shape of the Bag-of-words count vector here should be
-        # `n` html strings * `m` unique parts-of-speech tokens
         # Learn the vocabulary dictionary
+        # Note: the shape of the Bag-of-words count vector here should be
+        #       html strings count * unique parts-of-speech tokens count
         bow_matrix = self.count_vect.fit_transform(sents_list)
 
-        # Document-term matrix has as input the Bag-of-words
+        # Fit the TF-IDF transformer
         X_train_tfidf = self.tfidf_transformer.fit_transform(bow_matrix)
         
+        # Define a function to fit the classifier and store the results
         from sklearn.linear_model import LogisticRegression
         def fit_classifier_dict(pos_symbol, X_train_tfidf, train_data_list):
             try:
@@ -151,6 +278,7 @@ class SectionLRClassifierUtilities(object):
                         slrcu_classifier_dict=self.classifier_dict, verbose=False
                     )
                 
+                # Build and store the prediction function
                 inference_func = self.build_predict_percent_fit_function(
                     pos_symbol, verbose=verbose
                 )
@@ -159,31 +287,42 @@ class SectionLRClassifierUtilities(object):
                 print(f'Fitting {pos_symbol} had this error: {str(e).strip()}')
                 self.classifier_dict.pop(pos_symbol, None)
                 self.pos_predict_percent_fit_dict.pop(pos_symbol, None)
+        
+        # Iterate over unique POS symbols in the training data
         for pos_symbol in pos_df.pos_symbol.unique():
 
             # Train the classifier
             mask_series = (pos_df.pos_symbol == pos_symbol)
             train_data_list = mask_series.to_numpy()
             if pos_symbol not in self.classifier_dict:
+                
+                # Create a new logistic regression classifier
                 self.classifier_dict[pos_symbol] = LogisticRegression(
                     C=375.0, class_weight='balanced', max_iter=1000, penalty='l1',
                     solver='liblinear', verbose=False, warm_start=True
                 )
+                
                 fit_classifier_dict(pos_symbol, X_train_tfidf, train_data_list)
             elif not is_already_fitted:
                 fit_classifier_dict(pos_symbol, X_train_tfidf, train_data_list)
             else:
                 try:
+                    
+                    # Build and store the prediction function if not already fitted
                     inference_func = self.build_predict_percent_fit_function(
                         pos_symbol, verbose=verbose
                     )
                     self.pos_predict_percent_fit_dict[pos_symbol] = inference_func
+                    
                 except ValueError as e:
                     print(f'Fitting {pos_symbol} had this error: {str(e).strip()}')
                     self.pos_predict_percent_fit_dict.pop(pos_symbol, None)
     
+    
     def predict_single(self, html_str, verbose=False):
-        '''Predict the labels for the input data'''
+        '''
+        Predict the labels for the input data
+        '''
         tuple_list = []
         for pos_symbol, predict_percent_fit in self.pos_predict_percent_fit_dict.items():
             if predict_percent_fit is None:
@@ -195,7 +334,8 @@ class SectionLRClassifierUtilities(object):
         tuple_list.sort(reverse=True, key=lambda x: x[1])
 
         return tuple_list[0][0]
-
+    
+    
     def build_predict_percent_fit_function(self, pos_symbol, verbose=False):
         predict_percent_fit = None
         if pos_symbol in self.classifier_dict:
