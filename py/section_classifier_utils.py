@@ -14,7 +14,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from nltk import pos_tag
 
 def rebalance_data(
-    unbalanced_df: pd.DataFrame,
+    unbalanced_df: DataFrame,
     name_column: str,
     value_column: str,
     sampling_strategy_limit: int,
