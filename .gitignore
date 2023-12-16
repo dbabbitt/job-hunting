@@ -38,6 +38,7 @@
 
 # Exclude job hunting notebooks, etc., that I didn't make
 builders/Reinsert All Files.ipynb
+explorations/Brainstorming_Story_Ideas_with_Cohere_and_Stable_Diffusion.ipynb
 flaskr/static/style.css
 ipynb/benchmarking.ipynb
 ipynb/bert_language_model_with_sequence_classification.ipynb
@@ -47,7 +48,9 @@ ipynb/plot_feature_transformation.ipynb
 ipynb/pycrfsuite.ipynb
 ipynb/sklearn_crfsuite.ipynb
 ps1/test.ps1
+py/crf_utils_new.py
 py/crf_utils_old.py
+py/crf_utils_old2.py
 
 # Exclude CSV files
 saves/csv/*.csv
@@ -62,6 +65,8 @@ saves/xcf/JOB_SEARCH-512.xcf
 **/.git/
 saves/html
 saves/txt
+saves/notepad_sessions
+saves/xml/notepad_sessions
 
 # Ignore exam files
 **/troops_df.*
@@ -87,14 +92,19 @@ cypher/neo4j_job_hunting_import.cypher
 # Exclude pickles and backups
 #*.pkl
 *.bak
-saves/pkl/estimators_list.pkl
-saves/pkl/FIT_ESTIMATORS_DICT.pkl
-saves/pkl/fit_estimators_list.pkl
-saves/pkl/GN300_MODEL.pkl
-saves/pkl/JAYZ_*
-saves/pkl/DAVEZ_*
-saves/pkl/davez_*
 flaskr/saves/pkl/*.pkl
+saves/pkl/CHILD_STRS_LIST_DICT_*.pkl
+saves/pkl/CRF.pkl
+saves/pkl/DAVEZ_*
+saves/pkl/FIT_ESTIMATORS_DICT.pkl
+saves/pkl/GN300_MODEL.pkl
+saves/pkl/HEADER_PATTERN_DICT_*.pkl
+saves/pkl/JAYZ_*
+saves/pkl/crf_CRF_*.pkl
+saves/pkl/davez_*
+saves/pkl/estimators_list.pkl
+saves/pkl/fit_estimators_list.pkl
+saves/pkl/slrcu_classifier_dict_*.pkl
 
 # Exclude Mac, Jupyter, R, and Octave admin files
 **/octave-workspace
@@ -242,30 +252,3 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
-py/crf_utils_new.py
-py/crf_utils_old2.py
-explorations/Brainstorming_Story_Ideas_with_Cohere_and_Stable_Diffusion.ipynb
-saves/pkl/CHILD_STRS_LIST_DICT_old.pkl
-saves/pkl/CRF.pkl
-saves/pkl/CRF.pkl
-saves/pkl/crf_CRF_20230324.pkl
-saves/pkl/crf_CRF_20230401.pkl
-saves/pkl/crf_CRF_20230402.pkl
-saves/pkl/HEADER_PATTERN_DICT_old.pkl
-saves/pkl/slrcu_classifier_dict_20230324.pkl
-saves/pkl/slrcu_classifier_dict_20230402.pkl
-saves/pkl/slrcu_classifier_dict_20230405.pkl
-saves/xml/notepad_sessions/config_session.xml
-saves/xml/notepad_sessions/flaskr_session.xml
-saves/xml/notepad_sessions/jobs_emails_html_session.xml
-saves/xml/notepad_sessions/llm_session.xml
-saves/xml/notepad_sessions/sgd_window.xml
-saves/xml/notepad_sessions/test_window.xml
-saves/xml/notepad_sessions/utils_window.xml
-saves/notepad_sessions/utils_session.xml
-saves/notepad_sessions/test_session.xml
-saves/notepad_sessions/sgd_session'.xml
-saves/notepad_sessions/llm_session.xml
-saves/notepad_sessions/jobs_emails_html_session.xml
-saves/notepad_sessions/flaskr_session.xml
-saves/notepad_sessions/config_session.xml
