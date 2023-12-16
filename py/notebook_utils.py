@@ -10,8 +10,6 @@
 from datetime import timedelta
 from os import listdir as listdir, makedirs as makedirs, path as osp
 from pandas import DataFrame, Series, concat, read_csv, read_html
-try: from pysan.elements import get_alphabet
-except: get_alphabet = lambda sequence: set(sequence)
 from typing import List, Optional
 import humanize
 import matplotlib.pyplot as plt
@@ -40,12 +38,7 @@ class NotebookUtilities(object):
         import sys
         import os.path as osp
         sys.path.insert(1, osp.abspath('../py'))
-        from notebook_utils import NotebookUtilities
-        
-        nu = NotebookUtilities(
-            data_folder_path=osp.abspath('../data'),
-            saves_folder_path=osp.abspath('../saves')
-        )
+        from FRVRS import nu
     """
     
     def __init__(self, data_folder_path=None, saves_folder_path=None, verbose=False):
@@ -108,9 +101,15 @@ class NotebookUtilities(object):
         self.facebook_aspect_ratio = 1.91
         self.twitter_aspect_ratio = 16/9
 
+        try:
+            from pysan.elements import get_alphabet
+            self.get_alphabet = get_alphabet
+        except: self.get_alphabet = lambda sequence: set(sequence)
+
     ### String Functions ###
     
-    def compute_similarity(self, a: str, b: str) -> float:
+    @staticmethod
+    def compute_similarity(a: str, b: str) -> float:
         """
         Calculates the similarity between two strings.
 
@@ -124,6 +123,50 @@ class NotebookUtilities(object):
         from difflib import SequenceMatcher
 
         return SequenceMatcher(None, str(a), str(b)).ratio()
+
+    def get_first_year_element(self, x):
+        """
+        Extracts the first year element from a given string, potentially containing multiple date or year formats.
+        
+        Parameters:
+            x (str): The input string containing potential year information.
+        
+        Returns:
+            int or float: The extracted first year element, or NaN if no valid year element is found.
+        """
+        
+        # Split the input string using various separators
+        stripped_list = re.split(r'( |/|–|\\u2009|-|\[)', str(x), 0)
+        
+        # Remove non-numeric characters from each element in the stripped list
+        stripped_list = [re.sub(r'\D+', '', x) for x in stripped_list]
+        
+        # Filter elements with lengths between 3 and 4, as likely to be years
+        stripped_list = [x for x in stripped_list if (len(x) >= 3) and (len(x) <= 4)]
+        
+        try:
+            
+            # Identify the index of the first numeric element in the stripped list
+            numeric_list = [x.isnumeric() for x in stripped_list]
+            
+            # If a numeric substring is found, extract the first numeric value
+            if True in numeric_list:
+                idx = numeric_list.index(True, 0)
+                first_numeric = int(stripped_list[idx])
+            
+            # If no numeric substring is found, raise an exception
+            else: raise Exception('No numeric year element found')
+        
+        # Handle exceptions and return the first substring if no numeric substring is found
+        except Exception as e:
+            
+            # If there are any substrings, return the first one as the year element
+            if stripped_list: first_numeric = int(stripped_list[0])
+            
+            # If there are no substrings, return NaN
+            else: first_numeric = np.nan
+
+        return first_numeric
 
     def format_timedelta(self, time_delta):
         """
@@ -149,7 +192,8 @@ class NotebookUtilities(object):
     ### List Functions ###
     
     
-    def conjunctify_nouns(self, noun_list=None, and_or='and', verbose=False):
+    @staticmethod
+    def conjunctify_nouns(noun_list=None, and_or='and', verbose=False):
         """
         Concatenates a list of nouns into a grammatically correct string with specified conjunctions.
         
@@ -371,19 +415,14 @@ class NotebookUtilities(object):
         return splits_list
 
     
-    def get_alphabet(self, sequence, verbose=False):
-        alphabet_set = set(sequence)
-        
-        return alphabet_set
-
-    
     def convert_strings_to_integers(self, sequence, alphabet_list=None):
         """
         Converts a sequence of strings to a sequence of integers.
         
         Parameters:
             sequence: A sequence of strings.
-            alphabet_list: A list of the unique elements of sequence.
+            alphabet_list: A list of the unique elements of sequence,
+                           passed in to stabilize the order.
         
         Returns:
             A sequence of integers.
@@ -398,14 +437,17 @@ class NotebookUtilities(object):
         new_sequence = np.zeros_like(sequence, dtype=int)
         
         for i, string in enumerate(sequence):
-            if string not in string_to_integer_map: string_to_integer_map[string] = alphabet_list.index(string)
+            if string not in string_to_integer_map:
+                if string not in alphabet_list: string_to_integer_map[string] = -1
+                else: string_to_integer_map[string] = alphabet_list.index(string)
             new_sequence[i] = string_to_integer_map[string]
         new_sequence = new_sequence.astype(int)
         
         return new_sequence, string_to_integer_map
     
     
-    def count_ngrams(self, actions_list, highlighted_ngrams):
+    @staticmethod
+    def count_ngrams(actions_list, highlighted_ngrams):
         """
         Counts how many times a given sequence of elements occurs in a list.
         
@@ -423,7 +465,8 @@ class NotebookUtilities(object):
         return count
     
     
-    def get_sequences_by_count(self, tg_dict, count=4):
+    @staticmethod
+    def get_sequences_by_count(tg_dict, count=4):
         """
         Get sequences from the input dictionary based on a specific sequence length.
 
@@ -452,7 +495,82 @@ class NotebookUtilities(object):
         return sequences
     
     
-    def get_shape(self, list_of_lists):
+    def get_ndistinct_subsequences(self, sequence, verbose=False):
+        """
+        Note:
+            This replaces from pysan import get_ndistinct_subsequences
+        """
+
+        # This implementation works on strings, so parse non-strings to strings
+        if (type(sequence) is not str) or (not all([(len(str(e)) == 1) for e in sequence])):
+            new_sequence, string_to_integer_map = self.convert_strings_to_integers(sequence, alphabet_list=None)
+            sequence = []
+            for e in new_sequence: sequence.append(e)
+        if verbose: print('sequence', sequence)
+
+        # Create an array to store index of last
+        last = [-1 for i in range(256 + 1)] # hard-coded value needs explaining -ojs
+
+        # Length of input string
+        sequence_length = len(sequence)
+
+        # dp[i] is going to store count of discount subsequence of length of i
+        dp = [-2 for i in range(sequence_length + 1)]
+
+        # Empty substring has only one subseqence
+        dp[0] = 1
+
+        # Traverse through all lengths from 1 to n 
+        for i in range(1, sequence_length + 1):
+
+            # Number of subseqence with substring str[0...i-1]
+            dp[i] = 2 * dp[i - 1]
+
+            # If current character has appeared before, then remove all subseqences ending with previous occurrence
+            if last[sequence[i - 1]] != -1: dp[i] = dp[i] - dp[last[sequence[i - 1]]]
+
+            last[sequence[i - 1]] = i - 1
+
+        return dp[sequence_length]
+    
+    
+    def get_turbulence(self, sequence, verbose=False):
+        '''
+        Computes turbulence for a given sequence, based on
+        [Elzinga & Liefbroer's 2007 definition](https://www.researchgate.net/publication/225402919_De-standardization_of_Family-Life_Trajectories_of_Young_Adults_A_Cross-National_Comparison_Using_Sequence_Analysis)
+        which is also implemented in the [TraMineR](http://traminer.unige.ch/doc/seqST.html) sequence analysis library.
+
+        Note:
+            This replaces from pysan import get_turbulence
+        '''
+        import statistics
+        phi = self.get_ndistinct_subsequences(sequence, verbose=verbose)
+        if verbose: print('phi', phi)
+        
+        from pysan.statistics import get_spells
+        state_durations = [value for key, value in get_spells(sequence)]
+        if verbose: print('durations', state_durations)
+        if verbose: print('mean duration', statistics.mean(state_durations))
+        
+        try: variance_of_state_durations = statistics.variance(state_durations)
+        except: variance_of_state_durations = 0.0
+        if verbose: print('variance', variance_of_state_durations)
+        
+        tbar = statistics.mean(state_durations)
+        
+        maximum_state_duration_variance = (len(sequence) - 1) * (1 - tbar) ** 2
+        if verbose: print('smax', maximum_state_duration_variance)
+        
+        top_right = maximum_state_duration_variance + 1
+        bot_right = variance_of_state_durations + 1
+        turbulence = math.log2(phi * (top_right / bot_right))
+        if verbose: print('turbulence', turbulence)
+        
+        return turbulence
+    
+    
+    @staticmethod
+    def get_shape(list_of_lists):
         """
         Returns the shape of a list of lists, assuming the sublists are all of the same length.
         
@@ -477,7 +595,8 @@ class NotebookUtilities(object):
         return (len(list_of_lists), num_cols)
     
     
-    def split_row_indices_list(self, splitting_indices_list, excluded_indices_list=[]):
+    @staticmethod
+    def split_row_indices_list(splitting_indices_list, excluded_indices_list=[]):
         """
         Splits a list of row indices into a list of lists, where each inner list
         contains a contiguous sequence of indices that are not in the excluded indices list.
@@ -547,7 +666,8 @@ class NotebookUtilities(object):
     ### File Functions ###
     
     
-    def get_function_file_path(self, func):
+    @staticmethod
+    def get_function_file_path(func):
         """
         Returns the relative or absolute file path where the function is stored.
 
@@ -622,7 +742,8 @@ class NotebookUtilities(object):
         return rogue_fns_set
     
     
-    def get_utility_file_functions(self, util_path=None):
+    @staticmethod
+    def get_utility_file_functions(util_path=None):
         """
         Extracts a set of function names already defined in the utility file.
         
@@ -719,7 +840,8 @@ class NotebookUtilities(object):
         return dfs_list
     
     
-    def open_path_in_notepad(self, path_str, home_key='USERPROFILE', text_editor_path=r'C:\Program Files\Notepad++\notepad++.exe', verbose=True):
+    @staticmethod
+    def open_path_in_notepad(path_str, home_key='USERPROFILE', text_editor_path=r'C:\Program Files\Notepad++\notepad++.exe', verbose=True):
         """
         Open a file in Notepad or a specified text editor.
         
@@ -831,6 +953,50 @@ class NotebookUtilities(object):
                 shutil.rmtree(folder_path)
 
     
+    @staticmethod
+    def get_top_level_folder_paths(folder_path, verbose=False):
+        """
+        Gets all top-level folder paths within a given directory.
+        
+        Parameters:
+            folder_path (str): The path to the directory to scan for top-level folders.
+            verbose (bool, optional): Whether to print debug information about the process. Defaults to False.
+        
+        Returns:
+            list[str]: A list of absolute paths to all top-level folders within the provided directory.
+        
+        Raises:
+            FileNotFoundError: If the provided folder path does not exist.
+            NotADirectoryError: If the provided folder path points to a file or non-existing directory.
+        
+        Notes:
+            This function does not recursively scan for subfolders within the top-level folders.
+            If `verbose` is True, it will print the number of discovered top-level folders.
+        """
+        
+        # Make sure the provided folder exists and is a directory
+        if not os.path.exists(folder_path): raise FileNotFoundError(f'Directory {folder_path} does not exist.')
+        if not os.path.isdir(folder_path): raise NotADirectoryError(f'Path {folder_path} is not a directory.')
+        
+        # Initialize an empty list to store top-level folder paths
+        top_level_folders = []
+        
+        # Iterate through items in the specified folder
+        for item in os.listdir(folder_path):
+            
+            # Construct the full path for each item
+            full_item_path = os.path.join(folder_path, item)
+            
+            # Check if the item is a directory, and if so, add its path to the list
+            if os.path.isdir(full_item_path): top_level_folders.append(full_item_path)
+        
+        # Optionally print information based on the `verbose` flag
+        if verbose: print(f'Found {len(top_level_folders)} top-level folders in {folder_path}.')
+        
+        # Return the list of top-level folder paths
+        return top_level_folders
+    
+    
     ### Storage Functions ###
 
     
@@ -913,8 +1079,9 @@ class NotebookUtilities(object):
         return osp.isfile(pickle_path)
 
     
+    @staticmethod
     def attempt_to_pickle(
-        self, df: DataFrame, pickle_path: str, raise_exception: bool = False,
+        df: DataFrame, pickle_path: str, raise_exception: bool = False,
         verbose: bool = True
     ) -> None:
         """
@@ -1010,35 +1177,55 @@ class NotebookUtilities(object):
         
         # Iterate over each frame_name provided in kwargs
         for frame_name in kwargs:
+            was_successful = False
             
             # Attempt to load the data frame from a pickle file
-            pickle_path = osp.join(self.saves_pickle_folder, '{}.pkl'.format(frame_name))
-            print('Attempting to load {}.'.format(osp.abspath(pickle_path)), flush=True)
+            if not was_successful:
+                pickle_path = osp.abspath(osp.join(self.saves_pickle_folder, f'{frame_name}.pkl'))
+                
+                # If the pickle file exists, load it using the load_object function
+                if osp.isfile(pickle_path):
+                    print(f'Attempting to load {pickle_path}.', flush=True)
+                    try:
+                        frame_dict[frame_name] = self.load_object(frame_name)
+                        was_successful = True
+                    except Exception as e:
+                        print(str(e).strip())
+                        was_successful = False
             
             # If the pickle file doesn't exist, check for a CSV file with the same name
-            if not osp.isfile(pickle_path):
-                csv_name = '{}.csv'.format(frame_name)
-                csv_path = osp.join(self.saves_csv_folder, csv_name)
-                print('No pickle exists - attempting to load {}.'.format(osp.abspath(csv_path)), flush=True)
-                
-                # If the CSV file doesn't exist in the saves folder, check for it in the data folder
-                if not osp.isfile(csv_path):
-                    csv_path = osp.join(self.data_csv_folder, csv_name)
-                    print('No csv exists - trying {}.'.format(osp.abspath(csv_path)), flush=True)
-                    
-                    # If the CSV file doesn't exist anywhere, skip loading this data frame
-                    if not osp.isfile(csv_path):
-                        print('No csv exists - just forget it.', flush=True)
-                        frame_dict[frame_name] = None
-                    
-                    # If the CSV file exists in the data folder, load it from there
-                    else: frame_dict[frame_name] = self.load_csv(csv_name=frame_name)
+            if not was_successful:
+                csv_name = f'{frame_name}.csv'
+                csv_path = osp.abspath(osp.join(self.saves_csv_folder, csv_name))
                 
                 # If the CSV file exists in the saves folder, load it from there
-                else: frame_dict[frame_name] = self.load_csv(csv_name=frame_name, folder_path=self.saves_folder)
+                if osp.isfile(csv_path):
+                    print(f'No pickle exists for {frame_name} - attempting to load {csv_path}.', flush=True)
+                    try:
+                        frame_dict[frame_name] = self.load_csv(csv_name=frame_name, folder_path=self.saves_folder)
+                        was_successful = True
+                    except Exception as e:
+                        print(str(e).strip())
+                        was_successful = False
             
-            # If the pickle file exists, load it using the load_object function
-            else: frame_dict[frame_name] = self.load_object(frame_name)
+            # If the CSV file doesn't exist in the saves folder, check for it in the data folder
+            if not was_successful:
+                csv_path = osp.abspath(osp.join(self.data_csv_folder, csv_name))
+                
+                # If the CSV file exists in the data folder, load it from there
+                if osp.isfile(csv_path):
+                    print(f'No csv exists for {frame_name} - trying {csv_path}.', flush=True)
+                    try:
+                        frame_dict[frame_name] = self.load_csv(csv_name=frame_name)
+                        was_successful = True
+                    except Exception as e:
+                        print(str(e).strip())
+                        was_successful = False
+            
+            # If the CSV file doesn't exist anywhere, skip loading this data frame
+            if not was_successful:
+                print(f'No csv exists for {frame_name} - just forget it.', flush=True)
+                frame_dict[frame_name] = None
 
         return frame_dict
     
@@ -1107,7 +1294,8 @@ class NotebookUtilities(object):
     ### Module Functions ###
     
     
-    def get_dir_tree(self, module_name, contains_str=None, not_contains_str=None, verbose=False):
+    @staticmethod
+    def get_dir_tree(module_name, contains_str=None, not_contains_str=None, verbose=False):
         """
         Gets a list of all attributes in a given module.
         
@@ -1223,7 +1411,8 @@ class NotebookUtilities(object):
     ### URL and Soup Functions ###
     
     
-    def get_filename_from_url(self, url, verbose=False):
+    @staticmethod
+    def get_filename_from_url(url, verbose=False):
         """
         Extracts the filename from a given URL.
 
@@ -1334,11 +1523,7 @@ class NotebookUtilities(object):
             # Import necessary libraries and modules
             import sys
             sys.path.insert(1, '../py')  # Add the '../py' directory to the system path
-            from notebook_utils import NotebookUtilities
-            import os.path as osp
-            
-            # Create a NotebookUtilities instance with a specified data folder path
-            nu = NotebookUtilities(data_folder_path=osp.abspath('../data'))
+            from FRVRS import nu
             
             # Example usage of the function
             tables_url = 'https://en.wikipedia.org/wiki/Provinces_of_Afghanistan'
@@ -1416,6 +1601,61 @@ class NotebookUtilities(object):
         return table_dfs_list
 
     
+    def get_style_column(self, tag_obj, verbose=False):
+        """
+        Extracts the style column from a given BeautifulSoup tag object and returns
+        the style column tag object.
+    
+        Parameters:
+            tag_obj (bs4.element.Tag): The BeautifulSoup tag object to extract the style column from.
+            verbose (bool, optional): If True, display intermediate steps for debugging. Default is False.
+    
+        Returns:
+            bs4.element.Tag: The modified BeautifulSoup tag object representing the style column.
+        """
+        
+        # Display the initial tag object if verbose is True
+        if verbose: display(tag_obj)
+    
+        # Get the parent td tag object
+        tag_obj = get_td_parent(tag_obj, verbose=verbose)
+        if verbose: display(tag_obj)
+    
+        # Traverse the siblings of the table tag object backward until a style column is found
+        from bs4.element import NavigableString
+        while isinstance(tag_obj, NavigableString) or not tag_obj.has_attr('style'):
+            tag_obj = tag_obj.previous_sibling
+            if verbose: display(tag_obj)
+    
+        # Display the text content of the found style column if verbose is True
+        if verbose: display(tag_obj.text.strip())
+
+        # Return the style column tag object
+        return tag_obj
+
+    
+    def get_td_parent(self, tag_obj, verbose=False):
+        """
+        Finds and returns the closest ancestor of the given BeautifulSoup tag object that is a 'td' tag.
+    
+        Parameters:
+            tag_obj (bs4.element.Tag): The BeautifulSoup tag object whose 'td' ancestor needs to be found.
+            verbose (bool, optional): If True, display intermediate steps for debugging. Default is False.
+    
+        Returns:
+            bs4.element.Tag: The closest 'td' ancestor tag object.
+        """
+        if verbose: display(tag_obj)
+        
+        # Traverse the parent tags upward until a table cell (<td>) is found
+        while (tag_obj.name != 'td'):
+            tag_obj = tag_obj.parent
+            if verbose: display(tag_obj)
+
+        # Return the closest 'td' ancestor tag object
+        return tag_obj
+    
+    
     ### Pandas Functions ###
     
     
@@ -1479,7 +1719,8 @@ class NotebookUtilities(object):
         return row_dict
     
     
-    def get_column_descriptions(self, df, column_list=None, verbose=False):
+    @staticmethod
+    def get_column_descriptions(df, column_list=None, verbose=False):
         """
         Generate a DataFrame containing descriptive statistics for specified columns in a given DataFrame.
     
@@ -1569,7 +1810,8 @@ class NotebookUtilities(object):
         return blank_ranking_df
     
     
-    def get_inf_nan_mask(self, x_list, y_list):
+    @staticmethod
+    def get_inf_nan_mask(x_list, y_list):
         """
         Returns a mask indicating which elements of x_list and y_list are not inf or nan.
         
@@ -1668,7 +1910,8 @@ class NotebookUtilities(object):
         display(df)
     
     
-    def modalize_columns(self, df, columns_list, new_column):
+    @staticmethod
+    def modalize_columns(df, columns_list, new_column):
         """
         Create a new column in a DataFrame representing the modal value of specified columns.
         
@@ -1699,7 +1942,8 @@ class NotebookUtilities(object):
         return df
 
     
-    def get_regexed_columns(self, df, search_regex=None, verbose=False):
+    @staticmethod
+    def get_regexed_columns(df, search_regex=None, verbose=False):
         """
         Identify columns in a DataFrame that contain references based on a specified regex pattern.
         
@@ -1738,7 +1982,8 @@ class NotebookUtilities(object):
         return columns_list
 
     
-    def get_regexed_dataframe(self, filterable_df, columns_list, search_regex=None, verbose=False):
+    @staticmethod
+    def get_regexed_dataframe(filterable_df, columns_list, search_regex=None, verbose=False):
         """
         Create a DataFrame that displays an example of what search_regex is finding for each column in columns_list.
         
@@ -1768,7 +2013,7 @@ class NotebookUtilities(object):
         if verbose: print(type(search_regex))
         
         # Create an empty DataFrame to store the filtered rows
-        df = DataFrame([])
+        filtered_df = DataFrame([])
         
         # For each column in columns_list, filter the filterable df and extract the first row that matches the search_regex
         for cn in columns_list:
@@ -1778,13 +2023,16 @@ class NotebookUtilities(object):
                 lambda x: bool(search_regex.search(str(x)))
             )
             
-            # Concatenate the first matching row to the result DataFrame
-            df = concat([df, filterable_df[mask_series].iloc[0:1]], axis='index')
+            # Concatenate the first matching row not already in the result data frame
+            df = filterable_df[mask_series]
+            mask_series = ~df.index.isin(filtered_df.index)
+            if mask_series.any(): filtered_df = concat([filtered_df, df[mask_series].iloc[0:1]], axis='index')
         
-        return df
+        return filtered_df
     
     
-    def convert_to_df(self, row_index, row_series, verbose=True):
+    @staticmethod
+    def convert_to_df(row_index, row_series, verbose=True):
         """
         Convert a row represented as a Pandas Series into a single-row DataFrame.
         
@@ -1809,7 +2057,8 @@ class NotebookUtilities(object):
     ### 3D Point Functions ###
     
     
-    def get_coordinates(self, second_point, first_point=None):
+    @staticmethod
+    def get_coordinates(second_point, first_point=None):
         """
         Get the coordinates of two 3D points.
     
@@ -1873,7 +2122,8 @@ class NotebookUtilities(object):
     ### Sub-sampling Functions ###
     
     
-    def get_minority_combinations(self, sample_df, groupby_columns):
+    @staticmethod
+    def get_minority_combinations(sample_df, groupby_columns):
         """
         Get the minority combinations of a DataFrame.
         
@@ -1892,12 +2142,13 @@ class NotebookUtilities(object):
             for cn, cv in zip(groupby_columns, bool_tuple): mask_series &= (sample_df[cn] == cv)
             
             # Append a single record from the filtered data frame
-            if sample_df[mask_series].shape[0]: df = concat([df, sample_df[mask_series].sample(1)], axis='index')
+            if mask_series.any(): df = concat([df, sample_df[mask_series].sample(1)], axis='index')
         
         return df
     
     
-    def get_random_subdictionary(self, super_dict, n=5):
+    @staticmethod
+    def get_random_subdictionary(super_dict, n=5):
         """
         Extracts a random subdictionary with a specified number of key-value pairs from a given superdictionary.
         
@@ -1930,7 +2181,8 @@ class NotebookUtilities(object):
     ### Plotting Functions ###
     
     
-    def get_color_cycler(self, n):
+    @staticmethod
+    def get_color_cycler(n):
         """
         Generate a color cycler for plotting with a specified number of colors.
         
@@ -2086,7 +2338,8 @@ class NotebookUtilities(object):
         return fig
     
     
-    def plot_line_with_error_bars(self, df, xname, xlabel, xtick_text_fn, yname, ylabel, ytick_text_fn, title):
+    @staticmethod
+    def plot_line_with_error_bars(df, xname, xlabel, xtick_text_fn, yname, ylabel, ytick_text_fn, title):
         """
         Creates a line plot with error bars to visualize the mean and standard deviation of a numerical variable
         grouped by another categorical variable.
@@ -2143,7 +2396,8 @@ class NotebookUtilities(object):
         ax.set_yticklabels(yticklabels_list);
     
     
-    def plot_histogram(self, df, xname, xlabel, xtick_text_fn, title, ylabel=None, xticks_are_temporal=False, ax=None, color=None, bins=100):
+    @staticmethod
+    def plot_histogram(df, xname, xlabel, xtick_text_fn, title, ylabel=None, xticks_are_temporal=False, ax=None, color=None, bins=100):
         """
         Plots a histogram of a DataFrame column.
         
@@ -2214,7 +2468,236 @@ class NotebookUtilities(object):
         
         return ax
     
-    def plot_sequence(self, sequence, highlighted_ngrams=[], color_dict=None, suptitle=None, first_element='SESSION_START', last_element='SESSION_END', verbose=False):
+    
+    def plot_inauguration_age(
+        self,
+        inauguration_df,
+        groupby_column_name,
+        xname,
+        leader_designation,
+        label_infix,
+        label_suffix,
+        info_df,
+        title_prefix,
+        inaugruation_verb='Inauguration',
+        legend_tuple=None,
+        verbose=False
+    ):
+        """
+        Plot a scatter plot of leaders' ages at inauguration over time, with optional groupings and background shading.
+        
+        Parameters:
+            inauguration_df (pandas.DataFrame): DataFrame containing leadership inauguration data.
+            groupby_column_name (str): Column name for grouping leaders (e.g., country, party).
+            xname (str): The name of the x-axis variable, representing the year of inauguration.
+            leader_designation (str): The designation of the leaders, such as "President" or "Governor".
+            label_infix (str): Text to be inserted in the label between leader designation and groupby_column.
+            label_suffix (str): Text to be appended to the label.
+            info_df (pandas.DataFrame): DataFrame containing additional information about turning years.
+            title_prefix (str): A prefix to add to the plot title.
+            inaugruation_verb (str, optional): The verb to use for inauguration, such as "inauguration" or "swearing-in". Defaults to "Inauguration".
+            legend_tuple (tuple, optional): A tuple specifying the location of the legend, such as (0.02, 0.76). Defaults to None.
+            verbose (bool, optional): Whether to print debug info. Defaults to False.
+        
+        Returns:
+            None: The function plots the graph directly using matplotlib.
+        """
+
+        # Configure the color dictionary
+        color_cycler = self.get_color_cycler(info_df[groupby_column_name].unique().shape[0])
+        face_color_dict = {}
+        for groupby_column, fc_dict in zip(
+            info_df[groupby_column_name].unique(), color_cycler()
+        ):
+            face_color_dict[groupby_column] = fc_dict['color']
+
+        # Plot and annotate the figure
+        figwidth = 18
+        fig, ax = plt.subplots(figsize=(figwidth, figwidth/self.twitter_aspect_ratio))
+        used_list = []
+        import textwrap
+        for groupby_column, df in inauguration_df.sort_values('office_rank').groupby(
+            groupby_column_name
+        ):
+            if groupby_column[0] in ['A', 'U']: ana = 'an'
+            else: ana = 'a'
+            label = f'{leader_designation.title()} {label_infix} {ana} {groupby_column} {label_suffix}'.strip()
+
+            # Convert the array to a 2-D array with a single row
+            reshape_tuple = (1, -1)
+            color = face_color_dict[groupby_column].reshape(reshape_tuple)
+
+            # Plot and annotate all points from the index
+            for leader_name, row_series in df.iterrows():
+                if groupby_column not in used_list:
+                    used_list.append(groupby_column)
+                    df.plot(
+                        x=xname,
+                        y='age_at_inauguration',
+                        kind='scatter',
+                        ax=ax,
+                        label=label,
+                        color=color
+                    )
+                else:
+                    df.plot(
+                        x=xname,
+                        y='age_at_inauguration',
+                        kind='scatter',
+                        ax=ax,
+                        color=color
+                    )
+                plt.annotate(
+                    textwrap.fill(leader_name, width=10),
+                    (row_series[xname], row_series.age_at_inauguration),
+                    textcoords='offset points',
+                    xytext=(0, -4),
+                    ha='center',
+                    va='top',
+                    fontsize=6
+                )
+
+        # Add 5 years to the height
+        bottom, top = ax.get_ylim()
+        height_tuple = (bottom, top+5)
+        ax.set_ylim(height_tuple)
+        bottom, top = ax.get_ylim()
+        height = top - bottom
+
+        # Get the background shading width
+        left, right = ax.get_xlim()
+        min_shading_width = 9999
+        min_turning_name = ''
+        wrap_width = info_df.turning_name.map(lambda x: len(x)).min()
+        for row_index, row_series in info_df.iterrows():
+            turning_year_begin = max(row_series.turning_year_begin, left)
+            turning_year_end = min(row_series.turning_year_end, right)
+            width = turning_year_end - turning_year_begin
+            if (width > 0) and (width < min_shading_width):
+                min_shading_width = width
+                min_turning_name = row_series.turning_name
+                wrap_width = len(min_turning_name)
+
+        # Add the turning names as background shading
+        from matplotlib.patches import Rectangle
+        for row_index, row_series in info_df.iterrows():
+            turning_year_begin = max(row_series.turning_year_begin, left)
+            turning_year_end = min(row_series.turning_year_end, right)
+            width = turning_year_end - turning_year_begin
+            if (width > 0):
+                groupby_column = row_series[groupby_column_name]
+                turning_name = row_series.turning_name
+                rect = Rectangle(
+                    (turning_year_begin, bottom), width, height, color=face_color_dict[groupby_column],
+                    fill=True, edgecolor=None, alpha=0.1
+                )
+                ax.add_patch(rect)
+                plt.annotate(
+                    textwrap.fill(turning_name, width=wrap_width, break_long_words=False),
+                    (turning_year_begin+(width/2), top), textcoords='offset points', xytext=(0, -6),
+                    ha='center', fontsize=7, va='top', rotation=-90
+                )
+        
+        # Set legend
+        if legend_tuple is None: legend_tuple = (0.02, 0.76)
+        legend_obj = ax.legend(loc=legend_tuple)
+        if verbose:
+            
+            # Get the bounding box of the legend relative to the anchor point
+            bbox_to_anchor = legend_obj.get_bbox_to_anchor()
+            
+            # Print the size and position of the bounding box
+            print(bbox_to_anchor.width, bbox_to_anchor.height, bbox_to_anchor.xmin, bbox_to_anchor.ymin, bbox_to_anchor.xmax, bbox_to_anchor.ymax)
+            
+            # Get the bounding box of the legend
+            bounding_box = legend_obj.get_tightbbox()
+            
+            # Print the size and position of the bounding box
+            print(bounding_box.width, bounding_box.height, bounding_box.xmin, bounding_box.ymin, bounding_box.xmax, bounding_box.ymax)
+        
+        # Set labels
+        ax.set_xlabel(f'Year of {inaugruation_verb}')
+        ax.set_ylabel(f'Age at {inaugruation_verb}')
+        text_obj = ax.set_title(f'{title_prefix} {inaugruation_verb} Age vs Year')
+    
+    
+    def plot_grouped_box_and_whiskers(
+        self,
+        transformable_df,
+        x_column_name,
+        y_column_name,
+        x_label,
+        y_label,
+        transformer_name='min',
+        is_y_temporal=True
+    ):    
+        """
+        Creates a grouped box plot visualization to compare the distribution of a numerical variable across different groups.
+        
+        Parameters:
+            transformable_df (pandas.DataFrame): DataFrame containing the data to be plotted.
+            x_column_name (str): The name of the categorical variable to group by and column name for the x-axis.
+            y_column_name (str): Column name for the y-axis.
+            x_label (str): Label for the x-axis.
+            y_label (str): Label for the y-axis.
+            transformer_name (str, optional): Name of the transformation applied to the y-axis values before plotting (default: 'min').
+            is_y_temporal (bool, optional): If True, y-axis labels will be formatted as temporal values (default: True).
+        
+        Returns:
+            None: The function plots the graph directly using seaborn and matplotlib.
+        """
+        import seaborn as sns
+        
+        # Get the transformed data frame
+        if transformer_name is None: transformed_df = transformable_df
+        else:
+            groupby_columns = ['session_uuid', 'scene_index']
+            transformed_df = (
+                transformable_df.groupby(groupby_columns)
+                .filter(lambda df: not df[y_column_name].isnull().any())
+                .groupby(groupby_columns)
+                .transform(transformer_name)
+                .reset_index(drop=False)
+                .sort_values(y_column_name)
+            )
+        
+        # Create a figure and subplots
+        fig, ax = plt.subplots(1, 1, figsize=(9, 9))
+        
+        # Create a box plot of the y column grouped by the x column
+        sns.boxplot(
+            x=x_column_name,
+            y=y_column_name,
+            showmeans=True,
+            data=transformed_df,
+            ax=ax
+        )
+        
+        # Rotate the x-axis labels to prevent overlapping
+        plt.xticks(rotation=45)
+        
+        # Label the x- and y-axis
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+        
+        # Humanize y tick labels
+        if is_y_temporal:
+            yticklabels_list = []
+            for text_obj in ax.get_yticklabels():
+                text_obj.set_text(
+                    humanize.precisedelta(
+                        timedelta(milliseconds=text_obj.get_position()[1])
+                    )
+                    .replace(', ', ',\n')
+                    .replace(' and ', ' and\n')
+                )
+                yticklabels_list.append(text_obj)
+            ax.set_yticklabels(yticklabels_list)
+        
+        plt.show()
+    
+    
+    def plot_sequence(self, sequence, highlighted_ngrams=[], color_dict=None, suptitle=None, first_element='SESSION_START', last_element='SESSION_END', alphabet_list=None, verbose=False):
         """
         Creates a standard sequence plot where each element corresponds to a position on the y-axis.
         The optional highlighted_ngrams parameter can be one or more n-grams to be outlined in a red box.
@@ -2225,6 +2708,11 @@ class NotebookUtilities(object):
             color_dict: An optional dictionary whose keys are the alphabet list and whose values are
                         a single color format string to allow consistent visualization between calls.
             suptitle: An optional title for the plot.
+            first_element: The element in alphabet_list that will be forced to the beginning if
+                           already in the list. Defaults to SESSION_START.
+            last_element: The element in alphabet_list that will be forced to the end if
+                           already in the list. Defaults to SESSION_END.
+            alphabet_list: A list of strings or integers representing the set of elements in sequence.
             verbose: A boolean indicating whether to print verbose output.
         
         Returns:
@@ -2235,24 +2723,30 @@ class NotebookUtilities(object):
         np_sequence = np.array(sequence)
         
         # Get the unique characters in the sequence and potentially use them to set up the color dictionary
-        if highlighted_ngrams and (type(highlighted_ngrams[0]) is list): alphabet_list = sorted(get_alphabet(sequence+[el for sublist in highlighted_ngrams for el in sublist]))
-        else: alphabet_list = sorted(get_alphabet(sequence+highlighted_ngrams))
+        if alphabet_list is None:
+            if highlighted_ngrams and (type(highlighted_ngrams[0]) is list):
+                alphabet_list = sorted(self.get_alphabet(sequence+[el for sublist in highlighted_ngrams for el in sublist]))
+            else: alphabet_list = sorted(self.get_alphabet(sequence+highlighted_ngrams))
         if last_element in alphabet_list:
             alphabet_list.remove(last_element)
             alphabet_list.append(last_element)
         if first_element in alphabet_list: alphabet_list.insert(0, alphabet_list.pop(alphabet_list.index(first_element)))
+        
+        # Set up the color dictionary so that its keys consist of the elements in alphabet_list
         if color_dict is None: color_dict = {a: None for a in alphabet_list}
+        else: color_dict = {a: color_dict.get(a) for a in alphabet_list}
         
         # Get the length of the alphabet
         alphabet_len = len(alphabet_list)
         
         # Convert the sequence to integers
-        int_sequence, _ = self.convert_strings_to_integers(np_sequence)
+        int_sequence, _ = self.convert_strings_to_integers(np_sequence, alphabet_list=alphabet_list)
         
         # Create a string-to-integer map
         if highlighted_ngrams and (type(highlighted_ngrams[0]) is list):
-            _, string_to_integer_map = self.convert_strings_to_integers(sequence+[el for sublist in highlighted_ngrams for el in sublist])
-        else: _, string_to_integer_map = self.convert_strings_to_integers(sequence+highlighted_ngrams)
+            _, string_to_integer_map = self.convert_strings_to_integers(sequence+[el for sublist in highlighted_ngrams for el in sublist], alphabet_list=alphabet_list)
+        else: _, string_to_integer_map = self.convert_strings_to_integers(sequence+highlighted_ngrams, alphabet_list=alphabet_list)
+        # if verbose: print(string_to_integer_map)
         
         # If the sequence is not already in integer format, convert it
         if (np_sequence.dtype.str not in ['<U21', '<U11']): int_sequence = np_sequence
@@ -2270,41 +2764,54 @@ class NotebookUtilities(object):
         
         # Iterate over the alphabet and plot the points for each character
         for i, value in enumerate(alphabet_list):
-            
-            # Print verbose output if requested
-            if verbose: print(i, value)
+            # if verbose: print(i, value)
             
             # Get the positions of the current character in the sequence
             points = np.where(np_sequence == value, i, np.nan)
-            
-            # Print verbose output if requested
-            if verbose: print(range(len(np_sequence)))
-            if verbose: print(points)
+            # if verbose: print(range(len(np_sequence)))
+            # if verbose: print(points)
             
             # Plot the points
             plt.scatter(x=range(len(np_sequence)), y=points, marker='s', label=value, s=35, color=color_dict[value])
-            if verbose:
-                color_cycle = plt.rcParams['axes.prop_cycle']
-                print('\nPrinting the colors in the color cycle:')
-                for color in color_cycle: print(color)
-                print()
+            # if verbose:
+                # color_cycle = plt.rcParams['axes.prop_cycle']
+                # print('\nPrinting the colors in the color cycle:')
+                # for color in color_cycle: print(color)
+                # print()
         
-        # Set the yticks
-        plt.yticks(range(alphabet_len), [value for value in alphabet_list])
+        # Set the yticks label values
+        plt.yticks(range(alphabet_len), alphabet_list)
+        
+        # Match the label colors with the color cycle and color dictionary
+        from itertools import cycle
+        
+        # Get the color cycle from rcParams
+        prop_cycle = plt.rcParams['axes.prop_cycle']
+        colors = cycle(prop_cycle.by_key()['color'])
+        
+        colors_list = []
+        for key in alphabet_list:
+            value = color_dict[key]
+            
+            # Get the next color in the cycle
+            if (value is None):
+                color = next(colors)
+                colors_list.append(color)
+            
+            else: colors_list.append(value)
+        # if verbose: print(f'colors_list = {colors_list}')
+        
+        # Set the yticks label color
+        for label, color in zip(plt.gca().get_yticklabels(), colors_list): label.set_color(color)
         
         # Set the y limits
         plt.ylim(-1, alphabet_len)
         
         # Highlight any of the n-grams given
         if highlighted_ngrams != []:
-            
-            # Print verbose output if requested
-            if verbose: display(highlighted_ngrams)
+            # if verbose: display(highlighted_ngrams)
             
             def highlight_ngram(ngram):
-                
-                # Print verbose output if requested
-                if verbose: display(ngram)
                 
                 # Get the length of the n-gram
                 n = len(ngram)
@@ -2313,18 +2820,16 @@ class NotebookUtilities(object):
                 match_positions = []
                 for x in range(len(int_sequence) - n + 1):
                     this_ngram = list(int_sequence[x:x + n])
-                    
-                    # Print verbose output if requested
-                    if verbose: print(str(this_ngram), str(ngram))
-                    
                     if str(this_ngram) == str(ngram): match_positions.append(x)
                 
                 # Draw a red box around each match
+                # if verbose: print(f'ngram={ngram}, min(ngram)={min(ngram)}, max(ngram)={max(ngram)}, match_positions={match_positions}')
                 for position in match_positions:
-                    bot = min(ngram) - 0.5
-                    top = max(ngram) + 0.5
+                    bot = min(ngram) - 0.25
+                    top = max(ngram) + 0.25
                     left = position - 0.25
                     right = left + n - 0.5
+                    if verbose: print(f'bot={bot}, top={top}, left={left}, right={right}')
                     
                     line_width = 1
                     plt.plot([left,right], [bot,bot], color='red', linewidth=line_width)
@@ -2340,8 +2845,36 @@ class NotebookUtilities(object):
             else:
                 for ngram in highlighted_ngrams:
                     if type(ngram[0]) is str: highlight_ngram([string_to_integer_map[x] for x in ngram])
+                    elif type(ngram[0]) is int: highlight_ngram(ngram)
+                    else: raise Exception('Invalid data format', ngram)
         
-        if suptitle is not None: fig.suptitle(suptitle, y=1.2)
+        if suptitle is not None:
+            if (alphabet_len <= 6):
+                # from scipy.optimize import curve_fit
+                # import matplotlib.pyplot as plt
+                # import numpy as np
+                # x = np.array([1, 4, 6])
+                # y = np.array([1.95, 1.08, 1.0])
+                # def linear_func(x, m, b): return m * x + b
+                # def exp_decay_func(x, a, b, c): return a * np.exp(-b * x) + c
+                # popt, pcov = curve_fit(linear_func, x, y)
+                # popt, pcov = curve_fit(exp_decay_func, x, y)
+                # m, b = popt
+                # a, b, c = popt
+                # fitted_equation = f'y = {m:.2f}*alphabet_len + {b:.2f}'
+                # fitted_equation = f'y = {a:.2f} * np.exp(-{b:.2f} * alphabet_len) + {c:.2f}'
+                # print(fitted_equation)
+                # plt.plot(x, y, 'o', label='Data points')
+                # plt.plot(x, linear_func(x, *popt), label='Linear line')
+                # plt.plot(x, exp_decay_func(x, *popt), label='Exponential Decay line')
+                # plt.xlabel('x')
+                # plt.ylabel('y')
+                # plt.legend()
+                # plt.show()
+                y = 2.06 * np.exp(-0.75 * alphabet_len) + 0.98
+                if verbose: print(f'alphabet_len={alphabet_len}, y={y}')
+            else: y = 0.95
+            fig.suptitle(suptitle, y=y)
         
         return fig
     
@@ -2370,13 +2903,13 @@ class NotebookUtilities(object):
             np_sequence = np.array(sequence)
             
             # Determine the number of unique values in the sequence
-            alphabet_len = len(get_alphabet(sequence))
+            alphabet_len = len(self.get_alphabet(sequence))
             
             # Disable automatic color cycling
             plt.gca().set_prop_cycle(None)
             
             # Get the unique values in the sequence
-            unique_values = get_alphabet(sequence)
+            unique_values = self.get_alphabet(sequence)
             
             for i, value in enumerate(unique_values):
                 
