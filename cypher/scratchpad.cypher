@@ -1,5 +1,10 @@
 
 MATCH (fn:FileNames)
+WHERE fn.file_name IN ["5_qP6NgiZw5oYzGOjiYZig_Sr_Data_Scientist_Forbes_Jersey_City_NJ_Remote.html"]
+SET fn.is_closed = true
+RETURN fn;
+
+MATCH (fn:FileNames)
 WHERE
     (fn.percent_fit >= 0.8) AND
     ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
@@ -35,11 +40,6 @@ SET
     fn.rejection_email_text = "We recognize this news is disappointing, but we have made the decision not to move forward with your candidacy for the position at this time.",
     fn.rejection_email_date = date("2023-05-23"),
     fn.is_closed = true
-RETURN fn;
-
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["4_3vra1_cWiZ4hdknGCBcQ_Data_Scientist_CVS_Health_New_York_NY_Remote.html"]
-SET fn.is_closed = true
 RETURN fn;
 
 MATCH (fn:FileNames)

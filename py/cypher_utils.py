@@ -461,8 +461,8 @@ class CypherUtilities(object):
 
 
     def set_posting_url(self, file_name, url_str, verbose=False):
+        assert pd.notna(url_str), f"{file_name} cannot take {url_str} as a url_str"
         file_node_dict = {}
-
         def do_cypher_tx(tx, file_name, url_str, verbose=False):
             cypher_str = """
                 MATCH (fn:FileNames {file_name: $file_name})
