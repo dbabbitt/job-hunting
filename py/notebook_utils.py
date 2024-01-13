@@ -12,6 +12,7 @@ from os import listdir as listdir, makedirs as makedirs, path as osp
 from pandas import DataFrame, Series, concat, read_csv, read_html
 from typing import List, Optional
 import humanize
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -20,14 +21,13 @@ import re
 import subprocess
 import sys
 import urllib
+import warnings
 try: import dill as pickle
 except:
     try: import pickle5 as pickle
     except: import pickle
 
-import warnings
 warnings.filterwarnings('ignore')
-
 class NotebookUtilities(object):
     """
     This class implements the core of the utility
@@ -47,7 +47,6 @@ class NotebookUtilities(object):
     """
     
     def __init__(self, data_folder_path=None, saves_folder_path=None, verbose=False):
-        self.verbose = verbose
         self.pip_command_str = f'{sys.executable} -m pip'
         # self.update_modules_list(verbose=verbose)
         
@@ -55,18 +54,14 @@ class NotebookUtilities(object):
         self.github_folder = osp.dirname(osp.abspath(osp.curdir))
         
         # Create the data folder if it doesn't exist
-        if data_folder_path is None:
-            self.data_folder = '../data'
-        else:
-            self.data_folder = data_folder_path
+        if data_folder_path is None: self.data_folder = '../data'
+        else: self.data_folder = data_folder_path
         makedirs(self.data_folder, exist_ok=True)
         if verbose: print('data_folder: {}'.format(osp.abspath(self.data_folder)), flush=True)
         
         # Create the saves folder if it doesn't exist
-        if saves_folder_path is None:
-            self.saves_folder = '../saves'
-        else:
-            self.saves_folder = saves_folder_path
+        if saves_folder_path is None: self.saves_folder = '../saves'
+        else: self.saves_folder = saves_folder_path
         makedirs(self.saves_folder, exist_ok=True)
         if verbose: print('saves_folder: {}'.format(osp.abspath(self.saves_folder)), flush=True)
         
@@ -87,19 +82,37 @@ class NotebookUtilities(object):
         self.graphs_folder = osp.join(self.saves_folder, 'graphs'); makedirs(self.graphs_folder, exist_ok=True)
         self.indices_folder = osp.join(self.saves_folder, 'indices'); makedirs(self.indices_folder, exist_ok=True)
         
+        # Various model paths
+        self.lora_path = osp.abspath(osp.join(self.bin_folder, 'gpt4all-lora-quantized.bin'))
+        self.gpt4all_model_path = osp.abspath(osp.join(self.bin_folder, 'gpt4all-lora-q-converted.bin'))
+        self.ggjt_model_path = osp.abspath(osp.join(
+            self.cache_folder, 'models--LLukas22--gpt4all-lora-quantized-ggjt', 'snapshots', '2e7367a8557085b8267e1f3b27c209e272b8fe6c',
+            'ggjt-model.bin'
+        ))
+        
         # Ensure the Scripts folder is in PATH
         self.anaconda_folder = osp.dirname(sys.executable)
         self.scripts_folder = osp.join(self.anaconda_folder, 'Scripts')
-        if self.scripts_folder not in sys.path:
-            sys.path.insert(1, self.scripts_folder)
+        if self.scripts_folder not in sys.path: sys.path.insert(1, self.scripts_folder)
 
         # Handy list of the different types of encodings
-        self.encoding_type = ['latin1', 'iso8859-1', 'utf-8'][2]
+        self.encoding_types_list = ['utf-8', 'latin1', 'iso8859-1']
+        self.encoding_type = self.encoding_types_list[0]
+        self.encoding_errors_list = ['ignore', 'replace', 'xmlcharrefreplace']
+        self.encoding_error = self.encoding_errors_list[2]
+        self.decoding_types_list = [
+            'ascii', 'cp037', 'cp437', 'cp863', 'utf_32', 'utf_32_be', 'utf_32_le', 'utf_16',
+            'utf_16_be', 'utf_16_le', 'utf_7', 'utf_8', 'utf_8_sig', 'latin1', 'iso8859-1'
+        ]
+        self.decoding_type = self.decoding_types_list[11]
+        self.decoding_errors_list = self.encoding_errors_list.copy()
+        self.decoding_error = self.decoding_errors_list[2]
         
         # Determine URL from file path
         self.url_regex = re.compile(r'\b(https?|file)://[-A-Z0-9+&@#/%?=~_|$!:,.;]*[A-Z0-9+&@#/%=~_|$]', re.IGNORECASE)
         self.filepath_regex = re.compile(
-            r'\b[c-d]:\\(?:[^\\/:*?"<>|\x00-\x1F]{0,254}[^.\\/:*?"<>|\x00-\x1F]\\)*(?:[^\\/:*?"<>|\x00-\x1F]{0,254}[^.\\/:*?"<>|\x00-\x1F])', re.IGNORECASE
+            r'\b[c-d]:\\(?:[^\\/:*?"<>|\x00-\x1F]{0,254}[^.\\/:*?"<>|\x00-\x1F]\\)*(?:[^\\/:*?"<>|\x00-\x1F]{0,254}[^.\\/:*?"<>|\x00-\x1F])',
+            re.IGNORECASE
         )
         
         # Various aspect ratios
@@ -145,7 +158,7 @@ class NotebookUtilities(object):
         """
         
         # Split the input string using various separators
-        stripped_list = re.split(r'( |/|–|\\u2009|-|\[)', str(x), 0)
+        stripped_list = re.split(r'( |/|–|\u2009|-|\[)', str(x), 0)
         
         # Remove non-numeric characters from each element in the stripped list
         stripped_list = [re.sub(r'\D+', '', x) for x in stripped_list]
@@ -462,10 +475,12 @@ class NotebookUtilities(object):
             row_dict = {}
             row_dict['first_item'] = first_item
             row_dict['second_item'] = max_item
-            row_dict['first_bytes'] = '-'.join(str(x) for x in bytearray(str(first_item),
-                                                                         encoding=self.encoding_type, errors='replace'))
-            row_dict['second_bytes'] = '-'.join(str(x) for x in bytearray(str(max_item),
-                                                                          encoding=self.encoding_type, errors='replace'))
+            row_dict['first_bytes'] = '-'.join(str(x) for x in bytearray(
+                str(first_item), encoding=self.encoding_type, errors='replace'
+            ))
+            row_dict['second_bytes'] = '-'.join(str(x) for x in bytearray(
+                str(max_item), encoding=self.encoding_type, errors='replace'
+            ))
             row_dict['max_similarity'] = max_similarity
 
             rows_list.append(row_dict)
@@ -653,7 +668,8 @@ class NotebookUtilities(object):
         return turbulence
     
     
-    def replace_consecutive_elements(self, actions_list, element):
+    @staticmethod
+    def replace_consecutive_elements(actions_list, element):
         """
         Replaces consecutive elements in a list with a count of how many there are in a row.
         
@@ -1452,8 +1468,8 @@ class NotebookUtilities(object):
     @staticmethod
     def get_style_column(tag_obj, verbose=False):
         """
-        Extracts the style column from a given BeautifulSoup tag object and returns
-        the style column tag object.
+        Extracts the style column from a given Wikipedia infobox BeautifulSoup'd
+        tag object and returns the style column tag object.
     
         Parameters:
             tag_obj (bs4.element.Tag): The BeautifulSoup tag object to extract the style column from.
@@ -1973,7 +1989,7 @@ class NotebookUtilities(object):
     
     
     @staticmethod
-    def convert_to_df(row_index, row_series, verbose=True):
+    def convert_to_data_frame(row_index, row_series, verbose=True):
         """
         Convert a row represented as a Pandas Series into a single-row DataFrame.
         
@@ -2073,11 +2089,88 @@ class NotebookUtilities(object):
         # Apply a formatting function to convert milliseconds to a formatted timedelta for all elements in the DataFrame
         df = df.applymap(lambda x: self.format_timedelta(timedelta(milliseconds=int(x))), na_action='ignore').T
 
-        # Format the standard deviation (SD) column to include the '±' symbol
+        # Format the standard deviation (SD) column to include the plus-minus symbol
         df.SD = df.SD.map(lambda x: '±' + str(x))
         
         # Display the resulting DataFrame
         display(df)
+    
+    
+    ### LLM Functions ###
+    
+    
+    def download_lora_model(self, verbose=False):
+        """
+        Download the LoRA model file from a specified URL and save it to the local file system.
+        
+        Parameters:
+            verbose (bool, optional): Whether to print debug information. Defaults to False.
+        
+        Returns:
+            None
+        """
+        
+        # Check if the local file already exists
+        if not osp.exists(self.lora_path):
+            
+            # Construct the download URL
+            download_url = f'https://the-eye.eu/public/AI/models/downloadnomic-ai/gpt4all/{osp.basename(self.lora_path)}'
+            
+            # Download the model file from the URL
+            import requests
+            response = requests.get(download_url)
+            
+            # Create the necessary directories if they don't exist
+            makedirs(osp.dirname(self.lora_path), exist_ok=True)
+            
+            # Save the downloaded model file to disk
+            with open(self.lora_path, 'wb') as f: f.write(response.content)
+            
+            # Print a message if verbose mode is enabled
+            if verbose: print(f'LoRA model downloaded and saved to: {self.lora_path}')
+        
+        # Print a message if verbose mode is enabled and the file already exists
+        elif verbose: print(f'LoRA model already exists at: {self.lora_path}. Skipping download.')
+    
+    
+    def convert_lora_model_to_gpt4all(self, verbose=False):
+        """
+        Converts a LoRA model to a GPT-4all model.
+        
+        Parameters:
+            verbose (bool, optional): Whether to print debug output. Defaults to False.
+        
+        Raises:
+            OSError: If the GPT-4all model path does not exist.
+            subprocess.CalledProcessError: If the conversion process fails.
+        """
+        
+        # Check if the GPT-4-All model path exists
+        if not osp.exists(self.gpt4all_model_path):
+            
+            # Check if the LoRA model path exists
+            if not osp.exists(self.lora_path): raise FileNotFoundError(f"LoRA model path '{self.lora_path}' does not exist.")
+            
+            # Check if the PyLLamaC++ converter executable exists
+            converter_path = osp.abspath(osp.join(self.scripts_folder, 'pyllamacpp-convert-gpt4all.exe'))
+            if not osp.exists(converter_path): raise FileNotFoundError(f"PyLLamaC++ converter executable '{converter_path}' does not exist.")
+            
+            # Check if the tokenizer model file exists
+            llama_file = osp.abspath(osp.join(llama_folder, 'tokenizer.model'))
+            if not osp.exists(llama_file): raise FileNotFoundError(f"Llama tokenizer model file '{llama_file}' does not exist.")
+            
+            # Construct the conversion command
+            command_str = f'{converter_path} {self.lora_path} {llama_file} {self.gpt4all_model_path}'
+            
+            # Print verbose output if requested
+            if verbose: print(command_str, flush=True)
+            
+            # Execute the conversion process
+            output_str = subprocess.check_output(command_str.split(' '))
+            
+            # Print verbose conversion output if requested
+            if verbose:
+                for line_str in output_str.splitlines(): print(line_str.decode(), flush=True)
     
     
     ### 3D Point Functions ###
@@ -2122,7 +2215,6 @@ class NotebookUtilities(object):
             float: The Euclidean distance between the two points.
         """
         x1, x2, y1, y2, z1, z2 = self.get_coordinates(second_point, first_point=first_point)
-        import math
         euclidean_distance = math.sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
     
         return euclidean_distance

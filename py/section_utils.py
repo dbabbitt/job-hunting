@@ -12,6 +12,7 @@ from matplotlib.colors import to_hex
 import re
 from nltk.tokenize import sent_tokenize
 import os
+from IPython.display import clear_output
 
 class SectionUtilities(object):
     """Section class."""
@@ -263,8 +264,7 @@ class SectionUtilities(object):
         job_fitness = 0.0
         file_name = row_series.file_name
         child_strs_list = self.ha.get_child_strs_from_file(file_name=file_name)
-        if lru is None:
-            lru = self.lru
+        if lru is None: lru = self.lru
         indices_list = self.find_basic_quals_section_indexes(
             child_strs_list=child_strs_list, file_name=file_name, verbose=verbose
         )
@@ -289,8 +289,7 @@ class SectionUtilities(object):
                         # Don't add HTML tags or blanks
                         if q2 and not re.search('^<[^><]+>$', q2):
                             quals_set.add(q2)
-            else:
-                quals_set.add(qual)
+            else: quals_set.add(qual)
         quals_list = list(quals_set)
         assert all([isinstance(qual_str, str) for qual_str in quals_list]), f'Error in print_fit_job:\nquals_list = {quals_list}\nrow_series:\n{row_series}'
         prediction_list = list(lru.predict_job_hunt_percent_fit(
@@ -305,7 +304,7 @@ class SectionUtilities(object):
                 job_title = ' '.join([w for w in file_name.replace('.html', '').replace('_Indeed_com', '').split('_') if d.check(w)])
                 # job_title = re.sub(r'(_-_Indeed.com)?(_[a-z0-9]{16})?\.html$', '', file_name).replace('_', ' ')
                 if verbose:
-                    print()
+                    clear_output(wait=True)
                     print(f'Basic Qualifications for {job_title}:{quals_str}')
                     print(f'{job_fitness:.2%}')
                     lru.print_loc_computation(row_index, quals_list, verbose=verbose)
@@ -324,6 +323,8 @@ class SectionUtilities(object):
             self.wsu.driver_get_url(driver, viewjob_url, verbose=verbose)
             import time
             time.sleep(3)
+            driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+            time.sleep(3)
         from urllib.error import HTTPError, URLError
         try:
             page_soup = self.wsu.get_page_soup(viewjob_url, driver)
@@ -332,7 +333,7 @@ class SectionUtilities(object):
         except URLError as e:
             print(f'Got an URLError with {viewjob_url}: {str(e).strip()}')
         except Exception as e:
-            print(f'Got an {e.__class__} error with {viewjob_url}: {str(e).strip()}')
+            print(f'Got an {e.__class__.__name__} error with {viewjob_url}: {str(e).strip()}')
             
         page_title = page_soup.find('title').string.strip()
         file_name = re.sub(r'[^A-Za-z0-9]+', ' ', page_title).strip().replace(' ', '_')

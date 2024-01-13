@@ -439,8 +439,7 @@ class LrUtilities(object):
             if job_fitness >= 2/3:
                 if all(qual_str in self.basic_quals_dict for qual_str in quals_list):
                     self.update_hunting(row_index, row_series, quals_list)
-                else:
-                    break
+                else: break
             elif len(quals_list) and all(
                 [isinstance(qual_str, str) for qual_str in quals_list]
             ):

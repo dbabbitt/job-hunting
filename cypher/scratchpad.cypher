@@ -1,6 +1,6 @@
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["5_qP6NgiZw5oYzGOjiYZig_Sr_Data_Scientist_Forbes_Jersey_City_NJ_Remote.html"]
+WHERE fn.file_name IN ["'b82af252adf198ab_Data_Scientist_US_Remote_Remote_Indeed_com.html'"]
 SET fn.is_closed = true
 RETURN fn;
 

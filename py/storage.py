@@ -216,7 +216,7 @@ class Storage(object):
         try:
             s.store_objects(**{param_name: eval(param_name)}, verbose=False)
         except Exception as e:
-            # print(f'Pickling the module {param_name} gets a {e.__class__} error: {str(e).strip()}')
+            # print(f'Pickling the module {param_name} gets a {e.__class__.__name__} error: {str(e).strip()}')
             successfully_pickled = False
         if successfully_pickled:
             if verbose:
@@ -233,7 +233,7 @@ class Storage(object):
             try:
                 base_dir_list = eval(base_eval_str)
             except Exception as e:
-                # print(f'The evaluated list {base_eval_str} gets a {e.__class__} error: {str(e).strip()}')
+                # print(f'The evaluated list {base_eval_str} gets a {e.__class__.__name__} error: {str(e).strip()}')
                 pass
             for sub_obj in base_dir_list:
 

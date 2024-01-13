@@ -117,7 +117,7 @@ class HeaderAnalysis(object):
             except UnicodeDecodeError as e:
                 print(f'UnicodeDecodeError error in {file_path}: {str(e).strip()}')
             except Exception as e:
-                print(f'{e.__class__} error in {file_path}: {str(e).strip()}')
+                print(f'{e.__class__.__name__} error in {file_path}: {str(e).strip()}')
 
         return child_strs_list
 
