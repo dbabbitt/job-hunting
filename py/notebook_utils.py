@@ -7,6 +7,7 @@
 
 # Soli Deo gloria
 
+from bs4 import BeautifulSoup as bs
 from datetime import timedelta
 from os import listdir as listdir, makedirs as makedirs, path as osp
 from pandas import DataFrame, Series, concat, read_csv, read_html
@@ -72,6 +73,7 @@ class NotebookUtilities(object):
         self.saves_pickle_folder = osp.join(self.saves_folder, 'pkl'); makedirs(name=self.saves_pickle_folder, exist_ok=True)
         self.saves_text_folder = osp.join(self.saves_folder, 'txt'); makedirs(name=self.saves_text_folder, exist_ok=True)
         self.saves_wav_folder = osp.join(self.saves_folder, 'wav'); makedirs(name=self.saves_wav_folder, exist_ok=True)
+        self.saves_png_folder = osp.join(self.saves_folder, 'png'); makedirs(name=self.saves_png_folder, exist_ok=True)
         self.txt_folder = osp.join(self.data_folder, 'txt'); makedirs(self.txt_folder, exist_ok=True)
         
         # Create the model directories
@@ -158,7 +160,7 @@ class NotebookUtilities(object):
         """
         
         # Split the input string using various separators
-        stripped_list = re.split(r'( |/|–|\u2009|-|\[)', str(x), 0)
+        stripped_list = re.split(r'( |/|\x96|\u2009|-|\[)', str(x), 0)
         
         # Remove non-numeric characters from each element in the stripped list
         stripped_list = [re.sub(r'\D+', '', x) for x in stripped_list]
@@ -256,7 +258,7 @@ class NotebookUtilities(object):
         
         # Return the conjuncted noun list
         return list_str
-
+    
     
     @staticmethod
     def get_jitter_list(ages_list):
@@ -517,7 +519,7 @@ class NotebookUtilities(object):
             typos_df = check_for_typos(list(set(df.similar_key).intersection(sd_set)),
                                        list(set(some_dict.keys()).intersection(sd_set)), verbose=False)
             for i, r in typos_df.sort_values(['max_similarity', 'left_item', 'right_item'], ascending=[False, True, True]).iterrows():
-                print(f'some_dict[{r.left_item}] = some_dict.pop({r.right_item})')
+                print(f"some_dict['{r.left_item}'] = some_dict.pop('{r.right_item}')")
         """
         
         # Initialize the time taken for the computation if verbose is True
@@ -552,7 +554,7 @@ class NotebookUtilities(object):
         column_list = ['left_item', 'right_item', 'max_similarity']
         
         # Create a data frame from the list of rows, rename columns if necessary
-        name_similarities_df = pd.DataFrame(rows_list, columns=column_list).rename(columns=rename_dict)
+        name_similarities_df = DataFrame(rows_list, columns=column_list).rename(columns=rename_dict)
         
         # Print the time taken for the computation if verbose is True
         if verbose:
@@ -768,7 +770,10 @@ class NotebookUtilities(object):
     
     
     @staticmethod
-    def open_path_in_notepad(path_str, home_key='USERPROFILE', text_editor_path=r'C:\Program Files\Notepad++\notepad++.exe', verbose=True):
+    def open_path_in_notepad(
+        path_str, home_key='USERPROFILE', text_editor_path=r'C:\Program Files\Notepad++\notepad++.exe',
+        continue_execution=True, verbose=True
+    ):
         """
         Open a file in Notepad or a specified text editor.
         
@@ -776,6 +781,8 @@ class NotebookUtilities(object):
             path_str (str): The path to the file to be opened.
             home_key (str, optional): The environment variable key for the home directory. Default is 'USERPROFILE'.
             text_editor_path (str, optional): The path to the text editor executable. Default is Notepad++.
+            continue_execution (bool, optional): If False, interacts with the subprocess and attempts to open the
+                parent folder in explorer if it gets a bad return code. Default is True.
             verbose (bool, optional): If True, prints debug output. Default is False.
         
         Returns:
@@ -785,7 +792,7 @@ class NotebookUtilities(object):
             The function uses subprocess to run the specified text editor with the provided file path.
         
         Example:
-            nu.open_path_in_notepad('C:/example.txt')
+            nu.open_path_in_notepad(r'C:\example.txt')
         """
         
         # Expand '~' to the home directory in the file path
@@ -800,10 +807,14 @@ class NotebookUtilities(object):
 
         # Open the absolute path to the file in Notepad or the specified text editor
         # !"{text_editor_path}" "{absolute_path}"
-        import subprocess
-        try: subprocess.run([text_editor_path, absolute_path])
-        except FileNotFoundError as e: subprocess.run(['explorer.exe', osp.dirname(absolute_path)])
-
+        cmd = [text_editor_path, absolute_path]
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if not continue_execution:
+            out, err = proc.communicate()
+            if (proc.returncode != 0):
+                if verbose: print('Open attempt failed: ' + err.decode('utf8'))
+                subprocess.run(['explorer.exe', osp.dirname(absolute_path)])
+    
     
     @staticmethod
     def get_top_level_folder_paths(folder_path, verbose=False):
@@ -952,8 +963,8 @@ class NotebookUtilities(object):
         
         # Return the list of DataFrame pickle file names
         return dfs_list
-    
-    
+            
+
     def show_dupl_fn_defs_search_string(self, util_path=None, github_folder=None):
         """
         Identifies and reports duplicate function definitions in Jupyter notebooks and suggests how to consolidate them.
@@ -1062,7 +1073,7 @@ class NotebookUtilities(object):
             os.remove(pickle_path)
             if verbose: print(e, ": Couldn't save {:,} cells as a pickle.".format(df.shape[0]*df.shape[1]), flush=True)
             if raise_exception: raise
-
+    
     
     def csv_exists(self, csv_name, folder_path=None, verbose=False):
         """
@@ -1559,12 +1570,14 @@ class NotebookUtilities(object):
         return file_path
 
     
-    def get_page_soup(self, page_url_or_filepath, verbose=False):
+    def get_page_soup(self, page_url_or_filepath, driver=None, verbose=False):
         """
         Gets the BeautifulSoup soup object for a given page URL or filepath.
 
         Parameters:
             page_url_or_filepath (str): The URL or filepath of the page to get the soup object for.
+            driver (selenium.webdriver, optional): Whether to get the page source from the Selenium
+                webpage. Defaults to None.
             verbose (bool, optional): Whether to print verbose output. Defaults to True.
 
         Returns:
@@ -1573,9 +1586,9 @@ class NotebookUtilities(object):
             
         # Check if the page URL or filepath is a URL
         if self.url_regex.fullmatch(page_url_or_filepath):
-
-            # If the page URL or filepath is a URL, open it using urllib.request.urlopen()
-            with urllib.request.urlopen(page_url_or_filepath) as response: page_html = response.read()
+            if driver is None:
+                with urllib.request.urlopen(page_url_or_filepath) as response: page_html = response.read()
+            else: page_html = driver.page_source
         
         # If the page URL or filepath is not a URL, ensure it exists and open it using open()
         elif self.filepath_regex.fullmatch(page_url_or_filepath):
@@ -1586,7 +1599,6 @@ class NotebookUtilities(object):
         else: page_html = page_url_or_filepath
 
         # Parse the page HTML using BeautifulSoup
-        from bs4 import BeautifulSoup as bs
         page_soup = bs(page_html, 'html.parser')
 
         # If verbose output is enabled, print the page URL or filepath
@@ -1695,6 +1707,61 @@ class NotebookUtilities(object):
 
         # Return the list of DataFrames
         return table_dfs_list
+    
+    
+    def get_wiki_infobox_data_frame(self, page_titles_list, verbose=True):
+        """
+        Gets a DataFrame of the key/value pairs from the infobox of a Wikipedia biographical entry.
+
+        Parameters:
+            page_titles_list: A list of titles of the Wikipedia pages containing the infoboxes.
+            verbose: Whether to print verbose output.
+
+        Returns:
+            A DataFrame containing the data from the Wikipedia infobox.
+        
+        Note:
+            It is assumed that the infobox contains no headers which would prefix any duplicate labels
+        """
+        import wikipedia
+        ascii_regex = re.compile('[^a-z0-9]+')
+        rows_list = []
+        def clean_text(parent_soup, verbose=False):
+            texts_list = []
+            for child_soup in parent_soup.children:
+                if '{' not in child_soup.text: texts_list.append(child_soup.text.strip())
+            parent_text = ' '.join(texts_list)
+            for this, with_that in zip([' )', ' ]', '( ', '[ '], [')', ']', '(', '[']):
+                parent_text = parent_text.replace(this, with_that)
+            parent_text = re.sub(r'[\s\u200b\xa0]+', ' ', parent_text).strip()
+            
+            return parent_text
+        if verbose:
+            from tqdm import tqdm_notebook as tqdm
+            page_titles_list = tqdm(page_titles_list)
+        for page_title in page_titles_list:
+            row_dict = {'page_title': page_title}
+            try:
+                bio_obj = wikipedia.WikipediaPage(title=page_title)
+                bio_html = bio_obj.html()
+                page_soup = bs(bio_html, 'html.parser')
+                infobox_soups_list = page_soup.find_all('table', attrs={'class': 'infobox'})
+                labels_list = []
+                for infobox_soup in infobox_soups_list:
+                    label_soups_list = infobox_soup.find_all('th', attrs={
+                        'scope': 'row', 'class': 'infobox-label', 'colspan': False
+                    })
+                    for infobox_label_soup in label_soups_list:
+                        key = ascii_regex.sub('_', clean_text(infobox_label_soup).lower()).strip('_')
+                        if key and (key not in labels_list):
+                            labels_list.append(key)
+                            value_soup = infobox_label_soup.find_next('td', attrs={'class': 'infobox-data'})
+                            row_dict[key] = clean_text(value_soup)
+            except: continue
+            rows_list.append(row_dict)
+        df = DataFrame(rows_list)
+        
+        return df
     
     
     ### Pandas Functions ###
@@ -1868,14 +1935,14 @@ class NotebookUtilities(object):
     
     
     @staticmethod
-    def modalize_columns(df, columns_list, new_column):
+    def modalize_columns(df, columns_list, new_column_name):
         """
         Create a new column in a DataFrame representing the modal value of specified columns.
         
         Parameters:
             df (pandas.DataFrame): The input DataFrame.
             columns_list (list): The list of column names from which to calculate the modal value.
-            new_column (str): The name of the new column to create.
+            new_column_name (str): The name of the new column to create.
         
         Returns:
             pandas.DataFrame: The modified DataFrame with the new column representing the modal value.
@@ -1884,17 +1951,17 @@ class NotebookUtilities(object):
         # Ensure that all columns are in the data frame
         columns_list = list(set(df.columns).intersection(set(columns_list)))
         
-        # Create a mask series indicating rows with unique values across the specified columns
+        # Create a mask series indicating rows with one unique value across the specified columns
         mask_series = (df[columns_list].apply(Series.nunique, axis='columns') == 1)
         
         # Replace non-unique or missing values with NaN
-        df.loc[~mask_series, new_column] = np.nan
+        df.loc[~mask_series, new_column_name] = np.nan
         
         # Define a function to extract the first valid value in each row
         f = lambda srs: srs[srs.first_valid_index()]
         
         # For rows with identical values in specified columns, set the new column to the modal value
-        df.loc[mask_series, new_column] = df[mask_series][columns_list].apply(f, axis='columns')
+        df.loc[mask_series, new_column_name] = df[mask_series][columns_list].apply(f, axis='columns')
     
         return df
     
@@ -1905,7 +1972,7 @@ class NotebookUtilities(object):
         Identify columns in a DataFrame that contain references based on a specified regex pattern.
         
         Parameters:
-            df (pd.DataFrame): The input DataFrame.
+            df (pandas.DataFrame): The input DataFrame.
             search_regex (re.Pattern, optional): The compiled regular expression pattern for identifying references.
                 If None, a default regex pattern is used to match names followed by '_Root'.
             verbose (bool, optional): If True, print additional information during processing. Default is False.
@@ -2090,7 +2157,7 @@ class NotebookUtilities(object):
         df = df.applymap(lambda x: self.format_timedelta(timedelta(milliseconds=int(x))), na_action='ignore').T
 
         # Format the standard deviation (SD) column to include the plus-minus symbol
-        df.SD = df.SD.map(lambda x: '±' + str(x))
+        df.SD = df.SD.map(lambda x: '\xB1' + str(x))
         
         # Display the resulting DataFrame
         display(df)
@@ -2207,20 +2274,33 @@ class NotebookUtilities(object):
         return x1, x2, y1, y2, z1, z2
     
     
-    def get_euclidean_distance(self, second_point, first_point=None):
+    @staticmethod
+    def get_euclidean_distance(first_point, second_point):
         """
-        Calculates the Euclidean distance between two 3D points.
-    
+        Calculates the Euclidean distance between two 2D or 3D points.
+        
+        Parameters:
+            first_point (tuple): The coordinates of the first point.
+            second_point (tuple): The coordinates of the second point.
+        
         Returns:
             float: The Euclidean distance between the two points.
         """
-        x1, x2, y1, y2, z1, z2 = self.get_coordinates(second_point, first_point=first_point)
-        euclidean_distance = math.sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
-    
+        euclidean_distance = np.nan
+        if (len(first_point) == 3) and (len(second_point) == 3):
+            x1, y1, z1 = first_point
+            x2, y2, z2 = second_point
+            euclidean_distance = math.sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
+        elif (len(first_point) == 2) and (len(second_point) == 2):
+            x1, z1 = first_point
+            x2, z2 = second_point
+            euclidean_distance = math.sqrt((x1 - x2)**2 + (z1 - z2)**2)
+
         return euclidean_distance
     
     
-    def get_absolute_position(self, second_point, first_point=None):
+    @staticmethod
+    def get_absolute_position(second_point, first_point=None):
         """
         Calculates the absolute position of a point relative to another point.
         
@@ -2235,6 +2315,29 @@ class NotebookUtilities(object):
         x1, x2, y1, y2, z1, z2 = self.get_coordinates(second_point, first_point=first_point)
     
         return (round(x1 + x2, 1), round(y1 + y2, 1), round(z1 + z2, 1))
+    
+    
+    def get_nearest_neighbor(self, base_point, neighbors_list):
+        """
+        Gets the point nearest in Euclidean distance between two 2D or 3D points,
+        the base_point and an item from the neighbors_list.
+        
+        Parameters:
+            base_point (tuple): The coordinates of the first point.
+            neighbors_list (list of tuples): A list of coordinates.
+        
+        Returns:
+            tuple: The coordinates of the nearest of the neighbors_list of points.
+        """
+        min_distance = math.inf
+        nearest_neighbor = None
+        for neighbor_point in neighbors_list:
+            distance = self.get_euclidean_distance(base_point, neighbor_point)
+            if distance < min_distance:
+                min_distance = distance
+                nearest_neighbor = neighbor_point
+        
+        return nearest_neighbor
     
     
     ### Sub-sampling Functions ###
@@ -2534,8 +2637,35 @@ class NotebookUtilities(object):
                 )
                 yticklabels_list.append(text_obj)
             ax.set_yticklabels(yticklabels_list)
+    
+    
+    def get_r_squared_value_latex(self, xdata, ydata):
+        inf_nan_mask = self.get_inf_nan_mask(xdata.tolist(), ydata.tolist())
+        from scipy.stats import pearsonr
+        pearson_r, p_value = pearsonr(xdata[inf_nan_mask], ydata[inf_nan_mask])
+        pearsonr_statement = str('%.2f' % pearson_r)
+        coefficient_of_determination_statement = str('%.2f' % pearson_r**2)
         
-        plt.show()
+        if p_value < 0.0001: pvalue_statement = '<0.0001'
+        else: pvalue_statement = '=' + str('%.4f' % p_value)
+        
+        s_str = r'$r^2=' + coefficient_of_determination_statement + ',\ p' + pvalue_statement + '$'
+        
+        return s_str
+    
+    
+    @staticmethod
+    def get_spearman_rho_value_latex(xdata, ydata):
+        from scipy.stats import spearmanr
+        spearman_corr, p_value = spearmanr(xdata, ydata)
+        rank_correlation_coefficient_statement = str('%.2f' % spearman_corr)
+        
+        if p_value < 0.0001: pvalue_statement = '<0.0001'
+        else: pvalue_statement = '=' + str('%.4f' % p_value)
+        
+        s_str = r'$\rho=' + rank_correlation_coefficient_statement + ',\ p' + pvalue_statement + '$'
+        
+        return s_str
     
     
     def first_order_linear_scatterplot(
@@ -2564,7 +2694,7 @@ class NotebookUtilities(object):
             y_adj (str, optional): The adjective to use for the y-axis variable in the annotations.
                 Default is 'unequal'.
             title (str, optional): The title of the plot. Defaults to
-                'Wealth inequality is huge in the capitalist societies'.
+                '"Wealth inequality is huge in the capitalist societies"'.
             idx_reference (str, optional): The index of the data point to be used as the reference point for
                 the annotations. Default is 'United States'.
             annot_reference (str, optional): The reference text to be used for the annotation of the
@@ -2620,8 +2750,9 @@ class NotebookUtilities(object):
         most_y = ydata.max()
         least_y = ydata.min()
         
+        # Initialize all variables to False in a single line
         least_x_tried = most_x_tried = least_y_tried = most_y_tried = False
-    
+        
         for label, x, y in zip(df.index, xdata, ydata):
             if (x == least_x) and not least_x_tried:
                 annotation = plt.annotate('{} (least {})'.format(label, x_adj),
@@ -2645,19 +2776,8 @@ class NotebookUtilities(object):
     
         title_obj = fig.suptitle(t=title, x=0.5, y=0.91)
         
-        # Get r squared value
-        inf_nan_mask = self.get_inf_nan_mask(xdata.tolist(), ydata.tolist())
-        from scipy.stats import pearsonr
-        pearsonr_tuple = pearsonr(xdata[inf_nan_mask], ydata[inf_nan_mask])
-        pearson_r = pearsonr_tuple[0]
-        pearsonr_statement = str('%.2f' % pearson_r)
-        coefficient_of_determination_statement = str('%.2f' % pearson_r**2)
-        p_value = pearsonr_tuple[1]
-    
-        if p_value < 0.0001: pvalue_statement = '<0.0001'
-        else: pvalue_statement = '=' + str('%.4f' % p_value)
-    
-        s_str = r'$r^2=' + coefficient_of_determination_statement + ',\ p' + pvalue_statement + '$'
+        # Annotate r squared value
+        s_str = self.get_r_squared_value_latex(xdata, ydata)
         text_tuple = ax.text(0.75, 0.9, s_str, alpha=0.5, transform=ax.transAxes, fontsize='x-large')
         
         return fig
@@ -2815,6 +2935,31 @@ class NotebookUtilities(object):
         text_obj = ax.set_title(f'{title_prefix} {inaugruation_verb} Age vs Year')
     
     
+    @staticmethod
+    def get_color_cycled_list(alphabet_list, color_dict, verbose=False):
+        if verbose: print(f'alphabet_list = {alphabet_list}')
+        if verbose: print(f'color_dict = {color_dict}')
+        
+        # Match the colors with the color cycle and color dictionary
+        from itertools import cycle
+        
+        # Get the color cycle from rcParams
+        prop_cycle = plt.rcParams['axes.prop_cycle']
+        colors = cycle(prop_cycle.by_key()['color'])
+        
+        colors_list = []
+        for key in alphabet_list:
+            value = color_dict.get(key)
+            
+            # Get the next color in the cycle if missing from the dictionary
+            if (value is None): value = next(colors)
+            
+            colors_list.append(value)
+        if verbose: print(f'colors_list = {colors_list}')
+        
+        return colors_list
+    
+    
     def plot_sequence(self, sequence, highlighted_ngrams=[], color_dict=None, suptitle=None, first_element='SESSION_START', last_element='SESSION_END', alphabet_list=None, verbose=False):
         """
         Creates a standard sequence plot where each element corresponds to a position on the y-axis.
@@ -2834,7 +2979,7 @@ class NotebookUtilities(object):
             verbose: A boolean indicating whether to print verbose output.
         
         Returns:
-            A matplotlib figure object.
+            A matplotlib figure and axes objects.
         """
     
         # Convert the sequence to a NumPy array
@@ -2869,16 +3014,17 @@ class NotebookUtilities(object):
         # If the sequence is not already in integer format, convert it
         if (np_sequence.dtype.str not in ['<U21', '<U11']): int_sequence = np_sequence
         
-        # Create a figure
-        fig = plt.figure(figsize=[len(sequence)*0.3, alphabet_len * 0.3])
+        # Create a figure and axes
+        fig, ax = plt.subplots(figsize=[len(sequence) * 0.3, alphabet_len * 0.3])
         
         # Force the xticks to land on integers only
         xtick_locations = range(len(sequence))
-        xtick_labels = [n+1 for n in xtick_locations]
-        plt.xticks(ticks=xtick_locations, labels=xtick_labels, minor=False)
+        xtick_labels = [n + 1 for n in xtick_locations]
+        ax.set_xticks(ticks=xtick_locations)
+        ax.set_xticklabels(xtick_labels, minor=False)
         
         # Extend the edges of the plot
-        plt.xlim([-0.5, len(sequence)-0.5])
+        ax.set_xlim([-0.5, len(sequence) - 0.5])
         
         # Iterate over the alphabet and plot the points for each character
         for i, value in enumerate(alphabet_list):
@@ -2889,11 +3035,11 @@ class NotebookUtilities(object):
             # if verbose: print(range(len(np_sequence)))
             # if verbose: print(points)
             
-            # Plot the points
-            plt.scatter(x=range(len(np_sequence)), y=points, marker='s', label=value, s=35, color=color_dict[value])
+            # Plot the points on the axes
+            ax.scatter(x=range(len(np_sequence)), y=points, marker='s', label=value, s=35, color=color_dict[value])
             # if verbose:
                 # color_cycle = plt.rcParams['axes.prop_cycle']
-                # print('\nPrinting the colors in the color cycle:')
+                # print('\nPrinting the colors in the rcParams color cycle:')
                 # for color in color_cycle: print(color)
                 # print()
         
@@ -2901,29 +3047,14 @@ class NotebookUtilities(object):
         plt.yticks(range(alphabet_len), alphabet_list)
         
         # Match the label colors with the color cycle and color dictionary
-        from itertools import cycle
-        
-        # Get the color cycle from rcParams
-        prop_cycle = plt.rcParams['axes.prop_cycle']
-        colors = cycle(prop_cycle.by_key()['color'])
-        
-        colors_list = []
-        for key in alphabet_list:
-            value = color_dict[key]
-            
-            # Get the next color in the cycle
-            if (value is None):
-                color = next(colors)
-                colors_list.append(color)
-            
-            else: colors_list.append(value)
+        colors_list = self.get_color_cycled_list(alphabet_list, color_dict, verbose=verbose)
         # if verbose: print(f'colors_list = {colors_list}')
         
         # Set the yticks label color
         for label, color in zip(plt.gca().get_yticklabels(), colors_list): label.set_color(color)
         
-        # Set the y limits
-        plt.ylim(-1, alphabet_len)
+        # Set the y limits on the axes
+        ax.set_ylim(-1, alphabet_len)
         
         # Highlight any of the n-grams given
         if highlighted_ngrams != []:
@@ -2950,10 +3081,10 @@ class NotebookUtilities(object):
                     if verbose: print(f'bot={bot}, top={top}, left={left}, right={right}')
                     
                     line_width = 1
-                    plt.plot([left,right], [bot,bot], color='red', linewidth=line_width)
-                    plt.plot([left,right], [top,top], color='red', linewidth=line_width)
-                    plt.plot([left,left], [bot,top], color='red', linewidth=line_width)
-                    plt.plot([right,right], [bot,top], color='red', linewidth=line_width)
+                    plt.plot([left,right], [bot,bot], color='grey', linewidth=line_width, alpha=0.5)
+                    plt.plot([left,right], [top,top], color='grey', linewidth=line_width, alpha=0.5)
+                    plt.plot([left,left], [bot,top], color='grey', linewidth=line_width, alpha=0.5)
+                    plt.plot([right,right], [bot,top], color='grey', linewidth=line_width, alpha=0.5)
     
             # check if only one n-gram has been supplied
             if type(highlighted_ngrams[0]) is str: highlight_ngram([string_to_integer_map[x] for x in highlighted_ngrams])
@@ -2966,6 +3097,7 @@ class NotebookUtilities(object):
                     elif type(ngram[0]) is int: highlight_ngram(ngram)
                     else: raise Exception('Invalid data format', ngram)
         
+        # Set the suptitle on the figure
         if suptitle is not None:
             if (alphabet_len <= 6):
                 # from scipy.optimize import curve_fit
@@ -2993,8 +3125,13 @@ class NotebookUtilities(object):
                 if verbose: print(f'alphabet_len={alphabet_len}, y={y}')
             else: y = 0.95
             fig.suptitle(suptitle, y=y)
+            
+            # Save figure to PNG
+            file_path = osp.join(self.saves_png_folder, re.sub(r'\W+', '_', str(suptitle)).strip('_').lower() + '.png')
+            if verbose: print(f'Saving figure to {file_path}')
+            plt.savefig(file_path, bbox_inches='tight')
         
-        return fig
+        return fig, ax
     
     
     def plot_sequences(self, sequences, gap=True):
