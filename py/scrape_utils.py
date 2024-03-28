@@ -35,7 +35,7 @@ class WebScrapingUtilities(object):
     --------
     
     >>> import scrape_utils
-    >>> u = scrape_utils.WebScrapingUtilities()
+    >>> wsu = scrape_utils.WebScrapingUtilities()
     """
     
     def __init__(self, s=None, secrets_json_path=None, verbose=False):
