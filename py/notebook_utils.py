@@ -2748,7 +2748,7 @@ class NotebookUtilities(object):
     
     
     def get_r_squared_value_latex(self, xdata, ydata):
-        inf_nan_mask = self.get_inf_nan_mask(xdata, ydata)
+        inf_nan_mask = self.get_inf_nan_mask(xdata.tolist(), ydata.tolist())
         from scipy.stats import pearsonr
         pearson_r, p_value = pearsonr(xdata[inf_nan_mask], ydata[inf_nan_mask])
         pearsonr_statement = str('%.2f' % pearson_r)
@@ -2802,7 +2802,7 @@ class NotebookUtilities(object):
             y_adj (str, optional): The adjective to use for the y-axis variable in the annotations.
                 Default is 'unequal'.
             title (str, optional): The title of the plot. Defaults to
-                'Wealth inequality is huge in the capitalist societies'.
+                '"Wealth inequality is huge in the capitalist societies"'.
             idx_reference (str, optional): The index of the data point to be used as the reference point for
                 the annotations. Default is 'United States'.
             annot_reference (str, optional): The reference text to be used for the annotation of the
@@ -2869,6 +2869,9 @@ class NotebookUtilities(object):
         most_x_tried = False
         least_y_tried = False
         most_y_tried = False
+        
+        # Initialize all variables to False in a single line
+        least_x_tried = most_x_tried = least_y_tried = most_y_tried = False
         
         for label, x, y in zip(df.index, xdata, ydata):
             if (x == least_x) and not least_x_tried:
@@ -3204,7 +3207,7 @@ class NotebookUtilities(object):
         
         # Force the xticks to land on integers only
         xtick_locations = range(len(sequence))
-        xtick_labels = [n+1 for n in xtick_locations]
+        xtick_labels = [n + 1 for n in xtick_locations]
         ax.set_xticks(ticks=xtick_locations)
         ax.set_xticklabels(xtick_labels, minor=False)
         
