@@ -77,12 +77,12 @@ class HtmlVectorizer:
     Attributes:
         ha (HtmlAnalyzer): The provided HtmlAnalyzer instance.
         verbose (bool): Flag indicating whether to print verbose output.
-        vectorizer (CountVectorizer): The scikit-learn CountVectorizer configured for HTML tokenization.
+        count_vect (CountVectorizer): The scikit-learn CountVectorizer configured for HTML tokenization.
         pos_relationships_vocab (dict): Vocabulary mapping words to indices after fitting.
 
     Methods:
-        fit_transform(corpus): Fit the vectorizer to the corpus and transform it.
-        transform(corpus): Transform a given corpus using the already fitted vectorizer.
+        fit_transform(corpus): Fit the count_vect to the corpus and transform it.
+        transform(corpus): Transform a given corpus using the already fitted count_vect.
         restore_vocabulary(): Restore the vocabulary using the stored pos_relationships_vocab.
         validate_and_restore_vocab(): Validate and restore the vocabulary if needed.
     """
@@ -98,14 +98,14 @@ class HtmlVectorizer:
         """
         self.ha = ha
         self.verbose = verbose
-        self.vectorizer = CountVectorizer(
+        self.count_vect = CountVectorizer(
             lowercase=True, tokenizer=self.ha.html_regex_tokenizer,
             ngram_range=(1, 3)
         )
     
-    def fit_transform(self, corpus):
+    def fit_transform(self, corpus, verbose=False):
         """
-        Fits the vectorizer to the given corpus and transforms the corpus into a document-term matrix.
+        Fits the count_vect to the given corpus and transforms the corpus into a document-term matrix.
 
         Parameters:
             corpus (list[str]): A list of HTML documents.
@@ -113,14 +113,15 @@ class HtmlVectorizer:
         Returns:
             scipy.sparse.csr_matrix: Transformed matrix of token counts.
         """
-        self.vectorizer.fit(corpus)
-        HtmlVectorizer.pos_relationships_vocab = self.vectorizer.vocabulary_
+        if verbose: print(dir(self))
+        self.count_vect.fit(corpus)
+        HtmlVectorizer.pos_relationships_vocab = self.count_vect.vocabulary_
         
-        return self.vectorizer.transform(corpus)
+        return self.count_vect.transform(corpus)
     
     def transform(self, corpus):
         """
-        Transform a given corpus using the already fitted vectorizer.
+        Transform a given corpus using the already fitted count_vect.
 
         Parameters:
             corpus (list[str]): A list of HTML documents.
@@ -129,12 +130,12 @@ class HtmlVectorizer:
             scipy.sparse.csr_matrix: Transformed matrix of token counts.
         """
         
-        return self.vectorizer.transform(corpus)
+        return self.count_vect.transform(corpus)
 
     @classmethod
     def restore_vocabulary(cls):
         """
-        Restores the vocabulary from a previously trained vectorizer.
+        Restores the vocabulary from a previously trained count_vect.
 
         Raises:
             ValueError: If the vocabulary has not been trained yet.
@@ -143,12 +144,12 @@ class HtmlVectorizer:
             CountVectorizer: A CountVectorizer instance with the restored vocabulary.
         """
         if cls.pos_relationships_vocab is None: raise ValueError('Vocabulary has not been trained yet')
-        vectorizer = CountVectorizer(
-            lowercase=True, tokenizer=HtmlVectorizer.ha.html_regex_tokenizer,
+        count_vect = CountVectorizer(
+            lowercase=True, tokenizer=cls.ha.html_regex_tokenizer,
             ngram_range=(1, 3), vocabulary=cls.pos_relationships_vocab
         )
         
-        return vectorizer
+        return count_vect
 
     def validate_and_restore_vocab(self):
         """
@@ -157,10 +158,10 @@ class HtmlVectorizer:
         Raises:
             ValueError: If the vocabulary is empty or has not been trained yet.
         """
-        if not hasattr(self.vectorizer, 'vocabulary_'):
-            self.vectorizer._validate_vocabulary()
-            if not self.vectorizer.fixed_vocabulary_: self.vectorizer = HtmlVectorizer.restore_vocabulary()
-        if len(self.vectorizer.vocabulary_) == 0: raise ValueError('Vocabulary is empty')
+        if not hasattr(self.count_vect, 'vocabulary_'):
+            self.count_vect._validate_vocabulary()
+            if not self.count_vect.fixed_vocabulary_: self.count_vect = HtmlVectorizer.restore_vocabulary()
+        if len(self.count_vect.vocabulary_) == 0: raise ValueError('Vocabulary is empty')
 
 
 ###################################################

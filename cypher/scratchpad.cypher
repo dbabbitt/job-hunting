@@ -1,6 +1,6 @@
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["'b82af252adf198ab_Data_Scientist_US_Remote_Remote_Indeed_com.html'"]
+WHERE fn.file_name IN ["c13ee9d6b3c13ff1_Research_Assistant_1_MS_New_Haven_CT_06511_Indeed_com.html"]
 SET fn.is_closed = true
 RETURN fn;
 
@@ -16,7 +16,7 @@ RETURN
 ORDER BY fn.percent_fit DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["99ff2ff0f6339645_Data_Scientist_South_San_Francisco_CA_Indeed_com.html"]
+WHERE fn.file_name IN ["437d829a52879548_Machine_Learning_Engineer_Remote_Indeed_com.html"]
 SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_email_date = date()
 RETURN fn;
 
