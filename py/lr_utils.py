@@ -266,7 +266,7 @@ class LrUtilities(object):
             else:
                 formatted_str = '\n*quals_list[{}] = "{}" ({})'
                 prediction = round(float(pred_array[1]), 4)
-            quals_str += formatted_str.format(i, qual_str, prediction)
+            quals_str += formatted_str.format(i, re.sub(r'\s+<', '<', re.sub(r'>\s+', '>', qual_str)), prediction)
             if prediction > 0.5:
                 qual_count += 1
         
@@ -421,7 +421,7 @@ class LrUtilities(object):
         # Re-calibrate the inference engine
         self.predict_job_hunt_percent_fit = self.build_isqualified_lr_predict_percent(verbose=verbose)
     
-    def infer_from_hunting_dataframe(self, su=None, verbose=True):
+    def infer_from_hunting_dataframe(self, su=None, fitness_threshold=2/3, verbose=True):
         if su is None:
             from section_utils import SectionUtilities
             su = SectionUtilities(s=self.s, ha=self.ha, verbose=verbose)
@@ -434,9 +434,9 @@ class LrUtilities(object):
         for row_index, row_series in self.hunting_df[~mask_series].iterrows():
             file_name = row_series.file_name
             quals_list, job_fitness = su.print_fit_job(
-                row_index, row_series, lru=self, verbose=verbose
+                row_index, row_series, lru=self, fitness_threshold=fitness_threshold, verbose=verbose
             )
-            if job_fitness >= 2/3:
+            if job_fitness >= fitness_threshold:
                 if all(qual_str in self.basic_quals_dict for qual_str in quals_list):
                     self.update_hunting(row_index, row_series, quals_list)
                 else: break
