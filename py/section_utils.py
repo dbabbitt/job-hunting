@@ -7,12 +7,11 @@
 # Soli Deo gloria
 
 
-
+from IPython.display import clear_output
 from matplotlib.colors import to_hex
-import re
 from nltk.tokenize import sent_tokenize
 import os
-from IPython.display import clear_output
+import re
 
 class SectionUtilities(object):
     """Section class."""
@@ -260,7 +259,7 @@ class SectionUtilities(object):
         
         return pos_list, indices_list
     
-    def print_fit_job(self, row_index, row_series, lru=None, verbose=True):
+    def print_fit_job(self, row_index, row_series, lru=None, fitness_threshold=2/3, verbose=True):
         job_fitness = 0.0
         file_name = row_series.file_name
         child_strs_list = self.ha.get_child_strs_from_file(file_name=file_name)
@@ -275,7 +274,7 @@ class SectionUtilities(object):
         fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.',
                            'U.S.', 'i.e.', '&amp;', 'E.g.', 'Bsc.', 'MSc.', 'incl.']
         replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US',
-                             'ie', '&', 'eg', 'BS', 'MS', 'include']
+                             'ie', '&', 'eg', 'BS', 'MS', 'including']
         for qual in prequals_list:
             qual = re.sub('<([a-z][a-z0-9]*)[^<>]*>', r'<\g<1>>', qual.strip(), 0, re.MULTILINE)
             for fake_stop, replacement in zip(fake_stops_list, replacements_list):
@@ -298,7 +297,7 @@ class SectionUtilities(object):
         quals_str, qual_count = lru.get_quals_str(prediction_list, quals_list)
         if len(prediction_list):
             job_fitness = qual_count/len(prediction_list)
-            if job_fitness >= 2/3:
+            if job_fitness >= fitness_threshold:
                 import enchant
                 d = enchant.Dict('en_US')
                 job_title = ' '.join([w for w in file_name.replace('.html', '').replace('_Indeed_com', '').split('_') if d.check(w)])
@@ -312,7 +311,7 @@ class SectionUtilities(object):
         return quals_list, job_fitness
     
     def load_indeed_posting_url(
-        self, viewjob_url, driver=None, jk_str=None, files_list=[], verbose=True
+        self, viewjob_url, driver=None, jk_str=None, files_list=[], close_notices=True, verbose=True
     ):
         file_node_dict = {}
         if jk_str is None:
@@ -321,13 +320,52 @@ class SectionUtilities(object):
         
         if driver is not None:
             self.wsu.driver_get_url(driver, viewjob_url, verbose=verbose)
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.common.keys import Keys
             import time
-            time.sleep(3)
-            driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
-            time.sleep(3)
+            
+            # Close the login warning
+            if close_notices:
+                try:
+                    
+                    # Switch to the iframe with a generalized CSS selector
+                    iframe_css_selector = 'iframe[src^="https://accounts.google.com/gsi/iframe/select?"]'
+                    iframe = WebDriverWait(driver, 10).until(EC.frame_to_be_available_and_switch_to_it((
+                        By.CSS_SELECTOR, iframe_css_selector
+                    )))
+                    
+                    # Perform actions inside the iframe
+                    close_css = '#close'
+                    close_tag = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, close_css))
+                        )
+                    close_tag.click()
+                    
+                    # Switch back to the parent HTML
+                    driver.switch_to.default_content()
+                    
+                except Exception as e: print(f'{e.__class__.__name__} error closing login warning: {str(e).strip()}')
+            
+            # Close the cookie privacy notice
+            if close_notices:
+                try:
+                    close_css = '.gnav-CookiePrivacyNoticeButton'
+                    close_tag = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, close_css))
+                        )
+                    close_tag.click()
+                except Exception as e: print(f'{e.__class__.__name__} error closing cookie privacy notice: {str(e).strip()}')
+            
+            # Scroll down the page so you can read it
+            diffs_list = [4, 2, 0, 2, 4]
+            for diff in diffs_list:
+                time.sleep(7 - diff)
+                driver.execute_script('window.scrollTo(0, window.scrollY + 800);')
+            
         from urllib.error import HTTPError, URLError
-        try:
-            page_soup = self.wsu.get_page_soup(viewjob_url, driver)
+        try: page_soup = self.wsu.get_page_soup(viewjob_url, driver)
         except HTTPError as e:
             print(f'Got an HTTPError with {viewjob_url}: {str(e).strip()}')
         except URLError as e:
@@ -347,14 +385,15 @@ class SectionUtilities(object):
             
             # Save the HTML to the file
             with open(file_path, 'w', encoding=self.s.encoding_type) as f:
-                if verbose:
-                    print(f'Saving to {file_path}')
+                if verbose: print(f'Saving to {file_path}')
                 f.write('<html><head><title>')
                 f.write(page_title)
                 f.write('</title></head><body>')
                 row_div_list = page_soup.find_all(name='div', attrs={'class': ['jobsearch-JobComponent-description']})
-                for div_soup in row_div_list:
-                    f.write(str(div_soup))
+                
+                # Assume the second div is redundant
+                f.write(str(row_div_list[0]))
+                
                 f.write('</body></html>')
             
             # Delete the svg tags for easier viewing
