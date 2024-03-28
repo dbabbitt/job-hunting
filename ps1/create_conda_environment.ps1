@@ -180,7 +180,10 @@ Write-Host "--------------------------------------------------------------------
 # jupyter-lab clean
 $CommandString = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-lab.exe clean"
 Invoke-Expression $CommandString
-# jupyter labextension list
+
+# (Deprecated) Updating extensions with the jupyter labextension update command is now deprecated and will be removed
+# in a future major version of JupyterLab.
+<# # jupyter labextension list
 $CommandString = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-labextension.exe list"
 $ExtensionsList = Invoke-Expression $CommandString
 if (!($ExtensionsList -Like "*No installed extensions*")) {
@@ -191,7 +194,8 @@ if (!($ExtensionsList -Like "*No installed extensions*")) {
 	# jupyter labextension update --all
 	$CommandString = "${RepositoriesDirectory}\${RepositoryPath}\${EnvironmentName}\Scripts\jupyter-labextension.exe update --all"
 	Invoke-Expression $CommandString
-}
+} #>
+
 Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                       Rebuilding the Jupyter Lab assets" -ForegroundColor Green
