@@ -47,89 +47,13 @@ def create_app(test_config=None):
     
     def load_needed_libraries():
         nonlocal lru, crf
-        t0 = time.time()
+        import sys
+        sys.path.insert(1, '../py')
+        from jobpostlib import (crf, cu, datetime, duration, hau, hc, humanize, ihu, lru, nu, osp, scrfcu, slrcu, ssgdcu, su, t0, time, winsound, wsu)
+        import os
+        from pandas import DataFrame
         
-        print('Load needed libraries and functions')
-        t1 = time.time()
-        
-        # Insert at 1, 0 is the script path (or '' in REPL)
-        sys.path.insert(1, 'py')
-        
-        print('Get the Storage object')
-        from storage import Storage
-        s = Storage(
-            data_folder_path=os.path.abspath('data'),
-            saves_folder_path=os.path.abspath('saves')
-        )
-        
-        print('Get the HeaderAnalysis object')
-        from ha_utils import HeaderAnalysis
-        ha = HeaderAnalysis(s=s, verbose=False)
-        
-        print('Get the WebScrapingUtilities object')
-        from scrape_utils import WebScrapingUtilities
-        wsu = WebScrapingUtilities(
-            s=s,
-            secrets_json_path=os.path.abspath('data/secrets/jh_secrets.json')
-        )
-        uri = wsu.secrets_json['neo4j']['connect_url']
-        user =  wsu.secrets_json['neo4j']['username']
-        password = wsu.secrets_json['neo4j']['password']
-        
-        print('Get the CypherUtilities object and Neo4j driver')
-        from cypher_utils import CypherUtilities
-        cu = CypherUtilities(
-            uri=uri, user=user, password=password, driver=None, s=s, ha=ha
-        )
-
-        try:
-            version_str = cu.driver.get_server_info().agent
-            print(f'======== {version_str} ========')
-        except ServiceUnavailable as e:
-            print('You need to start Neo4j as a console')
-            raise
-        except Exception as e:
-            print(f'{e.__class__}: {str(e).strip()}')
-        
-        print('Get the IsHeaderSgdClassifier object')
-        from is_header_sgd_classifier import IsHeaderSgdClassifier
-        ihu = IsHeaderSgdClassifier(ha=ha, cu=cu, verbose=False)
-        
-        print('Get the HeaderCategories object')
-        from hc_utils import HeaderCategories
-        hc = HeaderCategories(cu=cu, verbose=False)
-        
-        print('Get the LrUtilities object')
-        from lr_utils import LrUtilities
-        lru = LrUtilities(ha=ha, cu=cu, hc=hc, verbose=False)
-        
-        print('Get the SectionLRClassifierUtilities object')
-        from section_classifier_utils import SectionLRClassifierUtilities
-        slrcu = SectionLRClassifierUtilities(ha=ha, cu=cu, verbose=False)
-        
-        print('Get the SectionSGDClassifierUtilities object')
-        from section_classifier_utils import SectionSGDClassifierUtilities
-        ssgdcu = SectionSGDClassifierUtilities(ha=ha, cu=cu, verbose=False)
-        
-        print('Get the SectionCRFClassifierUtilities object')
-        from section_classifier_utils import SectionCRFClassifierUtilities
-        scrfcu = SectionCRFClassifierUtilities(cu=cu, ha=ha, verbose=False)
-        
-        print('Get the CrfUtilities object')
-        from crf_utils import CrfUtilities
-        crf = CrfUtilities(
-            ha=ha, hc=hc, cu=cu, lru=lru, slrcu=slrcu, scrfcu=scrfcu, ssgdcu=ssgdcu, verbose=True
-        )
-        
-        print('Get the SectionUtilities object')
-        from section_utils import SectionUtilities
-        su = SectionUtilities(
-            wsu=wsu, ihu=ihu, hc=hc, crf=crf, slrcu=slrcu, scrfcu=scrfcu, ssgdcu=ssgdcu, verbose=False
-        )
-
-        duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
-        winsound.Beep(freq, duration)
-        print(f'Utility libraries created in {duration_str}')
+        freq = 990
         
         print('\nCheck if the slrcu has built its parts-of-speech logistic regression elements')
         t1 = time.time()
