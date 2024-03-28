@@ -1623,7 +1623,7 @@ class NotebookUtilities(object):
             
             # Import necessary libraries and modules
             import sys
-            sys.path.insert(1, '../py')  # Add the '../py' directory to the system path
+            if ('../py' not in sys.path): sys.path.insert(1, '../py')  # Add the '../py' directory to the system path
             from notebook_utils import NotebookUtilities
             import os.path as osp
             

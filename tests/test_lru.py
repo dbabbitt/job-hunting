@@ -16,7 +16,7 @@ class TestLruMethods(unittest.TestCase):
     def setUp(self):
         import sys
         import os
-        sys.path.insert(1, '../py')
+        if ('../py' not in sys.path): sys.path.insert(1, '../py')
         
         from storage import Storage
         self.s = Storage(

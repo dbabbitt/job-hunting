@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 class TestHaMethods(unittest.TestCase):
     def setUp(self):
         import sys
-        sys.path.insert(1, '../py')
+        if ('../py' not in sys.path): sys.path.insert(1, '../py')
         
         from storage import Storage
         self.s = Storage()
