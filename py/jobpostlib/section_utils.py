@@ -282,7 +282,8 @@ class SectionUtilities(object):
             for diff in diffs_list:
                 time.sleep(7 - diff)
                 driver.execute_script('window.scrollTo(0, window.scrollY + 800);')
-            
+        
+        # Get the page soup
         from urllib.error import HTTPError, URLError
         try: page_soup = wsu.get_page_soup(viewjob_url, driver)
         except HTTPError as e:
@@ -291,40 +292,44 @@ class SectionUtilities(object):
             print(f'Got an URLError with {viewjob_url}: {str(e).strip()}')
         except Exception as e:
             print(f'Got an {e.__class__.__name__} error with {viewjob_url}: {str(e).strip()}')
-            
-        page_title = page_soup.find('title').string.strip()
-        file_name = re.sub(r'[^A-Za-z0-9]+', ' ', page_title).strip().replace(' ', '_')
-        if len(jk_str):
-            file_name = f'{jk_str}_{file_name}.html'
-        else:
-            file_name = f'{file_name}.html'
-        file_path = os.path.join(cu.SAVES_HTML_FOLDER, file_name)
-        file_node_dict['file_name'] = file_name
-        if not os.path.isfile(file_path):
-            
-            # Save the HTML to the file
-            with open(file_path, 'w', encoding=nu.encoding_type) as f:
-                if verbose: print(f'Saving to {file_path}')
-                f.write('<html><head><title>')
-                f.write(page_title)
-                f.write('</title></head><body>')
-                row_div_list = page_soup.find_all(name='div', attrs={'class': ['jobsearch-JobComponent-description']})
+        
+        # Get the div rows
+        row_div_list = page_soup.find_all(name='div', attrs={'class': ['jobsearch-JobComponent-description']})
+        
+        # Write to file and update the file node dictionary
+        if row_div_list:
+            page_title = page_soup.find('title').string.strip()
+            file_name = re.sub(r'[^A-Za-z0-9]+', ' ', page_title).strip().replace(' ', '_')
+            if len(jk_str):
+                file_name = f'{jk_str}_{file_name}.html'
+            else:
+                file_name = f'{file_name}.html'
+            file_path = os.path.join(cu.SAVES_HTML_FOLDER, file_name)
+            file_node_dict['file_name'] = file_name
+            if not os.path.isfile(file_path):
                 
-                # Assume the second div is redundant
-                f.write(str(row_div_list[0]))
+                # Save the HTML to the file
+                with open(file_path, 'w', encoding=nu.encoding_type) as f:
+                    if verbose: print(f'Saving to {file_path}')
+                    f.write('<html><head><title>')
+                    f.write(page_title)
+                    f.write('</title></head><body>')
+                    
+                    # Assume the second div is redundant
+                    f.write(str(row_div_list[0]))
+                    
+                    f.write('</body></html>')
                 
-                f.write('</body></html>')
-            
-            # Delete the svg tags for easier viewing
-            with open(file_path, 'r', encoding=nu.encoding_type) as f:
-                html_str = f.read()
-            html_str = re.sub('<svg[^>]*>(<path[^>]*></path>)+</svg>', '', html_str)
-            with open(file_path, 'w', encoding=nu.encoding_type) as f:
-                f.write(html_str)
-            
-            files_list.append(file_name)
-        cu.ensure_filename(file_name, verbose=False)
-        file_node_dict.update(cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
+                # Delete the svg tags for easier viewing
+                with open(file_path, 'r', encoding=nu.encoding_type) as f:
+                    html_str = f.read()
+                html_str = re.sub('<svg[^>]*>(<path[^>]*></path>)+</svg>', '', html_str)
+                with open(file_path, 'w', encoding=nu.encoding_type) as f:
+                    f.write(html_str)
+                
+                files_list.append(file_name)
+            cu.ensure_filename(file_name, verbose=False)
+            file_node_dict.update(cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
         
         return file_node_dict, files_list
     

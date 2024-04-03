@@ -3336,25 +3336,20 @@ class NotebookUtilities(object):
         
         # Create a figure with appropriate dimensions
         plt.figure(figsize=[max_sequence_length*0.3,0.3 * len(sequences)])
+        alphabet_cache = {sequence: self.get_alphabet(sequence) for sequence in sequences}
         
         for y, sequence in enumerate(sequences):
             
             # Convert the sequence to a NumPy array
             np_sequence = np.array(sequence)
             
-            # Determine the number of unique values in the sequence
-            alphabet_len = len(self.get_alphabet(sequence))
-            
-            # Disable automatic color cycling
-            plt.gca().set_prop_cycle(None)
-            
             # Get the unique values in the sequence
-            unique_values = self.get_alphabet(sequence)
-            
-            for i, value in enumerate(unique_values):
+            unique_values = alphabet_cache[sequence]
                 
-                # Plot the value positions as scatter points with labels
-                if gap:
+            # Plot the value positions as scatter points with labels
+            if gap:
+                
+                for i, value in enumerate(unique_values):
                     points = np.where(np_sequence == value, y + 1, np.nan)
                     plt.scatter(
                         x=range(len(np_sequence)),
@@ -3363,7 +3358,9 @@ class NotebookUtilities(object):
                         label=value,
                         s=100
                     )
-                else:
+            else:
+                
+                for i, value in enumerate(unique_values):
                     points = np.where(np_sequence == value, 1, np.nan)
                     plt.bar(
                         range(len(points)),
