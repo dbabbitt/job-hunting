@@ -14,4 +14,5 @@ If (Test-Path -Path $EnvironmentPath -PathType Container) {
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 # You can control where a conda environment lives by providing a path to a target directory when creating the environment.
 conda env update --prefix $EnvironmentPath --file environment.yml --prune
+# conda env update --prefix /mnt/c/Users/daveb/OneDrive/Documents/GitHub/job-hunting/jh_env --file environment.yml --prune
 conda info --envs

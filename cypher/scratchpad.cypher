@@ -1,7 +1,27 @@
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["c13ee9d6b3c13ff1_Research_Assistant_1_MS_New_Haven_CT_06511_Indeed_com.html"]
+WHERE
+    (fn.file_name IN ["dafd1e0621beacba_Data_Scientist_Remote_Indeed_com.html", "e35bac775dc584b1_QA_Engineer_Remote_Indeed_com.html"]) AND
+    ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
+    (fn.rejection_email_text IS NULL) AND
+    (fn.rejection_email_date IS NULL)
+RETURN
+    fn.percent_fit AS percent_fit,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.percent_fit DESC;
+
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["4eeb9a388e80b439_Associate_Data_Scientist_Operations_Transformation_and_Digital_Strategy_Thousand_Oaks_CA_Indeed_com.html"]
 SET fn.is_closed = true
+RETURN fn;
+
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["dafd1e0621beacba_Data_Scientist_Remote_Indeed_com.html"]
+SET
+    fn.rejection_email_text = "After reviewing your work and experience, we've made the decision to not move forward at this time.",
+    fn.rejection_email_date = date(),
+    fn.is_closed = true
 RETURN fn;
 
 MATCH (fn:FileNames)
@@ -33,14 +53,6 @@ RETURN
     fn.rejection_email_date,
     fn.is_closed
 ORDER BY fn.opportunity_application_email_date DESC;
-
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["99ff2ff0f6339645_Data_Scientist_South_San_Francisco_CA_Indeed_com.html"]
-SET
-    fn.rejection_email_text = "We recognize this news is disappointing, but we have made the decision not to move forward with your candidacy for the position at this time.",
-    fn.rejection_email_date = date("2023-05-23"),
-    fn.is_closed = true
-RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
@@ -113,11 +125,6 @@ MATCH (fn:FileNames)
 WHERE
     (fn.opportunity_application_email_date = date("2023-03-01"))
 RETURN fn;
-
-MATCH (fn:FileNames)
-WHERE (fn.file_name CONTAINS "Fidelity")
-RETURN fn
-ORDER BY fn.percent_fit DESC;
 
 MATCH (fn:FileNames {file_name: "Hybrid_Process_Engineer_Data_Scientist_Primary_Talent_Partners_Devens_MA_01434.html"})
 SET

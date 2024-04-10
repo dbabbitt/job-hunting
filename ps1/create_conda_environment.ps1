@@ -46,7 +46,7 @@ Write-Host ""
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
 Write-Host "                Checking all NPM packages for potential updates" -ForegroundColor Green
 Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Green
-<# $CommandString = "npm cache clean"
+<# $CommandString = "npm cache verify"
 Invoke-Expression $CommandString #>
 $CommandString = "npm install -g npm"
 Invoke-Expression $CommandString
