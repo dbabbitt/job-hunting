@@ -17,9 +17,9 @@ SET fn.is_closed = true
 RETURN fn;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["dafd1e0621beacba_Data_Scientist_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["382154c63ba6b00e_Data_Scientist_Remote_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "After reviewing your work and experience, we've made the decision to not move forward at this time.",
+    fn.rejection_email_text = "Unfortunately, at this time we are moving forward with other candidates who we feel are more closely aligned with what we are looking for in this position.",
     fn.rejection_email_date = date(),
     fn.is_closed = true
 RETURN fn;

@@ -293,43 +293,58 @@ class WebScrapingUtilities(object):
     
     
     
-    def get_driver(self, browser_name='FireFox', verbose=True):
-        if verbose:
-            print('Getting the {} driver'.format(browser_name))
+    def get_driver(self, browser_name='FireFox', verbose=False):
+        if verbose: print('Getting the {} driver'.format(browser_name))
         log_dir = '../log'
         import os
         os.makedirs(name=log_dir, exist_ok=True)
-        if browser_name == 'FireFox':
-            executable_name = 'geckodriver'
-        elif browser_name == 'Chrome':
-            executable_name = self.get_chrome_exe()
-        executable_path = '../../web-scrapers/exe/{}.exe'.format(executable_name)
-        service_log_path = os.path.join(log_dir, '{}.log'.format(executable_name))
+        
+        # Define the path for the service log
+        if browser_name == 'FireFox': executable_name = 'geckodriver'
+        elif browser_name == 'Chrome': executable_name = self.get_chrome_exe()
+        service_log_path = os.path.join(log_dir, f'{executable_name}.log')
+        
+        # Initialize the driver
         from selenium import webdriver
         if browser_name == 'FireFox':
-            fp = webdriver.FirefoxProfile()
-            #fp.set_preference(key, value)
-            driver = webdriver.Firefox(
-                firefox_profile=fp,
-                firefox_binary=None,
-                capabilities=None,
-                proxy=None,
-                executable_path=executable_path,
-                options=None,
-                service_log_path=service_log_path,
-                service_args=None,
-                service=None,
-                desired_capabilities=None,
-                log_path=None,
-                keep_alive=True
-            )
+            
+            # Download and configure GeckoDriver using webdriver_manager
+            if verbose:
+                import platform; print(f'platform.system() = {platform.system()}')
+                print(f'os.name = {os.name}')
+            try:
+                from webdriver_manager.firefox import GeckoDriverManager
+                gecko_driver_path = GeckoDriverManager().install()
+                if verbose: print(f'gecko_driver_path = GeckoDriverManager().install() = {gecko_driver_path}')
+                
+                # Create a Service object with the downloaded path and the specified log path
+                from selenium.webdriver.firefox.service import Service
+                service = Service(executable_path=gecko_driver_path, log_path=service_log_path)
+                
+                # Launch Firefox using the created Service object
+                options = webdriver.FirefoxOptions()
+                # options.binary_location = gecko_driver_path
+                driver = webdriver.Firefox(service=service, options=options, keep_alive=True)
+                
+            except Exception as e:
+                print(f'{e.__class__.__name__} error: {str(e).strip()}')
+                gecko_driver_path = '/usr/local/bin/geckodriver'
+                if verbose: print(f"gecko_driver_path = '/usr/local/bin/geckodriver' = {gecko_driver_path}")
+                
+                # Create a Service object with the downloaded path and the specified log path
+                from selenium.webdriver.firefox.service import Service
+                service = Service(executable_path=gecko_driver_path, log_path=service_log_path)
+                
+                # Launch Firefox using the created Service object
+                options = webdriver.FirefoxOptions()
+                options.binary_location = gecko_driver_path
+                driver = webdriver.Firefox(service=service, options=options, keep_alive=True)
+            
         elif browser_name == 'Chrome':
             co = webdriver.ChromeOptions()
             co.add_argument('--no-sandbox')
-            #co.set_capability(name, value)
             driver = webdriver.Chrome(
                 chrome_options=None,
-                executable_path=executable_path,
                 keep_alive=True,
                 options=co,
                 port=0,

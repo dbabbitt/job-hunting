@@ -20,36 +20,64 @@ from string import printable
 
 
 class CypherUtilities(object):
-    """CYPHER class."""
+    """
+    CYPHER class.
+    """
     
     def __init__(
         self, uri=None, user=None, password=None, driver=None,
         secrets_json_path=None, verbose=False
     ):
         if uri is None:
-            self.uri = 'bolt://localhost:7687'
-        else:
-            self.uri = uri
-        if user is None:
-            self.user = 'neo4j'
-        else:
-            self.user = user
+            
+            # Assuming Bolt enabled on [0:0:0:0:0:0:0:0]:7687
+            
+            # Accessing Neo4j via: neo4j://localhost:7687
+            # Test run time: 6 minutes and 40 seconds
+            self.uri = 'neo4j://localhost:7687'
+            
+            # Accessing Neo4j via: bolt://localhost:7687
+            # Test run time: 8 minutes and 26 seconds
+            # self.uri = 'bolt://localhost:7687'
+            
+            # IP address to connect to Neo4j from within the Wireless LAN adapter Wi-Fi
+            
+            # Accessing Neo4j via: neo4j://192.168.1.3:7687
+            # Test run time: 7 minutes and 27 seconds
+            # self.uri = 'neo4j://192.168.1.3:7687'
+            
+            # Accessing Neo4j via: bolt://192.168.1.3:7687
+            # Test run time: 8 minutes and 42 seconds
+            # self.uri = 'bolt://192.168.1.3:7687'
+            
+            # IP address to connect to Neo4j from within the loopback address
+            
+            # Accessing Neo4j via: neo4j://127.0.0.1:7687
+            # Test run time: 7 minutes and 8 seconds
+            # self.uri = 'neo4j://127.0.0.1:7687'
+            
+            # Accessing Neo4j via: bolt://127.0.0.1:7687
+            # Test run time: 7 minutes and 23 seconds
+            # self.uri = 'bolt://127.0.0.1:7687'
+            
+            # IP address to connect to Neo4j from within the WSL environment
+            # self.uri = 'neo4j://192.168.1.5:7687'
+        
+        else: self.uri = uri
+        if user is None: self.user = 'neo4j'
+        else: self.user = user
         if password is None:
             
             # Get secrets json
-            if secrets_json_path is None:
-                secrets_json_path = '../data/secrets/jh_secrets.json'
+            if secrets_json_path is None: secrets_json_path = '../data/secrets/jh_secrets.json'
             with open(secrets_json_path, 'r') as f:
                 import json
                 secrets_json = json.load(f)
             
             self.password = secrets_json['neo4j']['password']
-        else:
-            self.password = password
-        if driver is None:
-            self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
-        else:
-            self.driver = driver
+        else: self.password = password
+        if driver is None: self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+        else: self.driver = driver
         self.verbose = verbose
 
         # Elements sets

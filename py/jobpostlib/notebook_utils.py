@@ -39,12 +39,7 @@ class NotebookUtilities(object):
         import sys
         import os.path as osp
         sys.path.insert(1, osp.abspath('../py'))
-        from notebook_utils import NotebookUtilities
-        
-        nu = NotebookUtilities(
-            data_folder_path=osp.abspath('../data'),
-            saves_folder_path=osp.abspath('../saves')
-        )
+        from jobpostlib import nu
     """
     
     def __init__(self, data_folder_path=None, saves_folder_path=None, verbose=False):
@@ -709,6 +704,47 @@ class NotebookUtilities(object):
         if verbose: print(f'\n\nclusters_dict: {clusters_dict}')
         
         return clusters_dict
+    
+    
+    @staticmethod
+    def count_swaps_to_perfect_order(ideal_list, compared_list, verbose=False):
+        """
+        Counts the number of swaps required to make compared_list identical to ideal_list
+        without penalizing lists with repeated elements.
+        
+        Parameters:
+            ideal_list (list): The list representing the ideal order.
+            compared_list (list): The list to be compared and modified.
+        
+        Returns:
+            int: The number of swaps required.
+        
+        Raises:
+            ValueError: If the lengths of 'ideal_list' and 'compared_list' are not equal.
+        """
+        
+        # Check if lengths of lists are equal
+        n = len(ideal_list)
+        if n != len(compared_list): raise ValueError('Lists must be of equal length')
+        swaps = 0
+        
+        # Create a dictionary to store the indices of elements in the ideal_list
+        ideal_indices = {element: i for i, element in enumerate(ideal_list)}
+        
+        # Iterate through the compared list
+        for i in range(n):
+            
+            # If the element is not in its correct position
+            if compared_list[i] != ideal_list[i]:
+                
+                # Find the correct position of the element in ideal_list
+                correct_index = ideal_indices[compared_list[i]]
+    
+                # Swap the elements
+                compared_list[i], compared_list[correct_index] = compared_list[correct_index], compared_list[i]
+                swaps += 1
+    
+        return swaps
     
     
     ### File Functions ###
@@ -1494,6 +1530,42 @@ class NotebookUtilities(object):
             self.update_modules_list(verbose=verbose)
     
     
+    @staticmethod
+    def beep(frequency=440, duration=500, verbose=False):
+        import subprocess
+        
+        # Script block with Beep function
+        script_block = f'[System.Console]::Beep({frequency},{duration})'
+        popenargs_list = ['powershell.exe', '-Command', script_block]
+        if verbose: print(popenargs_list)
+        
+        # Call PowerShell with the script block
+        subprocess.run(popenargs_list)
+    
+    
+    @staticmethod
+    def save_indeed_email_to_file(verbose=False):
+        """
+        Opens the Indeed HTML file with Notepad++ using PowerShell.
+        
+        Parameters:
+            verbose (bool, optional): If True, print debug information (default is False).
+        """
+        import subprocess
+        
+        # Define the paths
+        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\indeed_email.html'
+        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
+        
+        # Script block with Notepad++ open function
+        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
+        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
+        if verbose: print(popenargs_list)
+        
+        # Call PowerShell with the script block
+        subprocess.run(popenargs_list)
+    
+    
     ### URL and Soup Functions ###
     
     
@@ -1666,15 +1738,8 @@ class NotebookUtilities(object):
             
             # Import necessary libraries and modules
             import sys
-            sys.path.insert(1, '../py')  # Add the '../py' directory to the system path
-            from notebook_utils import NotebookUtilities
-            import os.path as osp
-            
-            # Create a NotebookUtilities instance with a specified data folder path
-            nu = NotebookUtilities(
-                data_folder_path=osp.abspath('../data'),
-                saves_folder_path=osp.abspath('../saves')
-            )
+            if ('../py' not in sys.path): sys.path.insert(1, '../py')  # Add the '../py' directory to the system path
+            from jobpostlib import nu
             
             # Example usage of the function
             tables_url = 'https://en.wikipedia.org/wiki/Provinces_of_Afghanistan'
@@ -1713,14 +1778,14 @@ class NotebookUtilities(object):
     def get_wiki_tables(self, tables_url_or_filepath, verbose=True):
         """
         Gets a list of DataFrames from Wikipedia tables.
-
+        
         Parameters:
             tables_url_or_filepath: The URL or filepath to the Wikipedia page containing the tables.
             verbose: Whether to print verbose output.
-
+        
         Returns:
             A list of DataFrames containing the data from the Wikipedia tables.
-
+        
         Raises:
             Exception: If there is an error getting the Wikipedia page or the tables from the page.
         """
@@ -1937,18 +2002,21 @@ class NotebookUtilities(object):
     
     
     @staticmethod
-    def get_statistics(describable_df, columns_list):
+    def get_statistics(describable_df, columns_list, verbose=False):
         """
-        Calculates and presents descriptive statistics for a given DataFrame's columns.
-    
+        Calculates and returns descriptive statistics for a subset of columns in a Pandas DataFrame.
+        
         Parameters:
             describable_df (pandas.DataFrame): The DataFrame to calculate descriptive statistics for.
             columns_list (list of str): A list of specific columns to calculate statistics for.
-    
+            verbose (bool): If True, display debug information.
+        
         Returns:
             pandas.DataFrame: A DataFrame containing the descriptive statistics for the analyzed columns.
+                The returned DataFrame includes the mean, mode, median, standard deviation (SD),
+                minimum, 25th percentile, 50th percentile (median), 75th percentile, and maximum.
         """
-    
+        
         # Compute basic descriptive statistics for the specified columns
         df = describable_df[columns_list].describe().rename(index={'std': 'SD'})
         
@@ -1956,7 +2024,7 @@ class NotebookUtilities(object):
         if ('mode' not in df.index):
             
             # Create the mode row dictionary
-            row_dict = {cn: describable_df[cn].mode().tolist()[0] for cn in columns_list}
+            row_dict = {cn: describable_df[cn].mode().iloc[0] for cn in columns_list}
             
             # Convert the row dictionary to a data frame to match the df structure
             row_df = DataFrame([row_dict], index=['mode'])
@@ -1978,10 +2046,16 @@ class NotebookUtilities(object):
         
         # Define the desired index order for the resulting DataFrame
         index_list = ['mean', 'mode', 'median', 'SD', 'min', '25%', '50%', '75%', 'max']
-    
+        
         # Create a boolean mask to select rows with desired index values
         mask_series = df.index.isin(index_list)
         df = df[mask_series].reindex(index_list)
+        
+        # If verbose is True, print additional information
+        if verbose:
+            print(f'columns_list: {columns_list}')
+            display(describable_df)
+            display(df)
         
         # Return the filtered DataFrame containing the selected statistics
         return df
@@ -2601,7 +2675,7 @@ class NotebookUtilities(object):
     
     
     @staticmethod
-    def plot_histogram(df, xname, xlabel, xtick_text_fn, title, ylabel=None, xticks_are_temporal=False, ax=None, color=None, bins=100):
+    def plot_histogram(df, xname, xlabel, title, xtick_text_fn=None, ylabel=None, xticks_are_temporal=False, ax=None, color=None, bins=100):
         """
         Plots a histogram of a DataFrame column.
         
@@ -2609,9 +2683,9 @@ class NotebookUtilities(object):
             df: A Pandas DataFrame.
             xname: The name of the column to plot the histogram of.
             xlabel: The label for the x-axis.
-            xtick_text_fn: A function that takes a text object as input and returns a new
-            text object to be used as the tick label.
             title: The title of the plot.
+            xtick_text_fn: A function that takes a text object as input and returns a new
+                text object to be used as the tick label. Defaults to None.
             ylabel: The label for the y-axis.
             ax: A matplotlib axis object. If None, a new figure and axis will be created.
         
@@ -2652,16 +2726,17 @@ class NotebookUtilities(object):
                 ax.set_xticks(major_ticks)
         
         # Humanize x tick labels
-        xticklabels_list = []
-        for text_obj in ax.get_xticklabels():
-            
-            # Call the xtick text function to convert numerical values into minutes and seconds format
-            text_obj.set_text(xtick_text_fn(text_obj))
-            
-            xticklabels_list.append(text_obj)
-        # print(len(xticklabels_list))
-        if (len(xticklabels_list) > 17): ax.set_xticklabels(xticklabels_list, rotation=90)
-        else: ax.set_xticklabels(xticklabels_list)
+        if xtick_text_fn is not None:
+            xticklabels_list = []
+            for text_obj in ax.get_xticklabels():
+                
+                # Call the xtick text function to convert numerical values into minutes and seconds format
+                text_obj.set_text(xtick_text_fn(text_obj))
+                
+                xticklabels_list.append(text_obj)
+            # print(len(xticklabels_list))
+            if (len(xticklabels_list) > 17): ax.set_xticklabels(xticklabels_list, rotation=90)
+            else: ax.set_xticklabels(xticklabels_list)
         
         # Humanize y tick labels
         yticklabels_list = []
@@ -3243,7 +3318,7 @@ class NotebookUtilities(object):
         
         # Highlight any of the n-grams given
         if highlighted_ngrams != []:
-            # if verbose: display(highlighted_ngrams)
+            if verbose: display(highlighted_ngrams)
             
             def highlight_ngram(ngram):
                 
@@ -3257,7 +3332,7 @@ class NotebookUtilities(object):
                     if str(this_ngram) == str(ngram): match_positions.append(x)
                 
                 # Draw a red box around each match
-                # if verbose: print(f'ngram={ngram}, min(ngram)={min(ngram)}, max(ngram)={max(ngram)}, match_positions={match_positions}')
+                if verbose: print(f'ngram={ngram}, min(ngram)={min(ngram)}, max(ngram)={max(ngram)}, match_positions={match_positions}')
                 for position in match_positions:
                     bot = min(ngram) - 0.25
                     top = max(ngram) + 0.25

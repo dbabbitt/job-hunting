@@ -3,7 +3,6 @@ from datetime import datetime
 import humanize
 import os.path as osp
 import time
-import winsound
 
 duration = 1000  # milliseconds
 freq = 880  # Hz
@@ -80,5 +79,5 @@ from .section_utils import SectionUtilities
 su = SectionUtilities(verbose=False)
 
 duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
-# winsound.Beep(freq, duration)
+nu.beep(freq, duration)
 print(f'Utility libraries created in {duration_str}')
