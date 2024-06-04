@@ -78,7 +78,7 @@ def create_app(test_config=None):
         duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
         print(f'Parts-of-speech stochastic gradient decent elements built in {duration_str}')
 
-        nu.beep(freq, duration)
+        wsu.beep(freq, duration)
         print(f'\nLast run on {datetime.now()}')
         duration_str = humanize.precisedelta(
             time.time() - t0, minimum_unit='seconds', format='%0.0f'
@@ -96,7 +96,7 @@ def create_app(test_config=None):
         duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
         print(f'POS classifier trained in {duration_str}')
         
-        nu.beep(freq, duration)
+        wsu.beep(freq, duration)
         print(f'\nLast run on {datetime.now()}')
         duration_str = humanize.precisedelta(
             time.time() - t0, minimum_unit='seconds', format='%0.0f'

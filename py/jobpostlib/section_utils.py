@@ -230,7 +230,7 @@ class SectionUtilities(object):
         return quals_list, job_fitness
     
     def load_indeed_posting_url(
-        self, viewjob_url, driver=None, jk_str=None, files_list=[], close_notices=True, verbose=True
+        self, viewjob_url, driver=None, jk_str=None, files_list=[], close_notices=True, slowed_for_readability=True, verbose=True
     ):
         file_node_dict = {}
         if jk_str is None:
@@ -278,10 +278,11 @@ class SectionUtilities(object):
                 except Exception as e: print(f'{e.__class__.__name__} error closing cookie privacy notice: {str(e).strip()}')
             
             # Scroll down the page so you can read it
-            diffs_list = [4, 2, 0, 2, 4]
-            for diff in diffs_list:
-                time.sleep(7 - diff)
-                driver.execute_script('window.scrollTo(0, window.scrollY + 800);')
+            if slowed_for_readability:
+                diffs_list = [4, 2, 0, 2, 4]
+                for diff in diffs_list:
+                    time.sleep(7 - diff)
+                    driver.execute_script('window.scrollTo(0, window.scrollY + 800);')
         
         # Get the page soup
         from urllib.error import HTTPError, URLError

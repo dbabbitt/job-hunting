@@ -17,8 +17,8 @@ class HeaderAnalysis(object):
         self.verbose = verbose
         
         self.HTML_SCANNER_REGEX = re.compile(r'</?\w+|\w+[#\+]*|:|\.|\?')
-        self.LT_REGEX = re.compile(r'\nu+<')
-        self.GT_REGEX = re.compile(r'>\nu+')
+        self.LT_REGEX = re.compile(r'\s+<')
+        self.GT_REGEX = re.compile(r'>\s+')
         self.CLF_NAME = 'LogisticRegression'
         self.SAVES_HTML_FOLDER = os.path.join(nu.saves_folder, 'html')
         import matplotlib
@@ -75,8 +75,8 @@ class HeaderAnalysis(object):
             if hasattr(tag, 'children'):
                 for child_tag in tag.children:
                     result_list = self.get_navigable_children(child_tag, result_list)
-            elif (type(tag) is not str) and (tag.name is not None):
-                self.store_unique_list('CHILDLESS_TAGS_LIST', tag.name)
+            # elif (type(tag) is not str) and (tag.name is not None):
+                # self.store_unique_list('CHILDLESS_TAGS_LIST', tag.name)
         else:
             base_str = self.clean_html_str(tag)
             if re.search('[\r\n]+', base_str):

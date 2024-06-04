@@ -2,23 +2,27 @@
 #!/usr/bin/env python
 # Utility Functions to run Jupyter notebooks.
 # Dave Babbitt <dave.babbitt@gmail.com>
-# Author: Dave Babbitt, Data Scientist
+# Author: Dave Babbitt, Machine Learning Engineer
 # coding: utf-8
 
 # Soli Deo gloria
 
 from bs4 import BeautifulSoup as bs
 from datetime import timedelta
-from os import listdir as listdir, makedirs as makedirs, path as osp
-from pandas import DataFrame, Series, concat, read_csv, read_html
+from numpy import nan, isnan
+from os import listdir as listdir, makedirs as makedirs, path as osp, remove as remove, sep as sep, walk as walk
+from pandas import CategoricalDtype, DataFrame, Index, NaT, Series, concat, get_dummies, isna, notnull, read_csv, read_excel, read_pickle, to_datetime, read_html
+from re import IGNORECASE, MULTILINE, Pattern, split, sub
 from typing import List, Optional
 import humanize
+import inspect
 import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
 import re
+import seaborn as sns
 import subprocess
 import sys
 import urllib
@@ -29,6 +33,25 @@ except:
     except: import pickle
 
 warnings.filterwarnings('ignore')
+
+# Check for presence of 'get_ipython' function (exists in Jupyter)
+try:
+    get_ipython()
+    from IPython.display import display
+except NameError:
+    display = lambda message: print(message)
+
+# Check if pandas is installed and import relevant functions
+try:
+    from pandas.core.arrays.numeric import is_integer_dtype, is_float_dtype
+    is_integer = lambda srs: is_integer_dtype(srs)
+    is_float = lambda srs: is_float_dtype(srs)
+except:
+    
+    # Use numpy functions if this version of pandas is not available
+    is_integer = lambda srs: any(map(lambda value: np.issubdtype(type(value), np.integer), srs.tolist()))
+    is_float = lambda srs: any(map(lambda value: np.issubdtype(type(value), np.floating), srs.tolist()))
+
 class NotebookUtilities(object):
     """
     This class implements the core of the utility
@@ -106,10 +129,10 @@ class NotebookUtilities(object):
         self.decoding_error = self.decoding_errors_list[2]
         
         # Determine URL from file path
-        self.url_regex = re.compile(r'\b(https?|file)://[-A-Z0-9+&@#/%?=~_|$!:,.;]*[A-Z0-9+&@#/%=~_|$]', re.IGNORECASE)
+        self.url_regex = re.compile(r'\b(https?|file)://[-A-Z0-9+&@#/%?=~_|$!:,.;]*[A-Z0-9+&@#/%=~_|$]', IGNORECASE)
         self.filepath_regex = re.compile(
             r'\b[c-d]:\\(?:[^\\/:*?"<>|\x00-\x1F]{0,254}[^.\\/:*?"<>|\x00-\x1F]\\)*(?:[^\\/:*?"<>|\x00-\x1F]{0,254}[^.\\/:*?"<>|\x00-\x1F])',
-            re.IGNORECASE
+            IGNORECASE
         )
         
         # Various aspect ratios
@@ -128,7 +151,7 @@ class NotebookUtilities(object):
     @staticmethod
     def compute_similarity(a: str, b: str) -> float:
         """
-        Calculates the similarity between two strings.
+        Calculate the similarity between two strings.
         
         Parameters:
             a (str): The first string.
@@ -155,10 +178,10 @@ class NotebookUtilities(object):
         """
         
         # Split the input string using various separators
-        stripped_list = re.split(r'( |/|\x96|\u2009|-|\[)', str(x), 0)
+        stripped_list = split(r'( |/|\x96|\u2009|-|\[)', str(x), 0)
         
         # Remove non-numeric characters from each element in the stripped list
-        stripped_list = [re.sub(r'\D+', '', x) for x in stripped_list]
+        stripped_list = [sub(r'\D+', '', x) for x in stripped_list]
         
         # Filter elements with lengths between 3 and 4, as likely to be years
         stripped_list = [x for x in stripped_list if (len(x) >= 3) and (len(x) <= 4)]
@@ -271,7 +294,7 @@ class NotebookUtilities(object):
         jitter_list = []
         
         # Iterate over the list of age groups
-        for splits_list in get_splits_list(ages_list):
+        for splits_list in split_list_by_gap(ages_list):
             
             # If there are multiple ages in a group, calculate jitter values for each age in the group
             if (len(splits_list) > 1):
@@ -293,7 +316,7 @@ class NotebookUtilities(object):
 
     
     @staticmethod
-    def get_splits_list(ages_list, value_difference=1, verbose=False):
+    def split_list_by_gap(ages_list, value_difference=1, verbose=False):
         """
         Divides a list of ages into sublists based on gaps in the age sequence.
         
@@ -399,7 +422,7 @@ class NotebookUtilities(object):
     
     
     @staticmethod
-    def split_row_indices_list(splitting_indices_list, excluded_indices_list=[]):
+    def split_list_by_exclusion(splitting_indices_list, excluded_indices_list=[]):
         """
         Splits a list of row indices into a list of lists, where each inner list
         contains a contiguous sequence of indices that are not in the excluded indices list.
@@ -766,7 +789,6 @@ class NotebookUtilities(object):
             file_path = nu.get_function_file_path(my_function)
             print(osp.abspath(file_path))
         """
-        import inspect
         file_path = inspect.getfile(func)
 
         # If the function is defined in a Jupyter notebook, return the absolute file path
@@ -888,20 +910,20 @@ class NotebookUtilities(object):
         """
         
         # Make sure the provided folder exists and is a directory
-        if not os.path.exists(folder_path): raise FileNotFoundError(f'Directory {folder_path} does not exist.')
-        if not os.path.isdir(folder_path): raise NotADirectoryError(f'Path {folder_path} is not a directory.')
+        if not osp.exists(folder_path): raise FileNotFoundError(f'Directory {folder_path} does not exist.')
+        if not osp.isdir(folder_path): raise NotADirectoryError(f'Path {folder_path} is not a directory.')
         
         # Initialize an empty list to store top-level folder paths
         top_level_folders = []
         
         # Iterate through items in the specified folder
-        for item in os.listdir(folder_path):
+        for item in listdir(folder_path):
             
             # Construct the full path for each item
-            full_item_path = os.path.join(folder_path, item)
+            full_item_path = osp.join(folder_path, item)
             
             # Check if the item is a directory, and if so, add its path to the list
-            if os.path.isdir(full_item_path): top_level_folders.append(full_item_path)
+            if osp.isdir(full_item_path): top_level_folders.append(full_item_path)
         
         # Optionally print information based on the `verbose` flag
         if verbose: print(f'Found {len(top_level_folders)} top-level folders in {folder_path}.')
@@ -927,7 +949,7 @@ class NotebookUtilities(object):
         black_list = ['.ipynb_checkpoints', '$Recycle.Bin']
         if github_folder is None: github_folder = self.github_folder
         rogue_fns_dict = {}
-        for sub_directory, directories_list, files_list in os.walk(github_folder):
+        for sub_directory, directories_list, files_list in walk(github_folder):
             if all(map(lambda x: x not in sub_directory, black_list)):
                 for file_name in files_list:
                     if file_name.endswith('.ipynb') and not ('Attic' in file_name):
@@ -1078,13 +1100,13 @@ class NotebookUtilities(object):
         import shutil
         
         # Iterate over all subdirectories within the github_folder
-        for sub_directory, directories_list, files_list in os.walk(github_folder):
+        for sub_directory, directories_list, files_list in walk(github_folder):
             
             # Check if the directory 'ipynb_checkpoints' exists in the current subdirectory
             if '.ipynb_checkpoints' in directories_list:
                 
                 # Construct the full path to the '.ipynb_checkpoints' folder
-                folder_path = os.path.join(sub_directory, '.ipynb_checkpoints')
+                folder_path = osp.join(sub_directory, '.ipynb_checkpoints')
                 
                 # Remove the folder and its contents
                 shutil.rmtree(folder_path)
@@ -1120,7 +1142,7 @@ class NotebookUtilities(object):
             elif sys.version_info.major == 3: df.to_pickle(pickle_path, protocol=min(4, pickle.HIGHEST_PROTOCOL))
 
         except Exception as e:
-            os.remove(pickle_path)
+            remove(pickle_path)
             if verbose: print(e, ": Couldn't save {:,} cells as a pickle.".format(df.shape[0]*df.shape[1]), flush=True)
             if raise_exception: raise
     
@@ -1244,7 +1266,7 @@ class NotebookUtilities(object):
                         pickle.dump(object, handle, pickle.HIGHEST_PROTOCOL)
 
         else:
-            try: object = pd.read_pickle(pickle_path)
+            try: object = read_pickle(pickle_path)
             except:
                 with open(pickle_path, 'rb') as handle: object = pickle.load(handle)
 
@@ -1364,8 +1386,6 @@ class NotebookUtilities(object):
 
         """
         for obj_name in kwargs:
-            # if hasattr(kwargs[obj_name], '__call__'):
-            #     raise RuntimeError('Functions cannot be pickled.')
             pickle_path = osp.join(self.saves_pickle_folder, '{}.pkl'.format(obj_name))
             if isinstance(kwargs[obj_name], DataFrame):
                 self.attempt_to_pickle(kwargs[obj_name], pickle_path, raise_exception=False, verbose=verbose)
@@ -1456,13 +1476,13 @@ class NotebookUtilities(object):
         """
         Find all the non-staticmethod-decorated functions and refactor if needed.
         """
-        instance_defs_regex = re.compile(r'^    def ([a-z]+[a-z_]+)\(\s*self,\s+(?:[^\)]+)\):', re.MULTILINE)
+        instance_defs_regex = re.compile(r'^    def ([a-z]+[a-z_]+)\(\s*self,\s+(?:[^\)]+)\):', MULTILINE)
         self_regex = re.compile(r'\bself\b')
         functions_list = []
         black_list = ['.ipynb_checkpoints', '$Recycle.Bin']
         this_folder = '../py'
         if verbose: print()
-        for sub_directory, directories_list, files_list in os.walk(this_folder):
+        for sub_directory, directories_list, files_list in walk(this_folder):
             if all(map(lambda x: x not in sub_directory, black_list)):
                 for file_name in files_list:
                     if file_name.endswith('.py'):
@@ -1472,7 +1492,7 @@ class NotebookUtilities(object):
                             fn_parts_list = instance_defs_regex.split(file_text)
                             for fn_name, fn_body in zip(fn_parts_list[1::2], fn_parts_list[2::2]):
                                 if not self_regex.search(fn_body):
-                                    instance_def_regex = re.compile(rf'^    def {fn_name}\(\s*self,\s+(?:[^\)]+)\):', re.MULTILINE)
+                                    instance_def_regex = re.compile(rf'^    def {fn_name}\(\s*self,\s+(?:[^\)]+)\):', MULTILINE)
                                     match_obj = instance_def_regex.search(file_text)
                                     if match_obj: replaced_str = match_obj.group()
                                     else: replaced_str = ''
@@ -1531,39 +1551,58 @@ class NotebookUtilities(object):
     
     
     @staticmethod
-    def beep(frequency=440, duration=500, verbose=False):
-        import subprocess
-        
-        # Script block with Beep function
-        script_block = f'[System.Console]::Beep({frequency},{duration})'
-        popenargs_list = ['powershell.exe', '-Command', script_block]
-        if verbose: print(popenargs_list)
-        
-        # Call PowerShell with the script block
-        subprocess.run(popenargs_list)
-    
-    
-    @staticmethod
-    def save_indeed_email_to_file(verbose=False):
+    def describe_procedure(function_obj, docstring_prefix='The procedure to'):
         """
-        Opens the Indeed HTML file with Notepad++ using PowerShell.
+        Generate a step-by-step description of how to perform a function by hand from its comments.
+        
+        This static method analyzes the source code comments of a provided function object 
+        `function_obj` to extract a step-by-step description of the procedure it implements. 
+        It prints a list containing the formatted description.
         
         Parameters:
-            verbose (bool, optional): If True, print debug information (default is False).
+            function_obj (callable):
+                The function object whose procedure needs to be described.
+            docstring_prefix (str, optional):
+                A prefix to prepend to the procedure description. Default is 'The procedure to'.
+        
+        Returns:
+            None
+        
+        Notes:
+            The function assumes that the docstring starts with a one-sentence paragraph where 
+            the first word is a verb (in the imperative form, as opposed to the third-person 
+            singular present tense). The function also assumes that comments don't end with 
+            punctuation and will ignore comments containing the word 'verbose'.
         """
-        import subprocess
         
-        # Define the paths
-        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\indeed_email.html'
-        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
+        # Import required libraries not already imported for the class
+        import roman
         
-        # Script block with Notepad++ open function
-        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
-        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
-        if verbose: print(popenargs_list)
+        # Extract the source code and initialize the comments list
+        source_code = inspect.getsource(function_obj)
+        comments_list = []
         
-        # Call PowerShell with the script block
-        subprocess.run(popenargs_list)
+        # Compile regex to find all unprefixed comments in the source code
+        comment_regex = re.compile('^ *# ([^\r\n]+)', re.MULTILINE)
+        
+        # Split the source code to separate docstring and function body
+        parts_list = re.split('"""', source_code, 0)
+        
+        # Clean the docstring part so that only the top one-sentence paragraph is included
+        docstring = parts_list[1].strip().split('.')[0]
+        
+        # Add this description header (with prefix) to the list
+        comments_list.append(f'{docstring_prefix} {docstring.lower()} is as follows:')
+        
+        # Extract the comments which are not debug statements and add them to the list (prefixed with Roman numerals)
+        for i, comment_str in enumerate(
+            [comment_str for comment_str in comment_regex.findall(source_code) if comment_str and ('verbose' not in comment_str)]
+        ):
+            comments_list.append(f'    {roman.toRoman(i+1).lower()}. {comment_str}.')
+        
+        # If there are any comments in the list, print its procedure description and comments on their own lines
+        if len(comments_list) > 1:
+            print('\n'.join(comments_list))
     
     
     ### URL and Soup Functions ###
@@ -1841,7 +1880,7 @@ class NotebookUtilities(object):
             parent_text = ' '.join(texts_list)
             for this, with_that in zip([' )', ' ]', '( ', '[ '], [')', ']', '(', '[']):
                 parent_text = parent_text.replace(this, with_that)
-            parent_text = re.sub(r'[\s\u200b\xa0]+', ' ', parent_text).strip()
+            parent_text = sub(r'[\s\u200b\xa0]+', ' ', parent_text).strip()
             
             return parent_text
         if verbose:
@@ -1904,7 +1943,7 @@ class NotebookUtilities(object):
         # Combine masks using bitwise AND operation
         # mask_series = X_finite_mask & y_finite_mask
         
-        mask_series = pd.concat([y_train, X_train], axis='columns').applymap(pd.notna).all(axis='columns')
+        mask_series = concat([y_train, X_train], axis='columns').applymap(notnull).all(axis='columns')
         
         # Return a mask indicating which elements of both X_train and y_train are not inf or nan
         return mask_series
@@ -1952,7 +1991,7 @@ class NotebookUtilities(object):
                     }
                     
                     # Count unique values in the column
-                    try: row_dict['count_uniques'] = len(df[column_name].unique())
+                    try: row_dict['count_uniques'] = df[column_name].nunique()
                         
                     # Set count of unique values to NaN if an error occurs
                     except Exception: row_dict['count_uniques'] = np.nan
@@ -1964,7 +2003,7 @@ class NotebookUtilities(object):
                     except Exception: row_dict['count_zeroes'] = np.nan
                     
                     # Check if the column contains any dates
-                    date_series = pd.to_datetime(df[column_name], errors='coerce')
+                    date_series = to_datetime(df[column_name], errors='coerce')
                     null_series = date_series[~date_series.notnull()]
                     row_dict['has_dates'] = (null_series.shape[0] < date_series.shape[0])
                     
@@ -2004,7 +2043,7 @@ class NotebookUtilities(object):
     @staticmethod
     def get_statistics(describable_df, columns_list, verbose=False):
         """
-        Calculates and returns descriptive statistics for a subset of columns in a Pandas DataFrame.
+        Calculate and returns descriptive statistics for a subset of columns in a Pandas DataFrame.
         
         Parameters:
             describable_df (pandas.DataFrame): The DataFrame to calculate descriptive statistics for.
@@ -2082,7 +2121,7 @@ class NotebookUtilities(object):
         mask_series = (df[columns_list].apply(Series.nunique, axis='columns') == 1)
         
         # Replace non-unique or missing values with NaN
-        df.loc[~mask_series, new_column_name] = np.nan
+        df.loc[~mask_series, new_column_name] = nan
         
         # Define a function to extract the first valid value in each row
         f = lambda srs: srs[srs.first_valid_index()]
@@ -2110,7 +2149,7 @@ class NotebookUtilities(object):
         
         # Ensure that the search_regex is a compiled regular expression object
         assert (
-            isinstance(search_regex, re.Pattern)
+            isinstance(search_regex, Pattern)
         ), "search_regex must be a compiled regular expression."
         
         # If no search_regex is provided, use the default pattern for detecting references
@@ -2206,7 +2245,7 @@ class NotebookUtilities(object):
     
     
     @staticmethod
-    def one_hot_encode(df, columns):
+    def one_hot_encode(df, columns, dummy_na=True):
         '''
         One-hot encodes the given columns in the given data frame.
         
@@ -2218,13 +2257,14 @@ class NotebookUtilities(object):
             A data frame with the encoded columns minus the given columns.
         '''
         
-        dummies = pd.get_dummies(df[columns], dummy_na=True)
-        df = pd.concat([df, dummies], axis='columns').drop(columns, axis='columns')
+        dummies = get_dummies(df[columns], dummy_na=dummy_na)
+        columns_list = sorted(set(dummies.columns).difference(set(df.columns)))
+        df = concat([df, dummies[columns_list]], axis='columns').drop(columns, axis='columns')
         
         return df
     
     
-    def get_row_dictionary(self, value_obj, row_dict={}, key_prefix=''):
+    def get_flattened_dictionary(self, value_obj, row_dict={}, key_prefix=''):
         """
         This function takes a value_obj (either a dictionary, list or scalar value) and creates a flattened
         dictionary from it, where keys are made up of the keys/indices of nested dictionaries and lists. The
@@ -2248,7 +2288,7 @@ class NotebookUtilities(object):
             for k, v, in value_obj.items():
                 
                 # Recursively call get row dictionary with the dictionary key as part of the prefix
-                row_dict = self.get_row_dictionary(
+                row_dict = self.get_flattened_dictionary(
                     v, row_dict=row_dict, key_prefix=f'{key_prefix}_{k}'
                 )
                 
@@ -2269,7 +2309,7 @@ class NotebookUtilities(object):
                     i = str(i).zfill(digits_count)
                 
                 # Recursively call get row dictionary with the list index as part of the prefix
-                row_dict = self.get_row_dictionary(
+                row_dict = self.get_flattened_dictionary(
                     v, row_dict=row_dict, key_prefix=f'{key_prefix}{i}'
                 )
                 
@@ -2307,6 +2347,143 @@ class NotebookUtilities(object):
         
         # Display the resulting DataFrame
         display(df)
+    
+    
+    @staticmethod
+    def get_numeric_columns(df, is_na_dropped=True):
+        """
+        Identify numeric columns in a DataFrame.
+        
+        Parameters:
+            df (pandas.DataFrame): The DataFrame to search for numeric columns.
+            is_na_dropped (bool, optional): Whether to drop columns with all NaN values. Default is True.
+        
+        Returns:
+            list: A list of column names containing numeric values.
+        
+        Notes:
+            This function identifies numeric columns by checking if the data in each column
+            can be interpreted as numeric. It checks for integer, floating-point, and numeric-like
+            objects.
+        
+        Examples:
+            import pandas as pd
+            df = pd.DataFrame({'A': [1, 2, 3], 'B': [1.1, 2.2, 3.3], 'C': ['a', 'b', 'c']})
+            nu.get_numeric_columns(df)
+            ['A', 'B']
+        """
+
+        # Initialize an empty list to store numeric column names
+        numeric_columns = []
+
+        # Iterate over DataFrame columns to identify numeric columns
+        for cn in df.columns:
+            if is_integer(df[cn]) or is_float(df[cn]):
+                numeric_columns.append(cn)
+
+        # Optionally drop columns with all NaN values
+        if is_na_dropped: numeric_columns = df[numeric_columns].dropna(axis='columns', how='all').columns
+
+        # Sort and return the list of numeric column names
+        return sorted(numeric_columns)
+    
+    
+    @staticmethod
+    def split_df_by_indices(df, indices_list, verbose=False):
+        """
+        Split a DataFrame into a list of smaller DataFrames based on specified
+        row indices.
+        
+        It iterates over the rows of the input DataFrame and accumulates them into
+        sub-DataFrames whenever it encounters a row index that is in the
+        `indices_list`. Once an index is found, the accumulated rows are appended as
+        a separate DataFrame to a list which is returned at the end. The process then
+        continues, accumulating rows again until the next index or the end of the
+        DataFrame is reached.
+        
+        Parameters:
+            df (pandas.DataFrame):
+                The DataFrame to be split.
+            indices_list (pandas.index or list):
+                A list of row indices where the DataFrame should be split.
+            verbose (bool, optional):
+                Whether to print debug output.
+        
+        Returns:
+            list of pandas.DataFrame:
+                A list of DataFrames, each corresponding to a index.
+        """
+        split_dfs = []
+        current_df = DataFrame()
+        
+        # Iterate over the rows of the dataframe
+        for row_index, row_series in df.iterrows():
+            
+            # Check if the current row index is in the indices_list
+            if row_index in indices_list:
+                
+                # Append the current dataframe to the list if it has rows
+                if current_df.shape[0] > 0:
+                    split_dfs.append(current_df)
+                
+                # Reset the current dataframe for the next split
+                current_df = DataFrame()
+            
+            # Print verbose output if enabled
+            if verbose:
+                print(f"Row Index: {row_index}")
+                display(row_series)
+                display(nu.convert_to_df(row_index, row_series))
+                raise Exception("Verbose debugging")
+            
+            # Append the current row to the current DataFrame
+            current_df = concat([current_df, nu.convert_to_df(row_index, row_series)], axis='index')
+        
+        # Append the final dataframe chunk if it has rows
+        if current_df.shape[0] > 0:
+            split_dfs.append(current_df)
+        
+        # Return the list of split DataFrames
+        return split_dfs
+    
+    
+    @staticmethod
+    def split_df_by_iloc(df, indices_list, verbose=False):
+        """
+        Split a DataFrame into a list of smaller DataFrames based on specified
+        iloc indexer start integers.
+        
+        This static method takes a DataFrame (`df`), a list of indices (`indices_list`), and an
+        optional `verbose` flag. It splits the DataFrame into sub-DataFrames based on the provided
+        indices. The split points are defined as the elements of `indices_list` incremented by 1
+        to include the rows up to (but not including) the next index.
+        
+        Parameters:
+            df (pandas.DataFrame):
+                The DataFrame to be split.
+            indices_list (list or array of integers):
+                the iloc indexer start integers to split on.
+            verbose (bool, optional):
+                Whether to print debug output.
+        
+        Returns:
+            List[DataFrame]:
+                A list of DataFrames, the indices of each starting with one of 
+                the elements of indices_list and ending right before the next one.
+        """
+        
+        # Calculate split indices based on index changes before splittable rows
+        split_indices = [0] + list(indices_list[:-1] + 1) + [len(df)]
+        
+        # Gather the sub-dataframes in a list
+        split_dfs = []
+        for i in range(len(split_indices) - 1):
+            start_iloc = split_indices[i]
+            end_iloc = split_indices[i + 1]
+            split_dfs.append(df.iloc[start_iloc:end_iloc])
+        
+        # Return the list of split DataFrames
+        return split_dfs
     
     
     ### LLM Functions ###
@@ -2423,7 +2600,7 @@ class NotebookUtilities(object):
     @staticmethod
     def get_euclidean_distance(first_point, second_point):
         """
-        Calculates the Euclidean distance between two 2D or 3D points.
+        Calculate the Euclidean distance between two 2D or 3D points.
         
         Parameters:
             first_point (tuple): The coordinates of the first point.
@@ -2448,7 +2625,7 @@ class NotebookUtilities(object):
     @staticmethod
     def get_absolute_position(second_point, first_point=None):
         """
-        Calculates the absolute position of a point relative to another point.
+        Calculate the absolute position of a point relative to another point.
         
         Parameters:
             second_point (tuple): The coordinates of the second point.
@@ -2773,12 +2950,11 @@ class NotebookUtilities(object):
         Returns:
             None: The function plots the graph directly using seaborn and matplotlib.
         """
-        import seaborn as sns
         
         # Get the transformed data frame
         if transformer_name is None: transformed_df = transformable_df
         else:
-            groupby_columns = ['session_uuid', 'scene_index']
+            groupby_columns = ['session_uuid', 'scene_id']
             transformed_df = (
                 transformable_df.groupby(groupby_columns)
                 .filter(lambda df: not df[y_column_name].isnull().any())
@@ -2833,6 +3009,20 @@ class NotebookUtilities(object):
         else: pvalue_statement = '=' + str('%.4f' % p_value)
         
         s_str = r'$r^2=' + coefficient_of_determination_statement + ',\ p' + pvalue_statement + '$'
+        
+        return s_str
+    
+    
+    @staticmethod
+    def get_spearman_rho_value_latex(xdata, ydata):
+        from scipy.stats import spearmanr
+        spearman_corr, p_value = spearmanr(xdata, ydata)
+        rank_correlation_coefficient_statement = str('%.2f' % spearman_corr)
+        
+        if p_value < 0.0001: pvalue_statement = '<0.0001'
+        else: pvalue_statement = '=' + str('%.4f' % p_value)
+        
+        s_str = r'$\rho=' + rank_correlation_coefficient_statement + ',\ p' + pvalue_statement + '$'
         
         return s_str
     
@@ -2911,8 +3101,6 @@ class NotebookUtilities(object):
     
         if color_list is None: scatter_kws = dict(s=30, lw=.5, edgecolors='k', zorder=2)
         else: scatter_kws = dict(s=30, lw=.5, edgecolors='k', zorder=2, color=color_list)
-    
-        import seaborn as sns
         merge_axes_subplot = sns.regplot(x=xname, y=yname, scatter=True, data=df, ax=ax,
                                          scatter_kws=scatter_kws, line_kws=line_kws)
     
@@ -2944,6 +3132,9 @@ class NotebookUtilities(object):
         most_x_tried = False
         least_y_tried = False
         most_y_tried = False
+        
+        # Initialize all variables to False in a single line
+        least_x_tried = most_x_tried = least_y_tried = most_y_tried = False
         
         for label, x, y in zip(df.index, xdata, ydata):
             if (x == least_x) and not least_x_tried:
@@ -3387,14 +3578,14 @@ class NotebookUtilities(object):
             fig.suptitle(suptitle, y=y)
             
             # Save figure to PNG
-            file_path = osp.join(self.saves_png_folder, re.sub(r'\W+', '_', str(suptitle)).strip('_').lower() + '.png')
+            file_path = osp.join(self.saves_png_folder, sub(r'\W+', '_', str(suptitle)).strip('_').lower() + '.png')
             if verbose: print(f'Saving figure to {file_path}')
             plt.savefig(file_path, bbox_inches='tight')
         
         return fig, ax
     
     
-    def plot_sequences(self, sequences, gap=True):
+    def plot_sequences(self, sequences, gap=True, color_dict=None):
         """
         Creates a scatter-style sequence plot for a collection of sequences.
         
@@ -3418,9 +3609,16 @@ class NotebookUtilities(object):
             # Convert the sequence to a NumPy array
             np_sequence = np.array(sequence)
             
+            # Disable automatic color cycling
+            plt.gca().set_prop_cycle(None)
+            
             # Get the unique values in the sequence
             unique_values = alphabet_cache[sequence]
-                
+            
+            # Set up the color dictionary so that its keys consist of the elements in unique_values
+            if color_dict is None: color_dict = {a: None for a in unique_values}
+            else: color_dict = {a: color_dict.get(a) for a in unique_values}
+            
             # Plot the value positions as scatter points with labels
             if gap:
                 
@@ -3431,7 +3629,8 @@ class NotebookUtilities(object):
                         y=points,
                         marker='s',
                         label=value,
-                        s=100
+                        s=100,
+                        color=color_dict[value]
                     )
             else:
                 
@@ -3443,7 +3642,8 @@ class NotebookUtilities(object):
                         bottom=[y for x in range(len(points))],
                         width=1,
                         align='edge',
-                        label=value
+                        label=value,
+                        color=color_dict[value]
                     )
         
         # Set the y-axis limits with or without gaps
@@ -3473,3 +3673,5 @@ class NotebookUtilities(object):
         
         # Return the matplotlib figure object
         return plt
+
+# print(r'\b(' + '|'.join(dir()) + r')\b')

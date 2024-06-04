@@ -82,6 +82,26 @@ class WebScrapingUtilities(object):
     
     
     
+    def clean_indeed_posting(self, file_path):
+        
+        # Delete each of the previous siblings of the first jobDescriptionText <div> that are <div> elements
+        page_soup = self.get_page_soup(file_path)
+        row_div_list = page_soup.find_all(name='div', id='jobDescriptionText')
+        for target_div in row_div_list:
+            for div_soup in target_div.find_previous_siblings('div'): div_soup.decompose()
+            break
+
+        # Prettify the HTML
+        from bs4.formatter import  HTMLFormatter
+        formatter_obj = HTMLFormatter(indent=4)
+        with open(file_path, 'w', encoding=nu.encoding_type) as f: print(page_soup.prettify(formatter=formatter_obj), file=f)
+        with open(file_path, 'r', encoding=nu.encoding_type) as f: html_str = f.read()
+        import re
+        html_str = re.sub(r'<([^></ ]+)([^></]*)>[\r\n]+ +([^><\r\n]+)[\r\n]+ +</\1>', r'<\1\2>\3</\1>', html_str)
+        with open(file_path, 'w', encoding=nu.encoding_type) as f: print(html_str, file=f)
+    
+    
+    
     def get_dupes(self, strings_list, verbose=False):
         seen_dict = {}
         dupes_list = []
@@ -549,3 +569,53 @@ class WebScrapingUtilities(object):
             raise
         
         return youchat_text
+    
+    
+    ### List Functions ###
+    
+    
+    ### Storage Functions ###
+    
+    
+    ### Module Functions ###
+    
+    
+    @staticmethod
+    def beep(frequency=440, duration=500, verbose=False):
+        import subprocess
+        
+        # Script block with Beep function
+        script_block = f'[System.Console]::Beep({frequency},{duration})'
+        popenargs_list = ['powershell.exe', '-Command', script_block]
+        if verbose: print(popenargs_list)
+        
+        # Call PowerShell with the script block
+        subprocess.run(popenargs_list)
+    
+    
+    @staticmethod
+    def save_indeed_email_to_file(verbose=False):
+        """
+        Opens the Indeed HTML file with Notepad++ using PowerShell.
+        
+        Parameters:
+            verbose (bool, optional): If True, print debug information (default is False).
+        """
+        import subprocess
+        
+        # Define the paths
+        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\indeed_email.html'
+        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
+        
+        # Script block with Notepad++ open function
+        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
+        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
+        if verbose: print(popenargs_list)
+        
+        # Call PowerShell with the script block
+        subprocess.run(popenargs_list)
+    
+    
+    ### URL and Soup Functions ###
+    
+    

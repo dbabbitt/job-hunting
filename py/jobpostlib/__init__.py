@@ -3,10 +3,12 @@ from datetime import datetime
 import humanize
 import os.path as osp
 import time
+import pyttsx3
 
 duration = 1000  # milliseconds
 freq = 880  # Hz
 t0 = t1 = time.time()
+speech_engine = pyttsx3.init()
 
 # Get the Storage object
 from .notebook_utils import NotebookUtilities
@@ -41,7 +43,10 @@ try:
     version_str = cu.driver.get_server_info().agent
     print(f'======== {version_str} ========')
 except ServiceUnavailable as e:
-    print(f'You need to start Neo4j as a console')
+    speech_str = f'You need to start Neo4j as a console'
+    print(speech_str)
+    speech_engine.say(speech_str)
+    speech_engine.runAndWait()
     raise
 except Exception as e:
     print(f'{e.__class__}: {str(e).strip()}')
@@ -79,5 +84,8 @@ from .section_utils import SectionUtilities
 su = SectionUtilities(verbose=False)
 
 duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
-nu.beep(freq, duration)
-print(f'Utility libraries created in {duration_str}')
+# wsu.beep(freq, duration)
+speech_str = f'Utility libraries created in {duration_str}'
+print(speech_str)
+speech_engine.say(speech_str)
+speech_engine.runAndWait()

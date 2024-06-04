@@ -1,26 +1,28 @@
 
 MATCH (fn:FileNames)
 WHERE
-    (fn.file_name IN ["dafd1e0621beacba_Data_Scientist_Remote_Indeed_com.html", "e35bac775dc584b1_QA_Engineer_Remote_Indeed_com.html"]) AND
+    (fn.file_name IN ["f03c1cbddaa3653c_Data_Scientist_Chicago_IL_60601_Indeed_com.html"]) AND
     ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
     (fn.rejection_email_text IS NULL) AND
     (fn.rejection_email_date IS NULL)
 RETURN
+    fn.opportunity_application_email_date AS email_date,
     fn.percent_fit AS percent_fit,
     fn.file_name AS file_name,
     fn.posting_url AS posting_url
 ORDER BY fn.percent_fit DESC;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["4eeb9a388e80b439_Associate_Data_Scientist_Operations_Transformation_and_Digital_Strategy_Thousand_Oaks_CA_Indeed_com.html"]
-SET fn.is_closed = true
+WHERE fn.file_name IN ["8293a1ad80a4160c_Data_Scientist_Remote_Indeed_com.html"]
+SET
+    fn.percent_fit = NULL
 RETURN fn;
 
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["382154c63ba6b00e_Data_Scientist_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["2558e80b941c0572_Travel_Demand_Modeling_Sr_Analyst_Remote_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "Unfortunately, at this time we are moving forward with other candidates who we feel are more closely aligned with what we are looking for in this position.",
-    fn.rejection_email_date = date(),
+    fn.rejection_email_text = "Unfortunately, at this time the Travel Demand Modeling Sr. Analyst position has been filled.",
+    fn.rejection_email_date = date("2024-05-13"),
     fn.is_closed = true
 RETURN fn;
 
