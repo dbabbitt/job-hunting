@@ -179,6 +179,18 @@ class SectionUtilities(object):
         
         return pos_list, indices_list
     
+    
+    @staticmethod
+    def get_job_title_from_file_name(file_name, verbose=True):
+        import enchant
+        
+        # job_title = re.sub(r'(_-_Indeed.com)?(_[a-z0-9]{16})?\.html$', '', file_name).replace('_', ' ')
+        d = enchant.Dict('en_US')
+        job_title = ' '.join([w for w in file_name.replace('.html', '').replace('_Indeed_com', '').split('_') if d.check(w)])
+        
+        return job_title
+    
+    
     def print_fit_job(self, row_index, row_series, fitness_threshold=2/3, verbose=True):
         job_fitness = 0.0
         file_name = row_series.file_name
@@ -217,10 +229,7 @@ class SectionUtilities(object):
         if len(prediction_list):
             job_fitness = qual_count/len(prediction_list)
             if job_fitness >= fitness_threshold:
-                import enchant
-                d = enchant.Dict('en_US')
-                job_title = ' '.join([w for w in file_name.replace('.html', '').replace('_Indeed_com', '').split('_') if d.check(w)])
-                # job_title = re.sub(r'(_-_Indeed.com)?(_[a-z0-9]{16})?\.html$', '', file_name).replace('_', ' ')
+                job_title = self.get_job_title_from_file_name(file_name)
                 if verbose:
                     clear_output(wait=True)
                     print(f'Basic Qualifications for {job_title}:{quals_str}')
@@ -300,7 +309,7 @@ class SectionUtilities(object):
         # Write to file and update the file node dictionary
         if row_div_list:
             page_title = page_soup.find('title').string.strip()
-            file_name = re.sub(r'[^A-Za-z0-9]+', ' ', page_title).strip().replace(' ', '_')
+            file_name = self.ascii_regex.sub(' ', page_title).strip().replace(' ', '_')
             if len(jk_str):
                 file_name = f'{jk_str}_{file_name}.html'
             else:
