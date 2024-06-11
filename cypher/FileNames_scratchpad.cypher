@@ -1,4 +1,13 @@
 
+// Update File Names node with rejection email text
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["1e440cec025dc52d_Machine_Learning_Engineer_Modeling_San_Francisco_CA_Indeed_com.html"]
+SET
+    fn.rejection_email_text = "After some tough decisions, we have decided not to move forward with your application for this role.",
+    fn.rejection_email_date = date("2024-06-06"),
+    fn.is_closed = true
+RETURN fn;
+
 // Step 1: Get all unique relationship types
 MATCH ()-[r]->()
 WITH DISTINCT type(r) AS relType
@@ -8,15 +17,6 @@ WHERE type(r) = relType AND exists(r.file_name)
 WITH DISTINCT relType
 // Step 3: Return the relationship types that have the 'file_name' property
 RETURN relType AS relationshipType
-
-// Add rejection email text
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["9bc967eb7f5660d3_Machine_Learning_Research_Scientist_Remote_Indeed_com.html"]
-SET
-    fn.rejection_email_text = "At this time, the hiring team has decided to move forward in a different direction for this position.",
-    fn.rejection_email_date = date("2024-06-06"),
-    fn.is_closed = true
-RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
