@@ -186,7 +186,7 @@ class SectionUtilities(object):
         
         # job_title = re.sub(r'(_-_Indeed.com)?(_[a-z0-9]{16})?\.html$', '', file_name).replace('_', ' ')
         d = enchant.Dict('en_US')
-        job_title = ' '.join([w for w in file_name.replace('.html', '').replace('_Indeed_com', '').split('_') if d.check(w)])
+        job_title = ' '.join([w for w in file_name.replace('.html', '').replace('_Indeed_com', '').split('_') if w and d.check(w)])
         
         return job_title
     
@@ -299,7 +299,7 @@ class SectionUtilities(object):
         except HTTPError as e:
             print(f'Got an HTTPError with {viewjob_url}: {str(e).strip()}')
         except URLError as e:
-            print(f'Got an URLError with {viewjob_url}: {str(e).strip()}')
+            print(f'Got a URLError with {viewjob_url}: {str(e).strip()}')
         except Exception as e:
             print(f'Got an {e.__class__.__name__} error with {viewjob_url}: {str(e).strip()}')
         
@@ -326,8 +326,16 @@ class SectionUtilities(object):
                     f.write('</title></head><body>')
                     
                     # Assume the second div is redundant
-                    f.write(str(row_div_list[0]))
+                    body_soup = row_div_list[0]
                     
+                    # Find all div elements with class "jobsearch-JobComponent-description"
+                    divs = body_soup.find_all('div', class_='jobsearch-JobComponent-description')
+                    
+                    # Remove all other classes from these divs
+                    for div in divs:
+                        div['class'] = ['jobsearch-JobComponent-description']
+                    
+                    f.write(body_soup.prettify())
                     f.write('</body></html>')
                 
                 # Delete the svg tags for easier viewing

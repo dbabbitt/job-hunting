@@ -1,12 +1,27 @@
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1e440cec025dc52d_Machine_Learning_Engineer_Modeling_San_Francisco_CA_Indeed_com.html"]
+WHERE fn.file_name IN ["68cf2d512fc03664_Security_Analyst_CSIRT_Remote_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "After some tough decisions, we have decided not to move forward with your application for this role.",
-    fn.rejection_email_date = date("2024-06-06"),
+    fn.rejection_email_text = "Unfortunately, we have decided not to proceed with your candidacy for the Senior Applied Scientist position at Sojern.",
+    fn.rejection_email_date = date("2024-06-26"),
     fn.is_closed = true
 RETURN fn;
+
+// Show rejection info on selected postings
+MATCH (fn:FileNames)
+WHERE
+    (fn.file_name IN ["c53a433549dc0ea0_Senior_Applied_Scientist_Remote_Indeed_com.html", "caa5c38bf935c379_Manager_of_Data_Science_Analytics_San_Francisco_CA_94111_Indeed_com.html"]) AND
+    ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
+    (fn.rejection_email_text IS NULL) AND
+    (fn.rejection_email_date IS NULL) AND
+    (fn.opportunity_application_email_date IS NOT NULL)
+RETURN
+    fn.opportunity_application_email_date AS email_date,
+    fn.percent_fit AS percent_fit,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.opportunity_application_email_date DESC;
 
 // Step 1: Get all unique relationship types
 MATCH ()-[r]->()
@@ -17,19 +32,6 @@ WHERE type(r) = relType AND exists(r.file_name)
 WITH DISTINCT relType
 // Step 3: Return the relationship types that have the 'file_name' property
 RETURN relType AS relationshipType
-
-MATCH (fn:FileNames)
-WHERE
-    (fn.file_name IN ["f03c1cbddaa3653c_Data_Scientist_Chicago_IL_60601_Indeed_com.html"]) AND
-    ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
-    (fn.rejection_email_text IS NULL) AND
-    (fn.rejection_email_date IS NULL)
-RETURN
-    fn.opportunity_application_email_date AS email_date,
-    fn.percent_fit AS percent_fit,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url
-ORDER BY fn.percent_fit DESC;
 
 MATCH (fn:FileNames)
 WHERE fn.file_name IN ["8293a1ad80a4160c_Data_Scientist_Remote_Indeed_com.html"]

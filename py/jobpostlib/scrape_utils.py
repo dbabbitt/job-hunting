@@ -83,14 +83,20 @@ class WebScrapingUtilities(object):
     
     
     def clean_indeed_posting(self, file_path):
+        page_soup = self.get_page_soup(file_path)
         
         # Delete each of the previous siblings of the first jobDescriptionText <div> that are <div> elements
-        page_soup = self.get_page_soup(file_path)
         row_div_list = page_soup.find_all(name='div', id='jobDescriptionText')
         for target_div in row_div_list:
             for div_soup in target_div.find_previous_siblings('div'): div_soup.decompose()
             break
-
+        
+        # Remove all style tags
+        # left_node = re.sub(r'\s*<style[^>]*>[^><]+</style>"', '"', left_node)
+        row_style_list = page_soup.find_all(name='style')
+        for style_soup in row_style_list:
+            style_soup.decompose()
+        
         # Prettify the HTML
         from bs4.formatter import  HTMLFormatter
         formatter_obj = HTMLFormatter(indent=4)
@@ -448,18 +454,22 @@ class WebScrapingUtilities(object):
     def log_into_linkedin(self, driver, verbose=True):
         self.driver_get_url(driver, self.linkedin_url, verbose=verbose)
         
+        # Click the Sign in button
+        button_xpath = '/html/body/nav/div/a[2]'
+        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        
         # Fill in the name and password on one form
         self.fill_in_field(driver, field_name='session_key',
                            field_value=self.secrets_json['linkedin']['email'],
-                           input_css='#session_key',
+                           input_css='#username',
                            verbose=verbose)
         self.fill_in_field(driver, field_name='session_password',
                            field_value=self.secrets_json['linkedin']['password'],
-                           input_css='#session_password', verbose=False)
+                           input_css='#password', verbose=False)
         
-        # Click the sign in button
-        button_xpath = '/html/body/main/section[1]/div/div/form/button'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        # Click the Sign in button
+        button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
+        self.click_web_element(driver, xpath=button_xpath, verbose=verbose) 
         
         # Stall for time while looking for the error message
         # linkedin_xpath = '/html/body/main/div/ul'
@@ -605,6 +615,29 @@ class WebScrapingUtilities(object):
         
         # Define the paths
         html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\indeed_email.html'
+        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
+        
+        # Script block with Notepad++ open function
+        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
+        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
+        if verbose: print(popenargs_list)
+        
+        # Call PowerShell with the script block
+        subprocess.run(popenargs_list)
+    
+    
+    @staticmethod
+    def save_linkedin_email_to_file(verbose=False):
+        """
+        Opens the Linkedin HTML file with Notepad++ using PowerShell.
+        
+        Parameters:
+            verbose (bool, optional): If True, print debug information (default is False).
+        """
+        import subprocess
+        
+        # Define the paths
+        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\linkedin_email.html'
         notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
         
         # Script block with Notepad++ open function

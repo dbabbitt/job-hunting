@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2024-06-20">
+    <creator>NetworkX 3.3</creator>
+  </meta>
+  <graph defaultedgetype="directed" mode="static" name="">
+    <nodes>
+      <node id="AI" label="AI" />
+      <node id="ML" label="ML" />
+      <node id="Engineer" label="Engineer" />
+      <node id="Python" label="Python" />
+      <node id="Deep" label="Deep" />
+      <node id="Machine" label="Machine" />
+      <node id="Test" label="Test" />
+      <node id="Data" label="Data" />
+      <node id="Lead" label="Lead" />
+      <node id="Science" label="Science" />
+      <node id="Scientist" label="Scientist" />
+      <node id="Automation" label="Automation" />
+      <node id="Developer" label="Developer" />
+      <node id="Software" label="Software" />
+      <node id="Development" label="Development" />
+      <node id="Business" label="Business" />
+      <node id="Analyst" label="Analyst" />
+      <node id="Quality" label="Quality" />
+      <node id="Cloud" label="Cloud" />
+      <node id="IV" label="IV" />
+      <node id="Consultant" label="Consultant" />
+      <node id="Senior" label="Senior" />
+      <node id="Full" label="Full" />
+      <node id="Stack" label="Stack" />
+      <node id="QA" label="QA" />
+      <node id="Learning" label="Learning" />
+      <node id="Operations" label="Operations" />
+      <node id="Statistical" label="Statistical" />
+      <node id="Programmer" label="Programmer" />
+    </nodes>
+    <edges>
+      <edge source="AI" target="ML" id="0" weight="2" />
+      <edge source="Engineer" target="Python" id="1" weight="3" />
+      <edge source="Engineer" target="Deep" id="2" weight="2" />
+      <edge source="Engineer" target="Machine" id="3" weight="2" />
+      <edge source="Engineer" target="Test" id="4" weight="2" />
+      <edge source="Python" target="Developer" id="5" weight="5" />
+      <edge source="Deep" target="Learning" id="6" weight="2" />
+      <edge source="Machine" target="Learning" id="7" weight="13" />
+      <edge source="Test" target="Engineer" id="8" weight="3" />
+      <edge source="Data" target="Engineer" id="9" weight="7" />
+      <edge source="Data" target="Lead" id="10" weight="2" />
+      <edge source="Data" target="Science" id="11" weight="3" />
+      <edge source="Data" target="Scientist" id="12" weight="10" />
+      <edge source="Lead" target="Data" id="13" weight="3" />
+      <edge source="Science" target="Consultant" id="14" weight="2" />
+      <edge source="Scientist" target="IV" id="15" weight="2" />
+      <edge source="Automation" target="Engineer" id="16" weight="3" />
+      <edge source="Software" target="Engineer" id="17" weight="11" />
+      <edge source="Software" target="Developer" id="18" weight="3" />
+      <edge source="Software" target="Development" id="19" weight="2" />
+      <edge source="Development" target="Engineer" id="20" weight="2" />
+      <edge source="Business" target="Analyst" id="21" weight="3" />
+      <edge source="Quality" target="Analyst" id="22" weight="4" />
+      <edge source="Cloud" target="Data" id="23" weight="2" />
+      <edge source="Senior" target="Machine" id="24" weight="3" />
+      <edge source="Senior" target="Software" id="25" weight="5" />
+      <edge source="Senior" target="Test" id="26" weight="3" />
+      <edge source="Full" target="Stack" id="27" weight="3" />
+      <edge source="Stack" target="Developer" id="28" weight="2" />
+      <edge source="QA" target="Automation" id="29" weight="2" />
+      <edge source="Learning" target="Engineer" id="30" weight="4" />
+      <edge source="Learning" target="Operations" id="31" weight="2" />
+      <edge source="Operations" target="Engineer" id="32" weight="2" />
+      <edge source="Statistical" target="Programmer" id="33" weight="2" />
+      <edge source="Programmer" target="Analyst" id="34" weight="2" />
+    </edges>
+  </graph>
+</gexf>
