@@ -481,17 +481,25 @@ class WebScrapingUtilities(object):
     def log_into_dice(self, driver, verbose=True):
         self.driver_get_url(driver, self.dice_url, verbose=verbose)
         
-        # Fill in the name and password on one form
+        # Fill in the name and click the button on one form
+        # <input aria-labelledby="react-aria538911564-:r1:" aria-required="true" autocomplete="email" placeholder="Please enter your email" inputmode="email" data-rac="" type="email" value="" name="email">
         self.fill_in_field(driver, field_name='email',
                            field_value=self.secrets_json['dice']['email'],
-                           input_css='#email',
+                           input_css='div.mb-2 > input[type="email"]',
                            verbose=verbose)
+        
+        # Click the Sign In button
+        button_xpath = '/html/body/div[3]/div/div/div[2]/div/form/button'
+        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        
+        # Fill in the password and click the button on the next form
+        # <input aria-labelledby="react-aria160671220-:r6:" autocomplete="current-password" placeholder="Enter Password" data-rac="" type="password" value="" name="password">
         self.fill_in_field(driver, field_name='password',
                            field_value=self.secrets_json['dice']['password'],
-                           input_css='#password', verbose=False)
+                           input_css='div.mb-2 > input[type="password"]', verbose=False)
         
-        # Click the sign in button
-        button_xpath = '//*[@id="loginDataSubmit"]/div[3]/div/button'
+        # Click the Submit Password button
+        button_xpath = '/html/body/div[3]/div/div/div[2]/div/form/button'
         self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
     
     
@@ -638,6 +646,52 @@ class WebScrapingUtilities(object):
         
         # Define the paths
         html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\linkedin_email.html'
+        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
+        
+        # Script block with Notepad++ open function
+        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
+        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
+        if verbose: print(popenargs_list)
+        
+        # Call PowerShell with the script block
+        subprocess.run(popenargs_list)
+    
+    
+    @staticmethod
+    def save_dice_email_to_file(verbose=False):
+        """
+        Opens the Dice HTML file with Notepad++ using PowerShell.
+        
+        Parameters:
+            verbose (bool, optional): If True, print debug information (default is False).
+        """
+        import subprocess
+        
+        # Define the paths
+        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\dice_email.html'
+        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
+        
+        # Script block with Notepad++ open function
+        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
+        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
+        if verbose: print(popenargs_list)
+        
+        # Call PowerShell with the script block
+        subprocess.run(popenargs_list)
+    
+    
+    @staticmethod
+    def save_builtin_email_to_file(verbose=False):
+        """
+        Opens the built-in HTML file with Notepad++ using PowerShell.
+        
+        Parameters:
+            verbose (bool, optional): If True, print debug information (default is False).
+        """
+        import subprocess
+        
+        # Define the paths
+        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\builtin_email.html'
         notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
         
         # Script block with Notepad++ open function

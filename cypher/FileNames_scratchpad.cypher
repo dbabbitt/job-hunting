@@ -1,17 +1,23 @@
 
+// Update File Names node with phone screen date
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["hMAt6M1ae9pW73omZm4dhw_Senior_Machine_Learning_Engineer_Bedford_MA.html"]
+SET fn.is_phone_screen_completed = true, fn.phone_screen_completion_date = date()
+RETURN fn;
+
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["68cf2d512fc03664_Security_Analyst_CSIRT_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["e6d285d80e2af44c_Quantitative_Engineer_Model_Implementation_Remote_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "Unfortunately, we have decided not to proceed with your candidacy for the Senior Applied Scientist position at Sojern.",
-    fn.rejection_email_date = date("2024-06-26"),
+    fn.rejection_email_text = "At this time, we have decided to move forward with another candidate for this position.",
+    fn.rejection_email_date = date("2024-07-26"),
     fn.is_closed = true
 RETURN fn;
 
 // Show rejection info on selected postings
 MATCH (fn:FileNames)
 WHERE
-    (fn.file_name IN ["c53a433549dc0ea0_Senior_Applied_Scientist_Remote_Indeed_com.html", "caa5c38bf935c379_Manager_of_Data_Science_Analytics_San_Francisco_CA_94111_Indeed_com.html"]) AND
+    (fn.file_name IN ["7e0f857de4355f27_Financial_Modeler_Reviewer_SOFR_Washington_DC_20010_Indeed_com.html", "25fed558a73ad413_Cloud_Migration_Python_Engineer_Washington_DC_20010_Indeed_com.html", "bc8ff2850e032cd4_Model_Developer_Remote_Indeed_com.html", "e6d285d80e2af44c_Quantitative_Engineer_Model_Implementation_Remote_Indeed_com.html", "e6d285d80e2af44c_Quantitative_Engineer_Model_Implementation_Washington_DC_Indeed_com.html"]) AND
     ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
     (fn.rejection_email_text IS NULL) AND
     (fn.rejection_email_date IS NULL) AND
@@ -22,6 +28,42 @@ RETURN
     fn.file_name AS file_name,
     fn.posting_url AS posting_url
 ORDER BY fn.opportunity_application_email_date DESC;
+
+// Show job hunting activity since last day of work
+MATCH (fn:FileNames)
+WHERE
+    ((fn.rejection_email_date <= date()) AND (fn.rejection_email_date >= date("2024-06-13"))) OR
+    ((fn.opportunity_application_email_date <= date()) AND (fn.opportunity_application_email_date >= date("2024-06-13")))
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.rejection_email_date AS rejection_date,
+    fn.percent_fit AS percent_fit,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.percent_fit DESC;
+
+// Count job hunting activity since last day of work
+CALL {
+    MATCH (fn:FileNames)
+    WHERE ((fn.rejection_email_date <= date()) AND (fn.rejection_email_date >= date("2024-06-13")))
+    RETURN
+        fn.rejection_email_date AS action_date,
+        0 AS application_count,
+        COUNT(fn.rejection_email_date) AS rejection_count
+    UNION
+    MATCH (fn:FileNames)
+    WHERE ((fn.opportunity_application_email_date <= date()) AND (fn.opportunity_application_email_date >= date("2024-06-13")))
+    RETURN
+        fn.opportunity_application_email_date AS action_date,
+        COUNT(fn.opportunity_application_email_date) AS application_count,
+        0 AS rejection_count
+}
+WITH action_date, SUM(application_count) AS total_applications, SUM(rejection_count) AS total_rejections
+RETURN
+    action_date,
+    total_applications,
+    total_rejections
+ORDER BY action_date ASC;
 
 // Step 1: Get all unique relationship types
 MATCH ()-[r]->()

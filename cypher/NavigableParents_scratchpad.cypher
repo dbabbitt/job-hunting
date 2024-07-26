@@ -1,4 +1,42 @@
 
+// Find the navigable parents that are chained to another and what POS symbol they are tagged with
+MATCH (pos1:PartsOfSpeech)-[r1:SUMMARIZES]->(np1:NavigableParents)-[r2:NEXT]->(np2:NavigableParents)
+RETURN
+    pos1,
+    r1,
+    np1,
+    r2
+LIMIT 10;
+
+// Find the navigable parents that are "about the job" and what POS symbol they are tagged with
+MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
+WHERE
+    np.navigable_parent CONTAINS "About the job"
+RETURN
+    pos.pos_symbol AS pos_symbol,
+    np.navigable_parent AS navigable_parent;
+
+// Get the HTML bits of a specific file
+MATCH (np1:NavigableParents)-[r:NEXT]->(np2:NavigableParents)
+WHERE r.file_name = "654489b978b139f8_Sr_Engineers_SDET_Bellevue_WA_98006_Indeed_com.html"
+RETURN
+    LEFT(np1.navigable_parent, 50) AS navigable_parent1,
+    np1.is_header AS is_header1,
+    np1.is_task_scope AS is_task_scope1,
+    np1.is_minimum_qualification AS is_minimum_qualification1,
+    np1.is_preferred_qualification AS is_preferred_qualification1,
+    np1.is_educational_requirement AS is_educational_requirement1,
+    np1.is_legal_notification AS is_legal_notification1,
+    np1.is_other AS is_other1,
+    np1.is_corporate_scope AS is_corporate_scope1,
+    np1.is_job_title AS is_job_title1,
+    np1.is_office_location AS is_office_location1,
+    np1.is_job_duration AS is_job_duration1,
+    np1.is_supplemental_pay AS is_supplemental_pay1,
+    np1.is_interview_procedure AS is_interview_procedure1,
+    np1.is_posting_date AS is_posting_date1
+ORDER BY r.sequence_order;
+
 // Get the file names of HTML strings that are Job Titles
 MATCH (np1:NavigableParents)-[r:NEXT]->(np2:NavigableParents)
 WHERE
@@ -46,26 +84,6 @@ SET
     np.is_posting_date = false
 RETURN COUNT(*);
 
-MATCH (np1:NavigableParents)-[r:NEXT]->(np2:NavigableParents)
-WHERE r.file_name = "654489b978b139f8_Sr_Engineers_SDET_Bellevue_WA_98006_Indeed_com.html"
-RETURN
-    LEFT(np1.navigable_parent, 50) AS navigable_parent1,
-    np1.is_header AS is_header1,
-    np1.is_task_scope AS is_task_scope1,
-    np1.is_minimum_qualification AS is_minimum_qualification1,
-    np1.is_preferred_qualification AS is_preferred_qualification1,
-    np1.is_educational_requirement AS is_educational_requirement1,
-    np1.is_legal_notification AS is_legal_notification1,
-    np1.is_other AS is_other1,
-    np1.is_corporate_scope AS is_corporate_scope1,
-    np1.is_job_title AS is_job_title1,
-    np1.is_office_location AS is_office_location1,
-    np1.is_job_duration AS is_job_duration1,
-    np1.is_supplemental_pay AS is_supplemental_pay1,
-    np1.is_interview_procedure AS is_interview_procedure1,
-    np1.is_posting_date AS is_posting_date1
-ORDER BY r.sequence_order;
-
 MATCH (np:NavigableParents)
 WHERE (np.is_qualification IS NOT NULL)
 RETURN count(*);
@@ -83,31 +101,17 @@ SET np.is_preferred_qualification = true;
 MATCH (np:NavigableParents {navigable_parent: "Hope you are doing safe and fine amidst pandemic!"})
 SET np.is_qualification = NULL;
 
-//"<b>Have deep finance experience.</b>"
+// Get all the HQs
 MATCH (np:NavigableParents)
-WHERE
-    (
-        np.is_qualification = true
-        AND np.is_minimum_qualification IS NULL
-        AND np.is_preferred_qualification IS NULL
-        )
-    OR (
-        np.is_qualification = true
-        AND np.is_minimum_qualification = false
-        AND np.is_preferred_qualification = false
-        )
+WHERE (
+    np.is_qualification = true
+    AND ((np.is_minimum_qualification IS NULL) OR (np.is_minimum_qualification = false))
+    AND ((np.is_preferred_qualification IS NULL) OR (np.is_preferred_qualification = false))
+    )
 RETURN np.navigable_parent;
 
 MATCH (np:NavigableParents {navigable_parent: "<b>based products and applications.</b>"})
 SET np.is_qualification = NULL;
-
-// Find the navigable parents that are "about the job" and what POS symbol they are tagged with
-MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
-WHERE
-    np.navigable_parent CONTAINS "About the job"
-RETURN
-    pos.pos_symbol AS pos_symbol,
-    np.navigable_parent AS navigable_parent;
 
 MATCH (np:NavigableParents {navigable_parent: "<b>Have deep finance experience.</b>"})-[n:NEXT]->(:NavigableParents)
 RETURN n
