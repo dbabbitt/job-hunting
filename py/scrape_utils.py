@@ -208,7 +208,7 @@ class WebScrapingUtilities(object):
     
     
     
-    def click_web_element(self, driver, xpath, verbose=True):
+    def click_by_xpath(self, driver, xpath, verbose=True):
         if verbose:
             print('Clicking {}'.format(xpath))
         try:
@@ -391,19 +391,19 @@ class WebScrapingUtilities(object):
                            input_css='#ifl-InputFormField-3',
                            verbose=verbose)
         # button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form/button'
-        # self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        # self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         button_css = 'button.i-unmask > span:nth-child(1)'
         self.click_by_css(driver, button_css, wait=10, verbose=verbose)
         
         # Look for password field
         link_xpath = '//*[@id="auth-page-google-password-fallback"]'
-        self.click_web_element(driver, xpath=link_xpath, verbose=verbose)
+        self.click_by_xpath(driver, xpath=link_xpath, verbose=verbose)
         try:
             self.fill_in_field(driver, field_name='password',
                                field_value=self.secrets_json['indeed']['password'],
                                input_css='#ifl-InputFormField-121', verbose=verbose)
             button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form[1]/button'
-            self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+            self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         except Exception as e:
             print(f'Error trying to fill in the password field: {str(e).strip()}')
         
@@ -428,7 +428,7 @@ class WebScrapingUtilities(object):
         
         # Click the sign in button
         button_xpath = '/html/body/main/section[1]/div/div/form/button'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         
         # Stall for time while looking for the error message
         # linkedin_xpath = '/html/body/main/div/ul'
@@ -451,7 +451,7 @@ class WebScrapingUtilities(object):
         
         # Click the sign in button
         button_xpath = '//*[@id="loginDataSubmit"]/div[3]/div/button'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
     
     
     

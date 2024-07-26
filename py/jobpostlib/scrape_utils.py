@@ -230,7 +230,7 @@ class WebScrapingUtilities(object):
     
     
     
-    def click_web_element(self, driver, xpath, verbose=True):
+    def click_by_xpath(self, driver, xpath, verbose=True):
         if verbose:
             print('Clicking {}'.format(xpath))
         try:
@@ -428,19 +428,19 @@ class WebScrapingUtilities(object):
                            input_css='#ifl-InputFormField-3',
                            verbose=verbose)
         # button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form/button'
-        # self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        # self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         button_css = 'button.i-unmask > span:nth-child(1)'
         self.click_by_css(driver, button_css, wait=10, verbose=verbose)
         
         # Look for password field
         link_xpath = '//*[@id="auth-page-google-password-fallback"]'
-        self.click_web_element(driver, xpath=link_xpath, verbose=verbose)
+        self.click_by_xpath(driver, xpath=link_xpath, verbose=verbose)
         try:
             self.fill_in_field(driver, field_name='password',
                                field_value=self.secrets_json['indeed']['password'],
                                input_css='#ifl-InputFormField-121', verbose=verbose)
             button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form[1]/button'
-            self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+            self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         except Exception as e:
             print(f'Error trying to fill in the password field: {str(e).strip()}')
         
@@ -456,7 +456,7 @@ class WebScrapingUtilities(object):
         
         # Click the Sign in button
         button_xpath = '/html/body/nav/div/a[2]'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         
         # Fill in the name and password on one form
         self.fill_in_field(driver, field_name='session_key',
@@ -469,7 +469,7 @@ class WebScrapingUtilities(object):
         
         # Click the Sign in button
         button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose) 
+        self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose) 
         
         # Stall for time while looking for the error message
         # linkedin_xpath = '/html/body/main/div/ul'
@@ -490,7 +490,7 @@ class WebScrapingUtilities(object):
         
         # Click the Sign In button
         button_xpath = '/html/body/div[3]/div/div/div[2]/div/form/button'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         
         # Fill in the password and click the button on the next form
         # <input aria-labelledby="react-aria160671220-:r6:" autocomplete="current-password" placeholder="Enter Password" data-rac="" type="password" value="" name="password">
@@ -500,7 +500,7 @@ class WebScrapingUtilities(object):
         
         # Click the Submit Password button
         button_xpath = '/html/body/div[3]/div/div/div[2]/div/form/button'
-        self.click_web_element(driver, xpath=button_xpath, verbose=verbose)
+        self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
     
     
     
