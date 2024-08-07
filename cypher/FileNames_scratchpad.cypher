@@ -1,4 +1,27 @@
 
+// Get the tagged node counts for each file
+MATCH (pos:PartsOfSpeech)-[r1:SUMMARIZES]->(np1:NavigableParents)-[r2:NEXT]->(np2:NavigableParents)
+WITH
+    r2.file_name AS file_name,
+    COUNT(r1) AS tagged_count,
+    COUNT(r2) AS edge_count,
+    COUNT(np1) AS np_count
+RETURN np_count, tagged_count, edge_count, file_name
+ORDER BY edge_count DESC;
+
+// Get the edge and node counts for each file, tag-agnostic
+MATCH (np1:NavigableParents)-[r:NEXT]->(np2:NavigableParents)
+WITH
+    r.file_name AS file_name,
+    COUNT(r) AS edge_count,
+    COUNT(np1) AS np_count
+RETURN np_count, edge_count, file_name
+ORDER BY edge_count DESC;
+
+// Find all file names that have every one of their child strings tagged with a POS symbol
+MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
+WHERE np.file_name IN ["e6d285d80e2af44c_Quantitative_Engineer_Model_Implementation_Remote_Indeed_com.html"]
+
 // Update File Names node with phone screen date
 MATCH (fn:FileNames)
 WHERE fn.file_name IN ["hMAt6M1ae9pW73omZm4dhw_Senior_Machine_Learning_Engineer_Bedford_MA.html"]
@@ -7,10 +30,10 @@ RETURN fn;
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["e6d285d80e2af44c_Quantitative_Engineer_Model_Implementation_Remote_Indeed_com.html"]
+WHERE fn.file_name IN ["bedbf590da6a0d08_Lead_Decision_Execution_Analyst_II_Remote_Indeed_com.html"]
 SET
-    fn.rejection_email_text = "At this time, we have decided to move forward with another candidate for this position.",
-    fn.rejection_email_date = date("2024-07-26"),
+    fn.rejection_email_text = "After reviewing your work and experience, we've made the decision to not move forward at this time.",
+    fn.rejection_email_date = date("2024-8-6"),
     fn.is_closed = true
 RETURN fn;
 
@@ -75,12 +98,14 @@ WITH DISTINCT relType
 // Step 3: Return the relationship types that have the 'file_name' property
 RETURN relType AS relationshipType
 
+// Unset the the percent fit for a specific file name
 MATCH (fn:FileNames)
 WHERE fn.file_name IN ["8293a1ad80a4160c_Data_Scientist_Remote_Indeed_com.html"]
 SET
     fn.percent_fit = NULL
 RETURN fn;
 
+// Get job application links for jobs you should apply for
 MATCH (fn:FileNames)
 WHERE
     (fn.percent_fit >= 0.8) AND
@@ -92,11 +117,13 @@ RETURN
     fn.posting_url AS posting_url
 ORDER BY fn.percent_fit DESC;
 
+// Regiater your application to a job
 MATCH (fn:FileNames)
 WHERE fn.file_name IN ["437d829a52879548_Machine_Learning_Engineer_Remote_Indeed_com.html"]
 SET fn.is_opportunity_application_emailed = true, fn.opportunity_application_email_date = date()
 RETURN fn;
 
+// Show rejection info on selected postings
 MATCH (fn:FileNames)
 WHERE
     fn.file_name IN ["99ff2ff0f6339645_Data_Scientist_South_San_Francisco_CA_Indeed_com.html"]
@@ -129,11 +156,6 @@ RETURN
 ORDER BY
     fn.percent_fit DESC,
     fn.opportunity_application_email_date DESC;
-
-MATCH (fn:FileNames)
-WHERE (fn.opportunity_application_email_date IS NOT NULL)
-SET fn.opportunity_application_email_date = date(fn.opportunity_application_email_date)
-RETURN fn;
 
 MATCH (fn:FileNames)
 WHERE
@@ -207,20 +229,19 @@ WHERE fn.technical_interview_date IS NOT NULL
 SET fn.technical_interview_dates = [fn.technical_interview_date]
 REMOVE fn.technical_interview_date;
 
-// Define the input date range as a string
+// 1. Define the input date range as a string
 WITH "Sunday, 04/02/2023 - Saturday, 04/08/2023" AS date_range
-// Split the input string into two parts, one for the start date and one for the end date
+// 2. Split the input string into two parts, one for the start date and one for the end date
 WITH split(date_range, " - ") AS dates
-// Split the start and end dates into their components
+// 3. Split the start and end dates into their components
 WITH
     split(dates[0], ", ") AS start_components,
     split(dates[1], ", ") AS end_components
-// Reassemble the start date components into a
-// format that the date() function can recognize
+// 4. Reassemble the start date components into a format that the date() function can recognize
 WITH
     [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
     [item in split(end_components[1], "/") | toInteger(item)] AS end_components
-// Convert the integer date parts into Neo4j date objects using the date() function
+// 5. Convert the integer date parts into Neo4j date objects using the date() function
 WITH
     date({
         day: start_components[1],
@@ -232,12 +253,12 @@ WITH
         month: end_components[0],
         year: end_components[2]
         }) AS date_end
-// Find all FileNames nodes and filter them by opportunity_application_email_date property
+// 6. Find all FileNames nodes and filter them by opportunity_application_email_date property
 MATCH (fn:FileNames)
 WHERE
     (fn.opportunity_application_email_date >= date_start) AND
     (fn.opportunity_application_email_date <= date_end)
-// Return the filtered nodes
+// 7. Return the filtered nodes
 RETURN fn;
 
 // Record the recruiter screen calender invite date

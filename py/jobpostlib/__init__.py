@@ -53,7 +53,7 @@ except Exception as e:
 
 # Get the IsHeaderSgdClassifier object
 from .is_header_sgd_classifier import IsHeaderSgdClassifier
-ihu = IsHeaderSgdClassifier(verbose=False)
+ihu = IsHeaderSgdClassifier()
 
 # Get the HeaderCategories object
 from .hc_utils import HeaderCategories
@@ -89,3 +89,6 @@ speech_str = f'Utility libraries created in {duration_str}'
 print(speech_str)
 speech_engine.say(speech_str)
 speech_engine.runAndWait()
+
+# print(f"from jobpostlib import ({', '.join(dir())})")
+# print(r'\b(' + '|'.join(dir()) + r')\b')

@@ -15,8 +15,8 @@ from sklearn.linear_model import SGDClassifier
 ## SGDClassifier is-header functions ##
 #######################################
 class IsHeaderSgdClassifier(PosSymbolSgdClassifier):
-    def __init__(self, verbose=False):
-        super().__init__(verbose=False)
+    def __init__(self):
+        super().__init__()
 
     def prepare_training_data(self, verbose=False):
         cypher_str = """

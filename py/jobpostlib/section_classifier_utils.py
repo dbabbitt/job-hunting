@@ -82,14 +82,13 @@ class HtmlVectorizer:
     """
     pos_relationships_vocab = None
 
-    def __init__(self, verbose=False):
+    def __init__(self):
         """
         Constructs an HtmlVectorizer instance.
 
         Parameters:
             verbose (bool, optional): Whether to print debug output during the vectorization process. Defaults to False.
         """
-        self.verbose = verbose
         self.count_vect = CountVectorizer(
             lowercase=True, tokenizer=hau.html_regex_tokenizer,
             ngram_range=(1, 3)
@@ -196,7 +195,7 @@ class SectionLRClassifierUtilities(object):
         if nu.pickle_exists('slrcu.count_vect'):
             self.count_vect = nu.load_object('slrcu.count_vect')
         else:
-            self.count_vect = HtmlVectorizer(verbose=verbose)
+            self.count_vect = HtmlVectorizer()
         
         # Load or create the TF-IDF transformer
         if nu.pickle_exists('slrcu.tfidf_transformer'):
@@ -341,7 +340,7 @@ class SectionSGDClassifierUtilities(object):
         self, sampling_strategy_limit=None, verbose=False
     ):
         '''Train a model for each labeled POS symbol'''
-        self.count_vect = HtmlVectorizer(verbose=verbose)
+        self.count_vect = HtmlVectorizer()
         self.tfidf_transformer = TfidfTransformer(
             norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True
         )

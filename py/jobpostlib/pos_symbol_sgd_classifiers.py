@@ -6,7 +6,7 @@
 # Soli Deo gloria
 
 from . import hau, cu
-from section_classifier_utils import HtmlVectorizer
+from .section_classifier_utils import HtmlVectorizer
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import SGDClassifier
 from sklearn.exceptions import NotFittedError
@@ -15,9 +15,8 @@ from sklearn.exceptions import NotFittedError
 ## SGDClassifier parent class functions ##
 ##########################################
 class PosSymbolSgdClassifier:
-    def __init__(self, verbose=False):
-        self.verbose = verbose
-        self.count_vect = HtmlVectorizer(hau, verbose=verbose)
+    def __init__(self):
+        self.count_vect = HtmlVectorizer()
         self.tfidf_transformer = TfidfTransformer(
             norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True
         )

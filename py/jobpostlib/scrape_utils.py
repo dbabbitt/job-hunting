@@ -82,7 +82,7 @@ class WebScrapingUtilities(object):
     
     
     
-    def clean_indeed_posting(self, file_path):
+    def clean_job_posting(self, file_path):
         page_soup = self.get_page_soup(file_path)
         
         # Delete each of the previous siblings of the first jobDescriptionText <div> that are <div> elements
@@ -92,7 +92,6 @@ class WebScrapingUtilities(object):
             break
         
         # Remove all style tags
-        # left_node = re.sub(r'\s*<style[^>]*>[^><]+</style>"', '"', left_node)
         row_style_list = page_soup.find_all(name='style')
         for style_soup in row_style_list:
             style_soup.decompose()
@@ -100,11 +99,21 @@ class WebScrapingUtilities(object):
         # Prettify the HTML
         from bs4.formatter import  HTMLFormatter
         formatter_obj = HTMLFormatter(indent=4)
-        with open(file_path, 'w', encoding=nu.encoding_type) as f: print(page_soup.prettify(formatter=formatter_obj), file=f)
-        with open(file_path, 'r', encoding=nu.encoding_type) as f: html_str = f.read()
+        with open(file_path, 'w', encoding=nu.encoding_type) as f:
+            print(page_soup.prettify(formatter=formatter_obj), file=f)
+        
+        # Remove all empty tags
+        with open(file_path, 'r', encoding=nu.encoding_type) as f:
+            html_str = f.read()
         import re
+        empties_regex = re.compile(r'\s*<([a-z0-9]+)[^>]*>\s+</\1>')
+        while empties_regex.search(html_str):
+            html_str = empties_regex.sub('', html_str)
+        
+        # Tighten up the parent tags
         html_str = re.sub(r'<([^></ ]+)([^></]*)>[\r\n]+ +([^><\r\n]+)[\r\n]+ +</\1>', r'<\1\2>\3</\1>', html_str)
-        with open(file_path, 'w', encoding=nu.encoding_type) as f: print(html_str, file=f)
+        with open(file_path, 'w', encoding=nu.encoding_type) as f:
+            print(html_str.strip(), file=f)
     
     
     
@@ -353,7 +362,7 @@ class WebScrapingUtilities(object):
                 driver = webdriver.Firefox(service=service, options=options, keep_alive=True)
                 
             except Exception as e:
-                print(f'{e.__class__.__name__} error: {str(e).strip()}')
+                print(f'{e.__class__.__name__} error getting the gecko_driver_path: {str(e).strip()}')
                 gecko_driver_path = '/usr/local/bin/geckodriver'
                 if verbose: print(f"gecko_driver_path = '/usr/local/bin/geckodriver' = {gecko_driver_path}")
                 

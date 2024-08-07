@@ -252,3 +252,8 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
+/saves/bricklink
+/saves/models
+/saves/tokenizers
+scrapers/Bricklink Scrapes ETL.ipynb
+saves/pkl/lego_inventory_df.pkl

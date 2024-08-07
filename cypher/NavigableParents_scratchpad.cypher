@@ -1,5 +1,5 @@
 
-// Find the navigable parents that are chained to another and what POS symbol they are tagged with
+// Find the navigable parents that are chained to another (and what POS symbol they are tagged with)
 MATCH (pos1:PartsOfSpeech)-[r1:SUMMARIZES]->(np1:NavigableParents)-[r2:NEXT]->(np2:NavigableParents)
 RETURN
     pos1,
@@ -117,6 +117,7 @@ MATCH (np:NavigableParents {navigable_parent: "<b>Have deep finance experience.<
 RETURN n
 ORDER BY n.sequence_order;
 
+// Get the edge and node counts for each unexamined file, tag-agnostic
 MATCH (np:NavigableParents)-[r:NEXT]->(:NavigableParents)
 WHERE
     np.is_header IS NULL

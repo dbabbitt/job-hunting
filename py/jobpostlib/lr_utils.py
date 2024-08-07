@@ -7,7 +7,7 @@
 
 from . import nu, hau, cu
 from IPython.display import clear_output
-from section_classifier_utils import HtmlVectorizer
+from .section_classifier_utils import HtmlVectorizer
 from sklearn.exceptions import NotFittedError
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
