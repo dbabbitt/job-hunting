@@ -85,33 +85,43 @@ class WebScrapingUtilities(object):
     def clean_job_posting(self, file_path):
         page_soup = self.get_page_soup(file_path)
         
-        # Delete each of the previous siblings of the first jobDescriptionText <div> that are <div> elements
-        row_div_list = page_soup.find_all(name='div', id='jobDescriptionText')
-        for target_div in row_div_list:
-            for div_soup in target_div.find_previous_siblings('div'): div_soup.decompose()
-            break
+        # Make the job description text <div> the only tag in the <body>, if it exists
+        div_soups_list = page_soup.find_all(name='div', id='jobDescriptionText')
+        if div_soups_list:
+            div_soup = div_soups_list[0]
+            
+            # Find the body tag
+            body_tag = page_soup.find('body')
+            
+            # Clear the contents of the body tag
+            body_tag.clear()
+            
+            # Append the div_soup to the body tag
+            body_tag.append(div_soup)
         
         # Remove all style tags
         row_style_list = page_soup.find_all(name='style')
         for style_soup in row_style_list:
             style_soup.decompose()
         
-        # Prettify the HTML
+        # Prettify the HTML and convert to a string
         from bs4.formatter import  HTMLFormatter
         formatter_obj = HTMLFormatter(indent=4)
-        with open(file_path, 'w', encoding=nu.encoding_type) as f:
-            print(page_soup.prettify(formatter=formatter_obj), file=f)
+        html_str = page_soup.prettify(formatter=formatter_obj)
+        import re
         
         # Remove all empty tags
-        with open(file_path, 'r', encoding=nu.encoding_type) as f:
-            html_str = f.read()
-        import re
         empties_regex = re.compile(r'\s*<([a-z0-9]+)[^>]*>\s+</\1>')
         while empties_regex.search(html_str):
             html_str = empties_regex.sub('', html_str)
         
-        # Tighten up the parent tags
-        html_str = re.sub(r'<([^></ ]+)([^></]*)>[\r\n]+ +([^><\r\n]+)[\r\n]+ +</\1>', r'<\1\2>\3</\1>', html_str)
+        # Tighten up the parent tags by removing unnecessary line breaks and indentation
+        html_str = re.sub(
+            r'<([^></ ]+)([^></]*)>[\r\n]+ +([^><\r\n]+)[\r\n]+ +</\1>',
+            r'<\1\2>\3</\1>', html_str
+        )
+        
+        # Strip any leading/trailing whitespace and save the cleaned HTML back to the file
         with open(file_path, 'w', encoding=nu.encoding_type) as f:
             print(html_str.strip(), file=f)
     

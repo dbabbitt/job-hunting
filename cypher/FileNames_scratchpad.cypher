@@ -1,4 +1,28 @@
 
+// Update File Names node with rejection email text
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["8fb605a1cad5b94f_Python_Developer_Informatics_Raleigh_NC_Indeed_com.html"]
+SET
+    fn.rejection_email_text = "After careful consideration, we will not be moving you to the next step in the hiring process for R0313205 Python Developer, Informatics (Open)",
+    fn.rejection_email_date = date("2024-8-16"),
+    fn.is_closed = true
+RETURN fn;
+
+// Show rejection info on selected postings
+MATCH (fn:FileNames)
+WHERE
+    (fn.file_name IN ["1GdiwBluqPjFjZFJFHmQYg_Sr_Data_Scientist_Wellesley_MA.html", "4_3vra1_cWiZ4hdknGCBcQ_Data_Scientist_CVS_Health_New_York_NY_Remote.html", "8fb605a1cad5b94f_Python_Developer_Informatics_Raleigh_NC_Indeed_com.html", "084276965d677295_Senior_Analyst_Contact_Center_Workforce_Management_Woonsocket_RI_02895_Indeed_com.html", "akqPCxf7SYrlFBkQ_l_oKg_Senior_Data_Scientist_Relationship_Marketing_Wellesley_MA.html", "c1d3a6216fa74809_Sr_Manager_Digital_Engineering_Woonsocket_RI_Indeed_com.html", "C9K_nBUnU7qBzR4VHd3knQ_Sr_Machine_Learning_Engineer_Wellesley_MA.html", "d39280b0f31988d2_Sr_Data_Scientist_New_York_NY_Indeed_com.html", "dEemSz2VhEQxY5wL5NmhMg_Senior_Data_Scientist_Retail_Analytics_Products_Wellesley_MA.html", "FfKqjHucdi6o7EB_7awm5w_Senior_Data_Scientist_Wellesley_MA.html", "fXIFzIgSDtxWU3O_COVnig_Sr_Data_Scientist_Wellesley_MA.html", "LU7Y6S_Hzyco_aRN_2EA_Senior_Data_Scientist_Retail_Analytics_Products_Wellesley_MA.html", "Opd5XrrMOFtZMIORKXJH3Q_Sr_Data_Scientist_Wellesley_MA.html", "ROM85OQv5jOmZObMId6Bwg_Senior_Data_Scientist_Wellesley_MA.html", "Senior_Data_Scientist_Relationship_Marketing_Wellesley_MA.html", "Senior_Data_Scientist_Retail_Analytics_Products_15_applicants.html", "Sr_Informatics_Consultant_Lead_Sr._Data_Analyst_-_Hartford,_CT_-_Indeed.com_be3b11aa573faee7.html", "W_MX_UoXiRM8SBBICOQcgw_Senior_Data_Scientist_Retail_Analytics_Products_Wellesley_MA.html", "xL6g3Vd7n1BTWIyc_Yue5g_Senior_Data_Scientist_Retail_Analytics_Products_Wellesley_MA.html", "YTFiuHzFAhPMN_GzEV0aNQ_Senior_Data_Scientist_Retail_Analytics_Products_Wellesley_MA.html"]) AND
+    ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
+    (fn.rejection_email_text IS NULL) AND
+    (fn.rejection_email_date IS NULL) AND
+    (fn.opportunity_application_email_date IS NOT NULL)
+RETURN
+    fn.opportunity_application_email_date AS email_date,
+    fn.percent_fit AS percent_fit,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
 // Get the tagged node counts for each file
 MATCH (pos:PartsOfSpeech)-[r1:SUMMARIZES]->(np1:NavigableParents)-[r2:NEXT]->(np2:NavigableParents)
 WITH
@@ -27,30 +51,6 @@ MATCH (fn:FileNames)
 WHERE fn.file_name IN ["hMAt6M1ae9pW73omZm4dhw_Senior_Machine_Learning_Engineer_Bedford_MA.html"]
 SET fn.is_phone_screen_completed = true, fn.phone_screen_completion_date = date()
 RETURN fn;
-
-// Update File Names node with rejection email text
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["bedbf590da6a0d08_Lead_Decision_Execution_Analyst_II_Remote_Indeed_com.html"]
-SET
-    fn.rejection_email_text = "After reviewing your work and experience, we've made the decision to not move forward at this time.",
-    fn.rejection_email_date = date("2024-8-6"),
-    fn.is_closed = true
-RETURN fn;
-
-// Show rejection info on selected postings
-MATCH (fn:FileNames)
-WHERE
-    (fn.file_name IN ["7e0f857de4355f27_Financial_Modeler_Reviewer_SOFR_Washington_DC_20010_Indeed_com.html", "25fed558a73ad413_Cloud_Migration_Python_Engineer_Washington_DC_20010_Indeed_com.html", "bc8ff2850e032cd4_Model_Developer_Remote_Indeed_com.html", "e6d285d80e2af44c_Quantitative_Engineer_Model_Implementation_Remote_Indeed_com.html", "e6d285d80e2af44c_Quantitative_Engineer_Model_Implementation_Washington_DC_Indeed_com.html"]) AND
-    ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
-    (fn.rejection_email_text IS NULL) AND
-    (fn.rejection_email_date IS NULL) AND
-    (fn.opportunity_application_email_date IS NOT NULL)
-RETURN
-    fn.opportunity_application_email_date AS email_date,
-    fn.percent_fit AS percent_fit,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url
-ORDER BY fn.opportunity_application_email_date DESC;
 
 // Show job hunting activity since last day of work
 MATCH (fn:FileNames)

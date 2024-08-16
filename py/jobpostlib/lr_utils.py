@@ -120,6 +120,7 @@ class LrUtilities(object):
         
         # Get the databased quals
         cypher_str = '''
+            // Get all qualification strings in the database
             MATCH (qs:QualificationStrings)
             RETURN qs;'''
         row_objs_list = cu.get_execution_results(cypher_str, verbose=False)
@@ -255,7 +256,12 @@ class LrUtilities(object):
     def get_quals_str(self, prediction_list, quals_list):
         qual_count = 0
         quals_str = ''
-        for pred_array, (i, qual_str) in zip(prediction_list, enumerate(quals_list)):
+        from tqdm import tqdm
+        progress_bar = tqdm(
+            zip(prediction_list, enumerate(quals_list)), total=len(quals_list),
+            desc="List Predictions of Qualifications"
+        )
+        for pred_array, (i, qual_str) in progress_bar:
             if qual_str in self.basic_quals_dict:
                 formatted_str = '\nquals_list[{}] = "{}" ({})'
                 prediction = round(float(self.basic_quals_dict[qual_str]), 4)

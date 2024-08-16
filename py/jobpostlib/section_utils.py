@@ -191,6 +191,56 @@ class SectionUtilities(object):
         return job_title
     
     
+    def clean_qualification_string(self, child_str):
+        
+        # 1. Remove beginning and ending asterisks
+        # 2. Clip child strings beginning with (3) or some other number
+        # 3. Replace child strings beginning with <orq> and a number and ending in </orq>
+        for pattern in [r'^\*([^<]+)\*$', r'^\(\d+\) (.+)', r'<orq>\d+ - ([^<]+)</orq>']:
+            child_str = re.sub(pattern, r'\g<1>', str(child_str)).strip()
+        
+        # Replace child strings beginning with <tag> and ending with </tag>
+        for tag in ['li', 'div', 'p', 'b', 'i', 'span', 'em', 'orq', 'strong']:
+            pattern = f'<{tag}[^>]*>(.+)</{tag}>'
+            child_str = re.sub(pattern, r'\g<1>', child_str).strip()
+        
+        # Replace child strings containing prefix_str
+        prefix_strs_list = [
+            ' ', '- ', '· ', '• ', '•', ', ', r'\? ', r'\*\*', r'\* ', '— ', r'\+ ',
+            '" ', '-', ': ', '– ', r'\\"', r'\ufeff', r'\|', r'\)', r'\*'
+        ]
+        for prefix_str in prefix_strs_list:
+            pattern = '^' + prefix_str
+            try:
+                child_str = re.sub(pattern, '', child_str).strip()
+            except Exception as e:
+                print(
+                    f'\n{e.__class__} error in clean_qualification_string:'
+                    f' {str(e).strip()}\n\npattern ='
+                    f' "{pattern}"\n\nchild_str:\n{child_str}'
+                )
+                raise
+        
+        # Fix various abbreviations, et al
+        fake_stops_list = [
+            'e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.', 'i.e.',
+            '&amp;', 'E.g.', 'Bsc.', 'MSc.', 'incl.'
+        ]
+        replacements_list = [
+            'eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie', '&', 'eg', 'BS',
+            'MS', 'including'
+        ]
+        for fake_stop, replacement in zip(fake_stops_list, replacements_list):
+            child_str = child_str.replace(fake_stop, replacement)
+        
+        # Simplify all the rest of the tags
+        child_str = re.sub(
+            '<([a-z][a-z0-9]*)[^<>]*>', r'<\g<1>>', child_str, 0, re.MULTILINE
+        ).strip()
+        
+        return child_str
+    
+    
     def print_fit_job(self, row_index, row_series, fitness_threshold=2/3, verbose=True):
         job_fitness = 0.0
         file_name = row_series.file_name
@@ -202,14 +252,8 @@ class SectionUtilities(object):
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
         sentence_regex = re.compile(r'[•➢\*]|\.(?!\w)')
         quals_set = set()
-        fake_stops_list = ['e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.',
-                           'U.S.', 'i.e.', '&amp;', 'E.g.', 'Bsc.', 'MSc.', 'incl.']
-        replacements_list = ['eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US',
-                             'ie', '&', 'eg', 'BS', 'MS', 'including']
         for qual in prequals_list:
-            qual = re.sub('<([a-z][a-z0-9]*)[^<>]*>', r'<\g<1>>', qual.strip(), 0, re.MULTILINE)
-            for fake_stop, replacement in zip(fake_stops_list, replacements_list):
-                qual = qual.replace(fake_stop, replacement)
+            qual = self.clean_qualification_string(qual)
             concatonated_quals_list = sentence_regex.split(qual)
             if len(concatonated_quals_list) > 2:
                 for q1 in sent_tokenize(qual):
@@ -217,7 +261,7 @@ class SectionUtilities(object):
                         q2 = q2.strip()
                         
                         # Don't add HTML tags or blanks
-                        if q2 and not re.search('^<[^><]+>$', q2):
+                        if q2 and not re.search('^</?[^><]+>$', q2):
                             quals_set.add(q2)
             else: quals_set.add(qual)
         quals_list = list(quals_set)
