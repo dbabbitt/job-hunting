@@ -594,23 +594,29 @@ class CypherUtilities(object):
     
     
     def rebuild_filename_node(self, file_name, navigable_parent=None, verbose=False):
+        """
+        Rebuilds a filename node in the graph database after an HTML file is edited.
         
-        # Remove the O-RQ designation for this no-longer-existing HTML
-        if navigable_parent is not None:
-            def do_cypher_tx(tx, navigable_parent):
-                cypher_str = '''
-                    // Find all our NavigableParents nodes in the graph with
-                    // an incoming SUMMARIZES relationship to our PartsOfSpeech node
-                    // and delete that relationship
-                    MATCH (np:NavigableParents)<-[r:SUMMARIZES]-(pos:PartsOfSpeech)
-                    WHERE
-                        pos.pos_symbol = "O-RQ"
-                        AND (np.navigable_parent = $navigable_parent)
-                    DELETE r;'''
-                tx.run(query=cypher_str, parameters={'navigable_parent': navigable_parent})
-            with self.driver.session() as session: session.write_transaction(
-                do_cypher_tx, navigable_parent=navigable_parent
-            )
+        This function removes any existing relationships between the filename node and 
+        "NavigableParents" nodes with "O-RQ" designation (no longer relevant as it is 
+        assumed that that navigable_parent was not an O-RQ and has been changed in the 
+        file). It then retains the features and folder storage of the filename node, 
+        removes any "% fit" designation, and repopulates the node based on remaining 
+        content.
+        
+        Parameters:
+            file_name (str):
+                The name of the filename node to rebuild.
+            navigable_parent (str, optional):
+                The ID of the "NavigableParents" node the filename was associated with.
+                Defaults to None.
+            verbose (bool, optional):
+                Controls printing of Cypher queries during execution (for debugging).
+                Defaults to False.
+
+        Returns:
+            None
+        """
         
         # Retain the node features and folder storage
         self.delete_filename_node(
@@ -629,6 +635,23 @@ class CypherUtilities(object):
             tx.run(query=cypher_str, parameters=parameter_dict)
         with self.driver.session() as session:
             session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
+        
+        # Remove the O-RQ designation for this no-longer-existing HTML
+        if navigable_parent is not None:
+            def do_cypher_tx(tx, navigable_parent):
+                cypher_str = '''
+                    // Find all our NavigableParents nodes in the graph with
+                    // an incoming SUMMARIZES relationship to our PartsOfSpeech node
+                    // and delete that relationship
+                    MATCH (np:NavigableParents)<-[r:SUMMARIZES]-(pos:PartsOfSpeech)
+                    WHERE
+                        pos.pos_symbol = "O-RQ"
+                        AND (np.navigable_parent = $navigable_parent)
+                    DELETE r;'''
+                tx.run(query=cypher_str, parameters={'navigable_parent': navigable_parent})
+            with self.driver.session() as session: session.write_transaction(
+                do_cypher_tx, navigable_parent=navigable_parent
+            )
         
         self.ensure_navigableparent('END', verbose=False)
         file_path = os.path.join(self.SAVES_HTML_FOLDER, file_name)

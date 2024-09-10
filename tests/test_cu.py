@@ -132,7 +132,7 @@ class TestCuMethods(unittest.TestCase):
         # hc = 
         # ea = 
         # cu = 
-        # self.assertEqual(self.su.find_basic_quals_section_indexes(child_strs_list, hc, ea, cu), )
+        # self.assertEqual(self.su.find_basic_quals_section_indexes(child_strs_list), )
     
     # def test_get_headertagsequence_id(self):
         # file_name = 

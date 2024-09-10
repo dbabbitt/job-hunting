@@ -82,7 +82,7 @@ class TestSuMethods(unittest.TestCase):
     
     
     def test_find_basic_quals_section_indexes(self):
-        crf_list = None
+        pos_symbol_predictions_list = None
         feature_tuple_list = None
         feature_dict_list = None
         test_child_strs_list = [
@@ -159,10 +159,8 @@ class TestSuMethods(unittest.TestCase):
         file_name = None
         verbose = False
         indices_list = self.su.find_basic_quals_section_indexes(
-            crf_list=None, feature_tuple_list=None,
-            feature_dict_list=None,
-            child_strs_list=test_child_strs_list,
-            child_tags_list=None, file_name=None,
+            pos_symbol_predictions_list=None,
+            child_strs_list=test_child_strs_list, file_name=None,
             verbose=True
         )
         self.assertEqual(
@@ -194,14 +192,14 @@ class TestSuMethods(unittest.TestCase):
         indices_list = [14, 15, 16, 20, 21, 23, 24, 25, 26]
         self.assertEqual(self.su.get_section(pos_list), indices_list)
     def test_get_section3(self):
-        crf_list = ['O-CS', 'O-TS', 'O-OL', 'O-OL', 'O-CS', 'O-CS', 'H-TS', 'O-PQ', 'O-RQ', 'O-RQ', 'O-TS', 'O-TS', 'O-TS', 'O-TS',
+        pos_symbol_predictions_list = ['O-CS', 'O-TS', 'O-OL', 'O-OL', 'O-CS', 'O-CS', 'H-TS', 'O-PQ', 'O-RQ', 'O-RQ', 'O-TS', 'O-TS', 'O-TS', 'O-TS',
                     'O-TS', 'O-TS', 'O-TS', 'O-TS', 'H-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS',
                     'O-CS', 'O-TS', 'O-RQ', 'O-PQ', 'O-PQ', 'O-RQ', 'O-ER', 'O-RQ', 'O-TS', 'O-RQ', 'O-RQ', 'O-RQ', 'O-RQ', 'O-CS',
                     'O-CS', 'O-RQ', 'O-RQ', 'O-RQ', 'O-LN', 'H-JD', 'O-CS', 'H-PQ', 'O-RQ', 'O-RQ', 'H-OL', 'O-CS']
         indices_list = [8, 9, 30, 33, 34, 35, 37, 38, 39, 40, 43, 44, 45]
-        self.assertEqual(self.su.get_section(crf_list), indices_list)
+        self.assertEqual(self.su.get_section(pos_symbol_predictions_list), indices_list)
     def test_get_section4(self):
-        crf_list = ['O-CS', 'O-TS', 'O-OL', 'O-OL', 'O-CS', 'O-CS', 'H-TS', 'O-PQ', 'O-RQ', 'O-TS', 'O-RQ', 'O-RQ', 'O-RQ',
+        pos_symbol_predictions_list = ['O-CS', 'O-TS', 'O-OL', 'O-OL', 'O-CS', 'O-CS', 'H-TS', 'O-PQ', 'O-RQ', 'O-TS', 'O-RQ', 'O-RQ', 'O-RQ',
                     'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'H-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS', 'O-TS',
                     'O-TS', 'O-TS', 'O-TS', 'O-TS', 'H-RQ', 'O-RQ', 'O-RQ', 'O-RQ', 'O-RQ', 'O-RQ', 'O-RQ', 'O-RQ', 'O-RQ',
                     'O-RQ', 'O-RQ', 'H-RQ', 'H-RQ', 'O-RQ', 'O-RQ', 'O-RQ', 'O-JD', 'H-JD', 'O-CS', 'H-RQ', 'O-RQ', 'O-RQ',
@@ -210,7 +208,7 @@ class TestSuMethods(unittest.TestCase):
         neg_symbol = 'PQ'
         nonheader_allows_list = ['O-RQ', 'O-ER']
         indices_list = [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 43, 44, 45, 50, 51]
-        self.assertEqual(self.su.get_section(crf_list, pos_symbol, neg_symbol, nonheader_allows_list), indices_list)
+        self.assertEqual(self.su.get_section(pos_symbol_predictions_list, pos_symbol, neg_symbol, nonheader_allows_list), indices_list)
     # def test_get_pos_color_dictionary(self):
         # verbose = False
         # self.assertEqual(self.su.get_pos_color_dictionary(verbose), )
@@ -220,14 +218,14 @@ class TestSuMethods(unittest.TestCase):
         # use_explanation = False
         # self.assertEqual(self.su.append_pos_symbol(child_str, pos_symbol, use_explanation), )
     # def test_visualize_basic_quals_section(self):
-        # crf_list = None
+        # pos_symbol_predictions_list = None
         # feature_tuple_list = None
         # feature_dict_list = None
         # child_strs_list = None
         # child_tags_list = None
         # file_name = None
         # verbose = False
-        # self.assertEqual(self.su.visualize_basic_quals_section(crf_list, feature_tuple_list, feature_dict_list, child_strs_list, child_tags_list, file_name, verbose), )
+        # self.assertEqual(self.su.visualize_basic_quals_section(pos_symbol_predictions_list, feature_tuple_list, feature_dict_list, child_strs_list, child_tags_list, file_name, verbose), )
 
 if __name__ == '__main__':
     unittest.main()

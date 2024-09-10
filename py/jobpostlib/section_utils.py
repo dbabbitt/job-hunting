@@ -22,19 +22,19 @@ class SectionUtilities(object):
         self.ascii_regex = re.compile('[^A-Za-z0-9]+')
     
     
-    def get_section(self, crf_list, pos_symbol='RQ', neg_symbol='PQ', nonheader_allows_list=['O-RQ', 'O-ER'], verbose=False):
+    def get_section(self, pos_symbol_predictions_list, pos_symbol='RQ', neg_symbol='PQ', nonheader_allows_list=['O-RQ', 'O-ER'], verbose=False):
         
         # Remove the Preferred Qualifications section
         neg_list = []
-        if f'H-{neg_symbol}' in crf_list:
-            neg_idx = len(crf_list) - crf_list[::-1].index(f'H-{neg_symbol}') - 1
-            while (len(crf_list) > neg_idx) and (crf_list[neg_idx] == f'H-{neg_symbol}'):
+        if f'H-{neg_symbol}' in pos_symbol_predictions_list:
+            neg_idx = len(pos_symbol_predictions_list) - pos_symbol_predictions_list[::-1].index(f'H-{neg_symbol}') - 1
+            while (len(pos_symbol_predictions_list) > neg_idx) and (pos_symbol_predictions_list[neg_idx] == f'H-{neg_symbol}'):
                 neg_idx += 1
-            while (neg_idx < len(crf_list)) and (crf_list[neg_idx].split('-')[0] == 'O'):
+            while (neg_idx < len(pos_symbol_predictions_list)) and (pos_symbol_predictions_list[neg_idx].split('-')[0] == 'O'):
                 neg_list.append(neg_idx)
                 neg_idx += 1
             
-        indices_list = [i for i, x in enumerate(crf_list) if (x in nonheader_allows_list) and (i not in neg_list)]
+        indices_list = [i for i, x in enumerate(pos_symbol_predictions_list) if (x in nonheader_allows_list) and (i not in neg_list)]
         
         return indices_list
     
@@ -68,7 +68,7 @@ class SectionUtilities(object):
     
     def append_pos_symbol(self, child_str, pos_symbol, use_explanation=False):
         if use_explanation:
-            pos_symbol = pos_symbol + ' ' + hc.POS_EXPLANATION_DICT[pos_symbol]
+            pos_symbol = pos_symbol + ' ' + hc.POS_EXPLANATION_DICT.get(pos_symbol, 'Unknown')
         suffix = f' ({pos_symbol})'
         idx = child_str.rfind('<')
         if idx == -1:
@@ -80,58 +80,28 @@ class SectionUtilities(object):
 
 
     def find_basic_quals_section_indexes(
-        self, crf_list=None, feature_tuple_list=None, feature_dict_list=None,
-        child_strs_list=None, child_tags_list=None, file_name=None, verbose=False
+        self, pos_symbol_predictions_list=None, child_strs_list=None,
+        file_name=None, verbose=False
     ):
-        if crf_list is None:
-            if feature_tuple_list is None:
-                if feature_dict_list is None:
-                    if child_strs_list is None:
-                        if file_name is None:
-                            files_list = sorted([fn for fn in os.listdir(cu.SAVES_HTML_FOLDER) if fn.endswith('.html')])
-                            file_name = random.choice(files_list)
-                        child_strs_list = hau.get_child_strs_from_file(file_name=file_name)
-                    if child_tags_list is None:
-                        child_tags_list = hau.get_child_tags_list(child_strs_list)
-                    feature_dict_list = cu.get_feature_dict_list(
-                        child_tags_list, child_strs_list, verbose=verbose
-                    )
-                feature_tuple_list = []
-                
-                # Seek a SectionLRClassifierUtilities object
-                from . import slrcu
-                if hasattr(slrcu, 'pos_predict_percent_fit_dict'):
-                    pos_lr_predict_single = slrcu.predict_single
-                    if verbose: print('slrcu.predict_single is now available')
-                else: pos_lr_predict_single = None
-                
-                # Seek a SectionCRFClassifierUtilities object
-                pos_crf_predict_single = scrfcu.predict_single
-                if verbose: print('scrfcu.predict_single is now available')
-                
-                # Seek a SectionSGDClassifierUtilities object
-                pos_sgd_predict_single = ssgdcu.predict_single
-                if verbose: print('ssgdcu.predict_single is now available')
-                
-                for feature_dict in feature_dict_list:
-                    feature_tuple = hc.get_feature_tuple(
-                        feature_dict, pos_lr_predict_single=pos_lr_predict_single,
-                        pos_crf_predict_single=pos_crf_predict_single,
-                        pos_sgd_predict_single=pos_sgd_predict_single
-                    )
-                    if len(feature_tuple) < 3:
-                        print(feature_dict)
-                    feature_tuple_list.append(feature_tuple)
-            crf_list = crf.CRF.predict_single(
-                crf.sent2features(feature_tuple_list)
-            )
+        if file_name is None:
+            files_list = sorted([fn for fn in os.listdir(cu.SAVES_HTML_FOLDER) if fn.endswith('.html')])
+            file_name = random.choice(files_list)
+        if child_strs_list is None:
+            child_strs_list = hau.get_child_strs_from_file(file_name=file_name)
+        if pos_symbol_predictions_list is None:
+            
+            # Seek a SectionLRClassifierUtilities object
+            from . import slrcu
+            assert hasattr(slrcu, 'pos_predict_percent_fit_dict'), 'slrcu.predict_single needs to be available'
+            
+            pos_symbol_predictions_list = [slrcu.predict_single(sent_str) for sent_str in child_strs_list]
         db_pos_list = []
         for navigable_parent in child_strs_list:
             db_pos_list = cu.append_parts_of_speech_list(navigable_parent, pos_list=db_pos_list)
         pos_list = []
-        for crf_symbol, db_symbol in zip(crf_list, db_pos_list):
+        for predicted_symbol, db_symbol in zip(pos_symbol_predictions_list, db_pos_list):
             if db_symbol in [None, 'O', 'H']:
-                pos_list.append(crf_symbol)
+                pos_list.append(predicted_symbol)
             else:
                 pos_list.append(db_symbol)
         # indices_list = self.get_section(pos_list)
@@ -140,7 +110,7 @@ class SectionUtilities(object):
         return indices_list
     
     
-    def visualize_basic_quals_section(self, crf_list, child_strs_list, db_pos_list=None, verbose=True):
+    def visualize_basic_quals_section(self, pos_symbol_predictions_list, child_strs_list, db_pos_list=None, verbose=True):
 
         # Make an RGB dictionary of all the parts-of-speech symbols
         rgba_dict = self.get_pos_color_dictionary()
@@ -153,7 +123,7 @@ class SectionUtilities(object):
                 db_pos_list = cu.append_parts_of_speech_list(
                     navigable_parent, pos_list=db_pos_list
                 )
-        for i, (crf_symbol, db_symbol) in enumerate(zip(crf_list, db_pos_list)):
+        for i, (crf_symbol, db_symbol) in enumerate(zip(pos_symbol_predictions_list, db_pos_list)):
             if db_symbol in [None, 'O', 'H']:
                 pos_list.append(crf_symbol)
             else:
@@ -191,7 +161,7 @@ class SectionUtilities(object):
         return job_title
     
     
-    def clean_qualification_string(self, child_str):
+    def clean_qualification_string(self, child_str, attributes_to_keep=['pos']):
         
         # 1. Remove beginning and ending asterisks
         # 2. Clip child strings beginning with (3) or some other number
@@ -224,19 +194,30 @@ class SectionUtilities(object):
         # Fix various abbreviations, et al
         fake_stops_list = [
             'e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.', 'i.e.',
-            '&amp;', 'E.g.', 'Bsc.', 'MSc.', 'incl.'
+            '&amp;', 'E.g.', 'Bsc.', 'MSc.', 'incl.', ',...)', '.).'
         ]
         replacements_list = [
             'eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie', '&', 'eg', 'BS',
-            'MS', 'including'
+            'MS', 'including', ')', '.)'
         ]
         for fake_stop, replacement in zip(fake_stops_list, replacements_list):
             child_str = child_str.replace(fake_stop, replacement)
         
-        # Simplify all the rest of the tags
-        child_str = re.sub(
-            '<([a-z][a-z0-9]*)[^<>]*>', r'<\g<1>>', child_str, 0, re.MULTILINE
-        ).strip()
+        # Remove all attributes from child string's tag except for attributes to keep
+        from bs4 import BeautifulSoup as bs
+        soup = bs(child_str, 'html.parser')
+        
+        # Find the first tag with attributes, regardless of what it is
+        tag = soup.find()
+        if tag and tag.attrs:
+            
+            # Remove all attributes except the ones in the list
+            for attribute in list(tag.attrs):
+                if attribute not in attributes_to_keep:
+                    del tag.attrs[attribute]
+            
+            # Output the modified tag as a string
+            child_str = str(tag)
         
         return child_str
     

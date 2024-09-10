@@ -213,6 +213,7 @@ class HeaderCategories(object):
         # Get the parts-of-speech explanations
         cypher_str = """
             MATCH (pos:PartsOfSpeech)
+            WHERE pos.pos_explanation IS NOT NULL
             RETURN
                 pos.pos_symbol AS pos_symbol,
                 pos.pos_explanation AS pos_explanation;"""

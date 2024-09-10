@@ -104,6 +104,8 @@ class LrUtilities(object):
         if basic_quals_dict is None:
             if nu.pickle_exists('basic_quals_dict'):
                 self.basic_quals_dict = nu.load_object('basic_quals_dict')
+            else:
+                self.basic_quals_dict = None
         else:
             self.basic_quals_dict = basic_quals_dict
         if self.basic_quals_dict is None:
@@ -453,40 +455,61 @@ class LrUtilities(object):
             ))
         
         return quals_list, file_name
-        
+    
     def display_hunting_dataframe_as_histogram(
-        self, width_inches=18.0, height_inches=3.0, bin_count=10, verbose=False
+        self, width_inches=18.0, height_inches=3.0, show_second_plot=False, verbose=False
     ):
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(width_inches, height_inches))
-        ax1 = fig.add_subplot(121)
-        ax1.set_xlabel('Percentage of Qualified Minimum Requirements met per Job Posting')
+        if show_second_plot:
+            ax1 = fig.add_subplot(121)
+        else:
+            ax1 = fig.add_subplot(111)
+        ax1.set_xlabel('Percentage of Minimum Requirements qualified-for (met) per Job Posting')
         self.hunting_df.percent_fit.hist(
-            cumulative=False, density=1, bins=bin_count, ax=ax1, align='mid', rwidth=.9
+            cumulative=False, density=1, bins=11, ax=ax1, align='mid', rwidth=.9
         )
         
         # Set x axis tick labels
-        ax1.set_xticks([-0.2, 0., 0.2, 0.4, 0.6, 0.8, 1., 1.2])
-        ax1.set_xticklabels(['', '0%', '20%', '40%', '60%', '80%', '100%', ''])
+        numbers_list = [-0.1] + [0.05 + 0.09 * i for i in range(11)] + [1.1]
+        labels_list = [''] + [f'{i*10}%' for i in range(11)] + ['']
+        ax1.set_xticks(numbers_list)
+        ax1.set_xticklabels(labels_list)
+        if verbose:
+            print(numbers_list)
+            print(pd.Series(numbers_list).diff().tolist())
         
-        ax2 = fig.add_subplot(122)
-        ax2.set_xlabel('Cumulative Histogram')
-        self.hunting_df.percent_fit.hist(cumulative=True, density=1, bins=bin_count, ax=ax2)
-        # xy = self.hunting_df.percent_fit.median().squeeze()
-        xy = self.hunting_df.percent_fit.mode().squeeze()
-        ax2.axvline(xy, linewidth=1.5, color='r', linestyle='-.')
-        ax2.axhline(xy, linewidth=1.5, color='r', linestyle='-.')
+        # Add the record count text in the upper left quadrant
+        n_value = self.hunting_df.shape[0]
+        ax1.text(
+            x=0.07, y=0.9, s=f'$n = {n_value:,}$',
+            transform=ax1.transAxes, fontsize=12, verticalalignment='top'
+        )
         
         # Turn off the grid
         ax1.grid(False)
-        ax2.grid(False)
         
         # Turn off the y ticks
         ax1.set_yticks([])
-        ax2.set_yticks([])
         
         # Turn off the y tick labels
         ax1.set_yticklabels([])
-        ax2.set_yticklabels([])
-    
+        
+        if show_second_plot:
+            ax2 = fig.add_subplot(122)
+            ax2.set_xlabel('Cumulative Histogram')
+            self.hunting_df.percent_fit.hist(cumulative=True, density=1, bins=11, ax=ax2)
+            xy = self.hunting_df.percent_fit.mode().squeeze()
+            ax2.axvline(xy, linewidth=1.5, color='r', linestyle='-.')
+            ax2.axhline(xy, linewidth=1.5, color='r', linestyle='-.')
+            
+            # Turn off the grid
+            ax2.grid(False)
+            
+            # Turn off the y ticks
+            ax2.set_yticks([])
+            
+            # Turn off the y tick labels
+            ax2.set_yticklabels([])
+        
         plt.tight_layout()

@@ -71,18 +71,13 @@ class TestEaMethods(unittest.TestCase):
         test_pos_list = ['H-TS', 'O', 'O', 'H-TS', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'H-RQ',
                          'O', 'O', 'O', 'O', 'H-CS', 'O', 'O', 'O', 'H-SP', 'O', 'O', 'O', 'O',
                          'O', 'O', 'O', 'O', 'O', 'O', 'O']
-        consecutives_list, pos_list = self.su.find_basic_quals_section_indexes(test_child_strs_list, crf=self.crf, verbose=False
+        consecutives_list, pos_list = self.su.find_basic_quals_section_indexes(test_child_strs_list, verbose=False
         )
         self.assertEqual(test_consecutives_list, consecutives_list)
         self.assertEqual(test_pos_list, pos_list)
     
     def test_find_basic_quals_section2(self):
-        consecutives_list, pos_list = self.su.find_basic_quals_section_indexes(self.test_child_strs_list, crf=self.crf, verbose=False)
-        self.assertEqual(self.test_consecutives_list, consecutives_list)
-        self.assertEqual(self.test_pos_list, pos_list)
-
-    def test_find_basic_quals_section3(self):
-        consecutives_list, pos_list = self.su.find_basic_quals_section_indexes(self.test_child_strs_list, crf=None, verbose=False)
+        consecutives_list, pos_list = self.su.find_basic_quals_section_indexes(self.test_child_strs_list, verbose=False)
         self.assertEqual(self.test_consecutives_list, consecutives_list)
         self.assertEqual(self.test_pos_list, pos_list)
     

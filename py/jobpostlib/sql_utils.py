@@ -1044,9 +1044,11 @@ class SqlUtilities(object):
         from . import hc
         feature_tuple_list = [hc.get_feature_tuple(feature_dict, pos_lr_predict_single=None, pos_crf_predict_single=None, pos_sgd_predict_single=None) for feature_dict in feature_dict_list]
         
-        crf_list = ea.CRF.predict_single(ea.sent2features(feature_tuple_list))
+        pos_symbol_predictions_list = ea.CRF.predict_single(ea.sent2features(feature_tuple_list))
         pos_list = []
-        for pos, feature_tuple, is_header in zip(crf_list, feature_tuple_list, is_header_list):
+        for pos, feature_tuple, is_header in zip(
+            pos_symbol_predictions_list, feature_tuple_list, is_header_list
+        ):
             navigable_parent = feature_tuple[1]
             if is_header:
                 pos_list = self.append_parts_of_speech_list(cursor, navigable_parent, pos_list=[])

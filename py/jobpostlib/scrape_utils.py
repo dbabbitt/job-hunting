@@ -92,12 +92,13 @@ class WebScrapingUtilities(object):
             
             # Find the body tag
             body_tag = page_soup.find('body')
-            
-            # Clear the contents of the body tag
-            body_tag.clear()
-            
-            # Append the div_soup to the body tag
-            body_tag.append(div_soup)
+            if body_tag:
+                
+                # Clear the contents of the body tag
+                body_tag.clear()
+                
+                # Append the div_soup to the body tag
+                body_tag.append(div_soup)
         
         # Remove all style tags
         row_style_list = page_soup.find_all(name='style')
@@ -105,7 +106,7 @@ class WebScrapingUtilities(object):
             style_soup.decompose()
         
         # Prettify the HTML and convert to a string
-        from bs4.formatter import  HTMLFormatter
+        from bs4.formatter import HTMLFormatter
         formatter_obj = HTMLFormatter(indent=4)
         html_str = page_soup.prettify(formatter=formatter_obj)
         import re
@@ -476,19 +477,39 @@ class WebScrapingUtilities(object):
         # Click the Sign in button
         button_xpath = '/html/body/nav/div/a[2]'
         self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
+        try:
+            
+            # Fill in the name and password on one form
+            self.fill_in_field(driver, field_name='session_key',
+                               field_value=self.secrets_json['linkedin']['email'],
+                               input_css='#username',
+                               verbose=verbose)
+            self.fill_in_field(driver, field_name='session_password',
+                               field_value=self.secrets_json['linkedin']['password'],
+                               input_css='#password', verbose=False)
+            
+            # Click the Sign in button
+            button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
+            self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         
-        # Fill in the name and password on one form
-        self.fill_in_field(driver, field_name='session_key',
-                           field_value=self.secrets_json['linkedin']['email'],
-                           input_css='#username',
-                           verbose=verbose)
-        self.fill_in_field(driver, field_name='session_password',
-                           field_value=self.secrets_json['linkedin']['password'],
-                           input_css='#password', verbose=False)
-        
-        # Click the Sign in button
-        button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
-        self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose) 
+        except:
+            
+            # Click the Sign In link
+            link_xpath = '/html/body/div[1]/main/div/p/a'
+            self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
+            
+            # Fill in the name and password on one form
+            self.fill_in_field(driver, field_name='session_key',
+                               field_value=self.secrets_json['linkedin']['email'],
+                               input_css='#username',
+                               verbose=verbose)
+            self.fill_in_field(driver, field_name='session_password',
+                               field_value=self.secrets_json['linkedin']['password'],
+                               input_css='#password', verbose=False)
+            
+            # Click the Sign in button
+            button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
+            self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         
         # Stall for time while looking for the error message
         # linkedin_xpath = '/html/body/main/div/ul'

@@ -218,24 +218,27 @@ class SectionLRClassifierUtilities(object):
         
         # Get the labeled training data
         pos_df = cu.get_pos_relationships(verbose=False)
-
+        
         # Rebalance the data with the sampling strategy limit if necessary
         if sampling_strategy_limit is not None:
             pos_df = self.rebalance_data(
                 pos_df, name_column='navigable_parent', value_column='pos_symbol',
                 sampling_strategy_limit=sampling_strategy_limit, verbose=verbose
             )
-
+        
         # Fit-transform the Bag-of-words from these hand-labeled HTML strings
         sents_list = pos_df.navigable_parent.tolist()
         if verbose:
             print(f'I have {len(sents_list):,} labeled parts of speech in here')
-
+        
         # Learn the vocabulary dictionary
+        bow_matrix = self.count_vect.fit_transform(sents_list)
+        
         # Note: the shape of the Bag-of-words count vector here should be
         #       html strings count * unique parts-of-speech tokens count
-        bow_matrix = self.count_vect.fit_transform(sents_list)
-
+        assert bow_matrix.shape[0] == len(sents_list), "The first dimension of the Bag-of-words count vector does not match the html strings count"
+        assert len(self.count_vect.pos_relationships_vocab) == bow_matrix.shape[1], "The second dimension of the Bag-of-words count vector does not match the unique POS tokens count"
+        
         # Fit the TF-IDF transformer
         X_train_tfidf = self.tfidf_transformer.fit_transform(bow_matrix)
         
@@ -262,8 +265,17 @@ class SectionLRClassifierUtilities(object):
                 self.pos_predict_percent_fit_dict.pop(pos_symbol, None)
         
         # Iterate over unique POS symbols in the training data
-        for pos_symbol in pos_df.pos_symbol.unique():
-
+        pos_symbols = pos_df.pos_symbol.unique()
+        if verbose:
+            from tqdm import tqdm
+            progress_bar = tqdm(
+                pos_symbols, total=pos_symbols.shape[0],
+                desc="Train the POS Classifier"
+            )
+        else:
+            progress_bar = pos_symbols
+        for pos_symbol in progress_bar:
+            
             # Train the classifier
             mask_series = (pos_df.pos_symbol == pos_symbol)
             train_data_list = mask_series.to_numpy()
