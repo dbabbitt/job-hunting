@@ -257,3 +257,5 @@ serverless.yml
 /saves/tokenizers
 scrapers/Bricklink Scrapes ETL.ipynb
 saves/pkl/lego_inventory_df.pkl
+saves/pkl/work_search_log_df.pkl
+scrapers/Unemployment Document Scrapes.ipynb

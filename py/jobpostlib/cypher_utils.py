@@ -1255,6 +1255,8 @@ class CypherUtilities(object):
             if verbose:
                 print(cypher_str)
             session.write_transaction(self.do_cypher_tx, cypher_str)
+    
+    
     def populate_from_child_strings(self, child_strs_list, file_name, verbose=False):
         self.ensure_navigableparent('END', verbose=verbose)
         if len(child_strs_list) > 1:
@@ -1263,13 +1265,20 @@ class CypherUtilities(object):
             self.delete_navigableparent_relationships(file_name, verbose=verbose)
 
             # Record the sequence of HTML strings
-            for sequence_order, (navigable_parent1, navigable_parent2) in enumerate(zip(child_strs_list[:-1], child_strs_list[1:])):
-                self.ensure_navigableparents_relationship(navigable_parent1, navigable_parent2, file_name, sequence_order, verbose=verbose)
+            for sequence_order, (navigable_parent1, navigable_parent2) in enumerate(
+                zip(child_strs_list[:-1], child_strs_list[1:])
+            ):
+                self.ensure_navigableparents_relationship(
+                    navigable_parent1, navigable_parent2, file_name, sequence_order,
+                    verbose=verbose
+                )
 
             # Add a fake relationship at the end
             if verbose:
                 clear_output(wait=True)
-            self.ensure_navigableparents_relationship(navigable_parent2, 'END', file_name, sequence_order+1, verbose=verbose)
+            self.ensure_navigableparents_relationship(
+                navigable_parent2, 'END', file_name, sequence_order+1, verbose=verbose
+            )
 
         child_tags_list = hau.get_child_tags_list(child_strs_list)
         if len(child_tags_list) > 1:
@@ -1278,20 +1287,32 @@ class CypherUtilities(object):
             self.delete_headertag_relationships(file_name, verbose=verbose)
 
             # Record the sequence of HTML tags
-            for sequence_order, (header_tag1, header_tag2) in enumerate(zip(child_tags_list[:-1], child_tags_list[1:])):
+            for sequence_order, (header_tag1, header_tag2) in enumerate(
+                zip(child_tags_list[:-1], child_tags_list[1:])
+            ):
                 if verbose:
                     clear_output(wait=True)
-                self.ensure_headertags_relationship(header_tag1, header_tag2, file_name, sequence_order, verbose=verbose)
+                self.ensure_headertags_relationship(
+                    header_tag1, header_tag2, file_name, sequence_order, verbose=verbose
+                )
 
             # Add a fake relationship at the end
             if verbose:
                 clear_output(wait=True)
-            self.ensure_headertags_relationship(header_tag2, 'END', file_name, sequence_order+1, verbose=verbose)
+            self.ensure_headertags_relationship(
+                header_tag2, 'END', file_name, sequence_order+1, verbose=verbose
+            )
 
-        for sequence_order, (navigable_parent, header_tag) in enumerate(zip(child_strs_list, child_tags_list)):
+        for sequence_order, (navigable_parent, header_tag) in enumerate(
+            zip(child_strs_list, child_tags_list)
+        ):
             if verbose:
                 clear_output(wait=True)
-            self.ensure_headertag_navigableparent_relationship(header_tag, navigable_parent, verbose=verbose)
+            self.ensure_headertag_navigableparent_relationship(
+                header_tag, navigable_parent, verbose=verbose
+            )
+    
+    
     def populate_navigableparent_sequences(self, verbose=False):
         csv_name = 'navigable_parent_sequence_table'
         if nu.csv_exists(csv_name, nu.data_csv_folder, verbose=verbose):

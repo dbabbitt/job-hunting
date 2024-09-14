@@ -1,18 +1,53 @@
 
+// Update File Names node with rejection email text
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["f46b4a091ae967b1_Operations_Analyst_Williamsburg_VA_23187_Indeed_com.html"]
+SET
+    fn.rejection_email_text = "After careful consideration, another candidate has been selected.",
+    fn.rejection_email_date = date("2024-09-13"),
+    fn.is_closed = true
+RETURN fn;
+
+// Show rejection info on selected postings
+MATCH (fn:FileNames)
+WHERE
+    (fn.file_name IN ["1007998154622_Lead_Operations_Analyst_III_Trust_Safety.html", "f46b4a091ae967b1_Operations_Analyst_Williamsburg_VA_23187_Indeed_com.html", "f311e251e658f0c8_Data_Operations_Analyst_Remote_Indeed_com.html"]) AND
+    ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
+    (fn.rejection_email_text IS NULL) AND
+    (fn.rejection_email_date IS NULL) AND
+    (fn.opportunity_application_email_date IS NOT NULL)
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.percent_fit AS percent_fit,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
 // Update File Names node with phone screen date
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["Decision_Scientist_Machine_Learning_NLP_LLM_with_Indeed_com.html"]
+WHERE fn.file_name IN ["1bde8bc35d636065_Computer_Vision_Data_Scientist_at_Jaxon_AI_San_Francisco_Bay_Area_CA_Indeed_com.html"]
 SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
 RETURN fn;
 
-// Update File Names node with rejection email text
+// Update File Names node with technical interview date
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["68cf2d512fc03664_Security_Analyst_CSIRT_Remote_Indeed_com.html"]
-SET
-    fn.rejection_email_text = "While this is never easy news to share, we've decided not to move forward with your candidacy.",
-    fn.rejection_email_date = date("2024-09-09"),
-    fn.is_closed = true
+WHERE fn.file_name IN ["Amazon_Machine_Learning_Engineer_Boston_MA.html"]
+SET fn.is_technical_interview_set = true, fn.technical_interview_dates = [date("2024-08-08")]
 RETURN fn;
+
+// Get the properties (not the entire node) for FileNames nodes
+// where any property contains the string "interview"
+MATCH (fn:FileNames)
+WITH fn, [key IN keys(fn) WHERE key CONTAINS 'interview' | key] AS interview_properties
+WHERE size(interview_properties) > 0
+RETURN interview_properties;
+
+// Rename the tech_interview_completion_date properties in the FileNames nodes
+// to technical_interview_dates and convert their date values into a list of one date
+MATCH (fn:FileNames)
+WHERE fn.tech_interview_completion_date IS NOT NULL
+SET fn.technical_interview_dates = [fn.tech_interview_completion_date]
+REMOVE fn.tech_interview_completion_date;
 
 // 1. Define the input date range as a string
 WITH "Sunday, 09/01/2024 - Saturday, 09/07/2024" AS date_range
@@ -51,21 +86,6 @@ RETURN
     fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
     fn.rejection_email_date AS rejection_email_date,
     fn.tech_interview_completion_date AS tech_interview_completion_date;
-
-// Show rejection info on selected postings
-MATCH (fn:FileNames)
-WHERE
-    (fn.file_name IN ["0a518ebbd8a94252_Data_Engineer_New_York_NY_Indeed_com.html", "0e312efb8c3d8fe8_Senior_Data_Engineer_New_York_NY_Indeed_com.html", "6HkrJ4RwkS27gfCFq_5hZQ_Data_Infrastructure_Engineer_Headway_United_States_Remote.html", "4532e7ff248454cc_Senior_Data_Engineer_Remote_Indeed_com.html"]) AND
-    ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
-    (fn.rejection_email_text IS NULL) AND
-    (fn.rejection_email_date IS NULL) AND
-    (fn.opportunity_application_email_date IS NOT NULL)
-RETURN
-    fn.opportunity_application_email_date AS application_date,
-    fn.percent_fit AS percent_fit,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url
-ORDER BY fn.opportunity_application_email_date DESC;
 
 // Replace the "phone" in phone_screen_completion_date and is_phone_screen_completed to "recruiter"
 MATCH (fn:FileNames)
@@ -275,19 +295,6 @@ RETURN f1.file_name, collect(DISTINCT id(f1)), collect(DISTINCT id(f2))
 CALL db.schema.nodeTypeProperties() YIELD nodeType, propertyName
 WHERE propertyName = "is_qualified"
 RETURN DISTINCT nodeType;
-
-// Rename the technical_interview_date properties in the FileNames nodes
-// to technical_interview_dates and convert their date values into a list of one date
-MATCH (fn:FileNames)
-WHERE fn.technical_interview_date IS NOT NULL
-SET fn.technical_interview_dates = [fn.technical_interview_date]
-REMOVE fn.technical_interview_date;
-
-// Record the recruiter screen calender invite date
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["8fc0ed7481ff426b_Data_Scientist_Gainesville_FL_Indeed_com.html"]
-SET fn.recruiter_screen_completion_date = date("2023-03-23")
-RETURN fn;
 
 // Get all node types that have the file_name property defined
 CALL db.schema.nodeTypeProperties() YIELD nodeType, propertyName

@@ -105,16 +105,30 @@ class WebScrapingUtilities(object):
         for style_soup in row_style_list:
             style_soup.decompose()
         
+        # Remove the comments
+        import bs4
+        for comment in page_soup.find_all(text=lambda text: isinstance(text, bs4.Comment)):
+            comment.extract()
+        
+        # Remove <span> and <em> tags only if they are the parent of another tag
+        for tag_name in ['span', 'em']:
+            for tag_obj in page_soup.find_all(tag_name):
+                if tag_obj.children:
+                    tag_obj.unwrap()
+        
         # Prettify the HTML and convert to a string
         from bs4.formatter import HTMLFormatter
         formatter_obj = HTMLFormatter(indent=4)
         html_str = page_soup.prettify(formatter=formatter_obj)
-        import re
         
         # Remove all empty tags
+        import re
         empties_regex = re.compile(r'\s*<([a-z0-9]+)[^>]*>\s+</\1>')
         while empties_regex.search(html_str):
             html_str = empties_regex.sub('', html_str)
+        
+        # Remove empty <span> tags
+        html_str = re.sub('[\r\n]+ +<span>[\r\n]+ +<br/>[\r\n]+ +</span>', '', html_str)
         
         # Tighten up the parent tags by removing unnecessary line breaks and indentation
         html_str = re.sub(
@@ -475,28 +489,19 @@ class WebScrapingUtilities(object):
         self.driver_get_url(driver, self.linkedin_url, verbose=verbose)
         
         # Click the Sign in button
-        button_xpath = '/html/body/nav/div/a[2]'
-        self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
+        # button_xpath = '/html/body/nav/div/a[2]'
+        # self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
+        click_css = '.sign-in-form__sign-in-cta'
+        self.click_by_css(driver, click_css, wait=10, verbose=verbose)
         try:
             
-            # Fill in the name and password on one form
-            self.fill_in_field(driver, field_name='session_key',
-                               field_value=self.secrets_json['linkedin']['email'],
-                               input_css='#username',
-                               verbose=verbose)
-            self.fill_in_field(driver, field_name='session_password',
-                               field_value=self.secrets_json['linkedin']['password'],
-                               input_css='#password', verbose=False)
-            
-            # Click the Sign in button
-            button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
-            self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
-        
-        except:
-            
             # Click the Sign In link
-            link_xpath = '/html/body/div[1]/main/div/p/a'
-            self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
+            click_css = 'a[href^="https://www.linkedin.com/uas/login"]'
+            self.click_by_css(driver, click_css, wait=10, verbose=verbose)
+        
+        except Exception as e:
+            print(f'Error trying to click the Sign In link: {str(e).strip()}')
+        finally:
             
             # Fill in the name and password on one form
             self.fill_in_field(driver, field_name='session_key',
@@ -508,8 +513,10 @@ class WebScrapingUtilities(object):
                                input_css='#password', verbose=False)
             
             # Click the Sign in button
-            button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
-            self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
+            # button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
+            # self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
+            click_css = '.btn__primary--large'
+            self.click_by_css(driver, click_css, wait=10, verbose=verbose)
         
         # Stall for time while looking for the error message
         # linkedin_xpath = '/html/body/main/div/ul'
