@@ -172,6 +172,33 @@ class WebScrapingUtilities(object):
             list_str = ''
         
         return list_str
+
+    def check_presence_by_css(self, driver, element_css, wait=10, verbose=False):
+        """
+        Check if an element with the given CSS selector is present on the page.
+        
+        Params:
+            self: The instance of the class (if this is a method in a class)
+            driver: Selenium WebDriver instance
+            element_css (str): CSS selector of the element to check
+            wait (int): Maximum time to wait for the element (default 10 seconds)
+            verbose (bool): If True, print status messages (default False)
+        
+        Returns:
+            bool: True if the element is present, False otherwise
+        """
+        try:
+            # Wait for up to 'wait' seconds for the element to be present
+            element = WebDriverWait(driver, wait).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, element_css))
+            )
+            if verbose:
+                print(f"The element with CSS selector '{element_css}' is present on the page.")
+            return True
+        except:
+            if verbose:
+                print(f"The element with CSS selector '{element_css}' is not present on the page.")
+            return False
     
     
     
@@ -354,51 +381,81 @@ class WebScrapingUtilities(object):
     
     
     def get_driver(self, browser_name='FireFox', verbose=False):
-        if verbose: print('Getting the {} driver'.format(browser_name))
+        if verbose: print(f'Getting the {browser_name} driver')
+        
+        # Define the path for the service log
         log_dir = '../log'
         import os
         os.makedirs(name=log_dir, exist_ok=True)
-        
-        # Define the path for the service log
         if browser_name == 'FireFox': executable_name = 'geckodriver'
         elif browser_name == 'Chrome': executable_name = self.get_chrome_exe()
         service_log_path = os.path.join(log_dir, f'{executable_name}.log')
         
         # Initialize the driver
         from selenium import webdriver
+        from selenium.webdriver.firefox.service import Service
+        from selenium.webdriver.firefox.options import Options
+        from webdriver_manager.firefox import GeckoDriverManager
+        
         if browser_name == 'FireFox':
-            
-            # Download and configure GeckoDriver using webdriver_manager
             if verbose:
-                import platform; print(f'platform.system() = {platform.system()}')
+                import platform
+                print(f'platform.system() = {platform.system()}')
                 print(f'os.name = {os.name}')
+            
+            # Download and configure gecko driver using manager
             try:
-                from webdriver_manager.firefox import GeckoDriverManager
                 gecko_driver_path = GeckoDriverManager().install()
-                if verbose: print(f'gecko_driver_path = GeckoDriverManager().install() = {gecko_driver_path}')
+                if verbose:
+                    print(
+                        'gecko_driver_path = GeckoDriverManager().install()'
+                        f' = {gecko_driver_path}'
+                    )
                 
-                # Create a Service object with the downloaded path and the specified log path
-                from selenium.webdriver.firefox.service import Service
-                service = Service(executable_path=gecko_driver_path, log_path=service_log_path)
+                # Specify the path to the Firefox binary
+                # options = webdriver.FirefoxOptions()
+                options = Options()
+                firefox_path = r"C:\Program Files\Mozilla Firefox\firefox.exe"
+                assert_str = f"Firefox not found at {firefox_path}."
+                assert_str += " Please specify the correct path."
+                assert os.path.exists(firefox_path), assert_str
+                options.binary_location = firefox_path
+                
+                # Create a Service object with the downloaded path and
+                # the specified log path
+                service = Service(
+                    executable_path=gecko_driver_path, log_path=service_log_path
+                )
                 
                 # Launch Firefox using the created Service object
-                options = webdriver.FirefoxOptions()
-                # options.binary_location = gecko_driver_path
-                driver = webdriver.Firefox(service=service, options=options, keep_alive=True)
+                driver = webdriver.Firefox(
+                    service=service, options=options, keep_alive=True
+                )
                 
             except Exception as e:
-                print(f'{e.__class__.__name__} error getting the gecko_driver_path: {str(e).strip()}')
+                print(
+                    f'{e.__class__.__name__} error getting'
+                    f' the gecko_driver_path: {str(e).strip()}'
+                )
                 gecko_driver_path = '/usr/local/bin/geckodriver'
-                if verbose: print(f"gecko_driver_path = '/usr/local/bin/geckodriver' = {gecko_driver_path}")
+                if verbose:
+                    print(
+                    "gecko_driver_path = '/usr/local/bin/geckodriver'"
+                    f" = {gecko_driver_path}"
+                    )
                 
-                # Create a Service object with the downloaded path and the specified log path
-                from selenium.webdriver.firefox.service import Service
-                service = Service(executable_path=gecko_driver_path, log_path=service_log_path)
+                # Create a Service object with the downloaded path and
+                # the specified log path
+                service = Service(
+                    executable_path=gecko_driver_path, log_path=service_log_path
+                )
                 
                 # Launch Firefox using the created Service object
                 options = webdriver.FirefoxOptions()
                 options.binary_location = gecko_driver_path
-                driver = webdriver.Firefox(service=service, options=options, keep_alive=True)
+                driver = webdriver.Firefox(
+                    service=service, options=options, keep_alive=True
+                )
             
         elif browser_name == 'Chrome':
             co = webdriver.ChromeOptions()
@@ -493,30 +550,26 @@ class WebScrapingUtilities(object):
         # self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
         click_css = '.sign-in-form__sign-in-cta'
         self.click_by_css(driver, click_css, wait=10, verbose=verbose)
-        try:
-            
-            # Click the Sign In link
-            click_css = 'a[href^="https://www.linkedin.com/uas/login"]'
+        
+        # Click the Sign In link
+        click_css = 'a[href^="https://www.linkedin.com/uas/login"]'
+        if self.check_presence_by_css(driver, click_css, wait=1, verbose=False):
             self.click_by_css(driver, click_css, wait=10, verbose=verbose)
         
-        except Exception as e:
-            print(f'Error trying to click the Sign In link: {str(e).strip()}')
-        finally:
-            
-            # Fill in the name and password on one form
-            self.fill_in_field(driver, field_name='session_key',
-                               field_value=self.secrets_json['linkedin']['email'],
-                               input_css='#username',
-                               verbose=verbose)
-            self.fill_in_field(driver, field_name='session_password',
-                               field_value=self.secrets_json['linkedin']['password'],
-                               input_css='#password', verbose=False)
-            
-            # Click the Sign in button
-            # button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
-            # self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
-            click_css = '.btn__primary--large'
-            self.click_by_css(driver, click_css, wait=10, verbose=verbose)
+        # Fill in the name and password on one form
+        self.fill_in_field(driver, field_name='session_key',
+                           field_value=self.secrets_json['linkedin']['email'],
+                           input_css='#username',
+                           verbose=verbose)
+        self.fill_in_field(driver, field_name='session_password',
+                           field_value=self.secrets_json['linkedin']['password'],
+                           input_css='#password', verbose=False)
+        
+        # Click the Sign in button
+        # button_xpath = '/html/body/div/main/div[2]/div[1]/form/div[3]/button'
+        # self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
+        click_css = '.btn__primary--large'
+        self.click_by_css(driver, click_css, wait=10, verbose=verbose)
         
         # Stall for time while looking for the error message
         # linkedin_xpath = '/html/body/main/div/ul'

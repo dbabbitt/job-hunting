@@ -1,17 +1,62 @@
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["f46b4a091ae967b1_Operations_Analyst_Williamsburg_VA_23187_Indeed_com.html"]
+WHERE fn.file_name IN ["HThJpls_vD6x10jkEnXkeA_Data_Scientist_Lexington_MA.html"]
 SET
-    fn.rejection_email_text = "After careful consideration, another candidate has been selected.",
-    fn.rejection_email_date = date("2024-09-13"),
+    fn.rejection_email_text = "Our team carefully review each application, and unfortunately on this occasion, we will not be progressing you to the next stage of the hiring process for Data Scientist at Mimecast.",
+    fn.rejection_email_date = date("2024-09-12"),
     fn.is_closed = true
 RETURN fn;
+
+// Check for application duplicates or unrejected postings
+MATCH (fn:FileNames)
+WHERE
+    (fn.file_name IN ["HThJpls_vD6x10jkEnXkeA_Data_Scientist_Lexington_MA.html", "HThJpls_vD6x10jkEnXkeA_Data_Scientist_Lexington_MA.html"])
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.is_closed AS is_closed,
+    fn.percent_fit AS percent_fit,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
+// Find all work search activities for the date range
+WITH "Sunday, 09/22/2024 - Saturday, 09/28/2024" AS date_range
+WITH split(date_range, " - ") AS dates
+WITH
+    split(dates[0], ", ") AS start_components,
+    split(dates[1], ", ") AS end_components
+WITH
+    [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
+    [item in split(end_components[1], "/") | toInteger(item)] AS end_components
+WITH
+    date({
+        day: start_components[1],
+        month: start_components[0],
+        year: start_components[2]
+    }) AS date_start,
+    date({
+        day: end_components[1],
+        month: end_components[0],
+        year: end_components[2]
+    }) AS date_end
+MATCH (fn:FileNames)
+WHERE
+    (fn.opportunity_application_email_date >= date_start) AND
+    (fn.opportunity_application_email_date <= date_end)
+RETURN
+    fn.file_name AS file_name,
+    fn.opportunity_application_email_date AS opportunity_application_email_date,
+    fn.posting_url AS posting_url,
+    fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.tech_interview_completion_date AS tech_interview_completion_date;
 
 // Show rejection info on selected postings
 MATCH (fn:FileNames)
 WHERE
-    (fn.file_name IN ["1007998154622_Lead_Operations_Analyst_III_Trust_Safety.html", "f46b4a091ae967b1_Operations_Analyst_Williamsburg_VA_23187_Indeed_com.html", "f311e251e658f0c8_Data_Operations_Analyst_Remote_Indeed_com.html"]) AND
+    (fn.file_name IN ["089a64e5c6632951_Senior_Data_Engineer_Data_Scientist_Frisco_TX_75034_Indeed_com.html", "089a64e5c6632951_Senior_Data_Engineer_Data_Scientist_Toronto_ON_Indeed_com.html"]) AND
     ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
     (fn.rejection_email_text IS NULL) AND
     (fn.rejection_email_date IS NULL) AND
@@ -22,6 +67,20 @@ RETURN
     fn.file_name AS file_name,
     fn.posting_url AS posting_url
 ORDER BY fn.opportunity_application_email_date DESC;
+
+// Get all unique node labels
+CALL db.labels() YIELD label
+WITH label AS node_label
+RETURN node_label
+ORDER BY node_label;
+
+// Get all unique properties across all FileNames nodes
+MATCH (fn:FileNames)
+WITH collect(keys(fn)) AS all_properties
+WITH apoc.coll.toSet(apoc.coll.flatten(all_properties)) AS unique_properties
+UNWIND unique_properties AS property
+RETURN property
+ORDER BY property;
 
 // Update File Names node with phone screen date
 MATCH (fn:FileNames)
@@ -48,44 +107,6 @@ MATCH (fn:FileNames)
 WHERE fn.tech_interview_completion_date IS NOT NULL
 SET fn.technical_interview_dates = [fn.tech_interview_completion_date]
 REMOVE fn.tech_interview_completion_date;
-
-// 1. Define the input date range as a string
-WITH "Sunday, 09/01/2024 - Saturday, 09/07/2024" AS date_range
-// 2. Split the input string into two parts, one for the start date and one for the end date
-WITH split(date_range, " - ") AS dates
-// 3. Split the start and end dates into their components
-WITH
-    split(dates[0], ", ") AS start_components,
-    split(dates[1], ", ") AS end_components
-// 4. Reassemble the start date components into a format that the date() function can recognize
-WITH
-    [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
-    [item in split(end_components[1], "/") | toInteger(item)] AS end_components
-// 5. Convert the integer date parts into Neo4j date objects using the date() function
-WITH
-    date({
-        day: start_components[1],
-        month: start_components[0],
-        year: start_components[2]
-    }) AS date_start,
-    date({
-        day: end_components[1],
-        month: end_components[0],
-        year: end_components[2]
-    }) AS date_end
-// 6. Find all FileNames nodes and filter them by opportunity_application_email_date property
-MATCH (fn:FileNames)
-WHERE
-    (fn.opportunity_application_email_date >= date_start) AND
-    (fn.opportunity_application_email_date <= date_end)
-// 7. Return the filtered nodes
-RETURN
-    fn.file_name AS file_name,
-    fn.opportunity_application_email_date AS opportunity_application_email_date,
-    fn.posting_url AS posting_url,
-    fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.tech_interview_completion_date AS tech_interview_completion_date;
 
 // Replace the "phone" in phone_screen_completion_date and is_phone_screen_completed to "recruiter"
 MATCH (fn:FileNames)

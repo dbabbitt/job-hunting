@@ -1,20 +1,22 @@
 
-# D:\Documents\GitHub\job-hunting\.gitignore
+# C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\.gitignore
 
-# Ignore files that contain harddrive-specific information
-
-# exclude everything except personal directories
+# Exclude everything except text-based OC or personal directories
 /*
+
 !.gitignore
+!/bat
 !/builders
 !/creators
 !/cypher
 !/evaluators
 !/explorations
+!/extensions
 !/flaskr
 !/inference
 !/ipynb
 !/labelers
+!/library_exploration
 !/load_magic
 !/maintenance
 !/optimizers
@@ -36,8 +38,12 @@
 !serverless.yml
 !workspace.json
 
-# Exclude job hunting notebooks, etc., that I didn't make
+# Exclude job hunting notebooks, et al, that I didn't make
+/saves/bricklink
+/saves/models
+/saves/tokenizers
 builders/Reinsert All Files.ipynb
+evaluators/*.txt
 explorations/Brainstorming_Story_Ideas_with_Cohere_and_Stable_Diffusion.ipynb
 flaskr/static/style.css
 ipynb/benchmarking.ipynb
@@ -48,9 +54,13 @@ ipynb/plot_feature_transformation.ipynb
 ipynb/pycrfsuite.ipynb
 ipynb/sklearn_crfsuite.ipynb
 ps1/test.ps1
-py/crf_utils_new.py
-py/crf_utils_old.py
+py/*_new.py
+py/*_old.py
 py/crf_utils_old2.py
+saves/pkl/lego_inventory_df.pkl
+saves/pkl/work_search_log_df.pkl
+scrapers/Bricklink Scrapes ETL.ipynb
+scrapers/Unemployment Document Scrapes.ipynb
 
 # Exclude CSV files
 saves/csv/*.csv
@@ -93,6 +103,7 @@ cypher/neo4j_job_hunting_import.cypher
 #*.pkl
 *.bak
 flaskr/saves/pkl/*.pkl
+saves/pkl/*_old.pkl
 saves/pkl/CHILD_STRS_LIST_DICT_*.pkl
 saves/pkl/CRF.pkl
 saves/pkl/DAVEZ_*
@@ -252,10 +263,4 @@ jspm_packages
 package-lock.json
 package.json
 serverless.yml
-/saves/bricklink
-/saves/models
-/saves/tokenizers
-scrapers/Bricklink Scrapes ETL.ipynb
-saves/pkl/lego_inventory_df.pkl
-saves/pkl/work_search_log_df.pkl
-scrapers/Unemployment Document Scrapes.ipynb
+library_exploration/atmodel_tutorial.ipynb

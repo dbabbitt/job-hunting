@@ -323,11 +323,28 @@ class LrUtilities(object):
             session.write_transaction(do_cypher_tx, file_name=row_series.file_name, percent_fit=percent_fit, verbose=verbose)
     
     def predict_isqualified(self, child_str):
-        probs_list = self.predict_job_hunt_percent_fit(child_str)
-        idx = probs_list.index(max(probs_list))
-        is_qualified = [True, False][idx]
+        if not isinstance(child_str, list):
+            child_str = [child_str]
         
-        return is_qualified
+        probs_array = self.predict_job_hunt_percent_fit(child_str)
+        
+        # If probs_array is 2D (multiple inputs), we need to handle each row
+        # Assume 1 is the "qualified" class
+        if probs_array.ndim == 2:
+            is_qualified_list = []
+            for probs in probs_array:
+                idx = np.argmax(probs)
+                is_qualified = (idx == 1)
+                is_qualified_list.append(is_qualified)
+            
+            return is_qualified_list
+        
+        # If it's 1D (single input)
+        else:
+            idx = np.argmax(probs_array)
+            is_qualified = (idx == 1)
+            
+            return is_qualified
     
     def get_isqualified_tfidf_matrix(
         self, sents_list=None, bow_matrix=None, verbose=False

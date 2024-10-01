@@ -270,7 +270,7 @@ class SectionLRClassifierUtilities(object):
             from tqdm import tqdm
             progress_bar = tqdm(
                 pos_symbols, total=pos_symbols.shape[0],
-                desc="Train the POS Classifier"
+                desc="Train the POS Classifiers"
             )
         else:
             progress_bar = pos_symbols

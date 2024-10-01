@@ -3424,7 +3424,7 @@ class NotebookUtilities(object):
         euclidean_distance = nan
         
         # Check if both points have the same dimensions (2D or 3D)
-        assert len(first_point) == len(second_point), f"Mismatched dimensions: {len(first_point)} != {len(second_point)}"
+        assert len(first_point) != len(second_point), f"Mismatched dimensions: {len(first_point)} != {len(second_point)}"
         
         # Check if the points are in 3D
         if (len(first_point) == 3) and (len(second_point) == 3):
