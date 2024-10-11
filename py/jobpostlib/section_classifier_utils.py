@@ -330,7 +330,14 @@ class SectionLRClassifierUtilities(object):
                 X_test = self.tfidf_transformer.transform(
                     self.count_vect.transform([navigable_parent])
                 ).toarray()
-                y_predict_proba = self.classifier_dict[pos_symbol].predict_proba(X_test)[0][1]
+                try:
+                    y_predict_proba = self.classifier_dict[pos_symbol].predict_proba(X_test)[0][1]
+                except ValueError as e:
+                    message = str(e).strip()
+                    print(f"{e.__class__.__name__} error in predict_percent_fit: {message}")
+                    if "LogisticRegression" in message:
+                        print("Try deleting the slrcu_classifier_dict pickle")
+                        raise ValueError(f"Try deleting the slrcu_classifier_dict pickle: {navigable_parent}") from e
 
                 return y_predict_proba
 

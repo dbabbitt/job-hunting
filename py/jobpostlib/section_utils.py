@@ -281,35 +281,37 @@ class SectionUtilities(object):
             
             # Close the login warning
             if close_notices:
-                try:
-                    
-                    # Switch to the iframe with a generalized CSS selector
-                    iframe_css_selector = 'iframe[src^="https://accounts.google.com/gsi/iframe/select?"]'
-                    iframe = WebDriverWait(driver, 10).until(EC.frame_to_be_available_and_switch_to_it((
-                        By.CSS_SELECTOR, iframe_css_selector
-                    )))
-                    
-                    # Perform actions inside the iframe
-                    close_css = '#close'
-                    close_tag = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, close_css))
-                        )
-                    close_tag.click()
-                    
-                    # Switch back to the parent HTML
-                    driver.switch_to.default_content()
-                    
-                except Exception as e: print(f'{e.__class__.__name__} error closing login warning: {str(e).strip()}')
+                iframe_css_selector = 'iframe[src^="https://accounts.google.com/gsi/iframe/select?"]'
+                if wsu.check_presence_by_css(driver, iframe_css_selector, wait=1, verbose=False):
+                    try:
+                        
+                        # Switch to the iframe with a generalized CSS selector
+                        iframe = WebDriverWait(driver, 10).until(EC.frame_to_be_available_and_switch_to_it((
+                            By.CSS_SELECTOR, iframe_css_selector
+                        )))
+                        
+                        # Perform actions inside the iframe
+                        close_css = '#close'
+                        close_tag = WebDriverWait(driver, 10).until(
+                            EC.presence_of_element_located((By.CSS_SELECTOR, close_css))
+                            )
+                        close_tag.click()
+                        
+                        # Switch back to the parent HTML
+                        driver.switch_to.default_content()
+                        
+                    except Exception as e: print(f'{e.__class__.__name__} error closing login warning: {str(e).strip()}')
             
             # Close the cookie privacy notice
             if close_notices:
-                try:
-                    close_css = '.gnav-CookiePrivacyNoticeButton'
-                    close_tag = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, close_css))
-                        )
-                    close_tag.click()
-                except Exception as e: print(f'{e.__class__.__name__} error closing cookie privacy notice: {str(e).strip()}')
+                close_css = '.gnav-CookiePrivacyNoticeButton'
+                if wsu.check_presence_by_css(driver, close_css, wait=1, verbose=False):
+                    try:
+                        close_tag = WebDriverWait(driver, 10).until(
+                            EC.presence_of_element_located((By.CSS_SELECTOR, close_css))
+                            )
+                        close_tag.click()
+                    except Exception as e: print(f'{e.__class__.__name__} error closing cookie privacy notice: {str(e).strip()}')
             
             # Scroll down the page so you can read it
             if slowed_for_readability:

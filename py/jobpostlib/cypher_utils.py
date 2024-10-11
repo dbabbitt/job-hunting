@@ -183,7 +183,7 @@ class CypherUtilities(object):
             'frames_set', 'historic_elements_set', 'non_standard_elements_set',
             'pos_symbol_elements_set'
         ]
-        self.return_everything_str = """RETURN
+        self.return_every_np_str = """RETURN
         np.navigable_parent AS navigable_parent,
         np.is_header AS is_header,
         np.""" + """,

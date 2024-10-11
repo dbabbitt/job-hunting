@@ -1,17 +1,8 @@
 
-// Update File Names node with rejection email text
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["HThJpls_vD6x10jkEnXkeA_Data_Scientist_Lexington_MA.html"]
-SET
-    fn.rejection_email_text = "Our team carefully review each application, and unfortunately on this occasion, we will not be progressing you to the next stage of the hiring process for Data Scientist at Mimecast.",
-    fn.rejection_email_date = date("2024-09-12"),
-    fn.is_closed = true
-RETURN fn;
-
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
 WHERE
-    (fn.file_name IN ["HThJpls_vD6x10jkEnXkeA_Data_Scientist_Lexington_MA.html", "HThJpls_vD6x10jkEnXkeA_Data_Scientist_Lexington_MA.html"])
+    (fn.file_name IN ["5b7736134c89764f_Data_Scientist_Health_Economics_Remote_Indeed_com.html", "f3dc1253af7ea4a5_Data_Scientist_Health_Economics_Remote_Indeed_com.html"])
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
@@ -21,8 +12,17 @@ RETURN
     fn.posting_url AS posting_url
 ORDER BY fn.opportunity_application_email_date DESC;
 
+// Update File Names node with rejection email text
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["165f35e2a05b9075_Data_Scientist_New_York_NY_Indeed_com.html"]
+SET
+    fn.rejection_email_text = "Due to changing business needs, this job has been cancelled and no applicants have been hired for the position.",
+    fn.rejection_email_date = date("2024-10-07"),
+    fn.is_closed = true
+RETURN fn;
+
 // Find all work search activities for the date range
-WITH "Sunday, 09/22/2024 - Saturday, 09/28/2024" AS date_range
+WITH "Sunday, 09/29/2024 - Saturday, 10/05/2024" AS date_range
 WITH split(date_range, " - ") AS dates
 WITH
     split(dates[0], ", ") AS start_components,

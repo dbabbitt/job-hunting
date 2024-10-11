@@ -106,23 +106,6 @@ RETURN DISTINCT propertyName;
 CALL db.schema.nodeTypeProperties() YIELD nodeType
 RETURN DISTINCT nodeType;
 
-// Set all the javascript beginner quals to true
-MATCH (qs:QualificationStrings)
-WHERE
-    (qs.qualification_str CONTAINS "Java Scripted Page")
-    AND (
-        (qs.qualification_str CONTAINS "Intermediate")
-        OR (qs.qualification_str CONTAINS "Beginner")
-    )
-SET qs.is_qualified = 1
-RETURN qs;
-
-// Find quals that really should be headers
-MATCH (qs:QualificationStrings)
-WHERE
-    (qs.qualification_str =~ "^.+:</[a-z]+>$")
-RETURN qs.qualification_str AS qualification_str;
-
 // Get all node types that have the is_qualified property defined
 CALL db.schema.nodeTypeProperties() YIELD nodeType, propertyName
 WHERE propertyName = "is_qualified"
