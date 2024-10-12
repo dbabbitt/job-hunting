@@ -229,7 +229,7 @@ class SectionUtilities(object):
         indices_list = self.find_basic_quals_section_indexes(
             child_strs_list=child_strs_list, file_name=file_name, verbose=verbose
         )
-        assert indices_list, f"""Something is wrong:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)\n## OR, edit the file directly: ##\nfile_path = osp.join(hau.SAVES_HTML_FOLDER, file_name)\ncommand_str = fr'"C:\\Program Files\\Notepad++\\notepad++.exe" {{file_path}}'\nprint(command_str)\n!{{command_str}}\n## then run this: ##\ncu.rebuild_filename_node(file_name, navigable_parent=None, verbose=True)"""
+        assert indices_list, f"""Run this code:\nfile_name = '{file_name}'\n#cu.delete_filename_node(file_name, verbose=True)\n## OR, edit the file directly: ##\ntext_editor_path = r'C:\\Program Files\\Notepad++\\notepad++.exe'\nfile_path = osp.abspath(osp.join(hau.SAVES_HTML_FOLDER, file_name))\nwsu.clean_job_posting(file_path)\ntry: pyperclip.copy(re.sub("((?:<li>([^><]+)</li>\\n)+)", "<ul>\\n\\1</ul>\\n", '\\n'.join(child_strs_list), 0, re.MULTILINE))\nexcept: pass\n!"{{text_editor_path}}" "{{file_path}}"\n## then run this: ##\n#cu.rebuild_filename_node(file_name, navigable_parent=None, verbose=True)"""
         prequals_list = [child_str for i, child_str in enumerate(child_strs_list) if i in indices_list]
         sentence_regex = re.compile(r'[•➢\*]|\.(?!\w)')
         quals_set = set()
