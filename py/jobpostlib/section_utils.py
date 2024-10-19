@@ -6,7 +6,7 @@
 
 # Soli Deo gloria
 
-from . import nu, wsu, hau, cu, hc, lru, ssgdcu, scrfcu, crf
+from . import nu, wsu, hau, cu, hc, lru, ssgdcu, scrfcu, crf, time
 from IPython.display import clear_output
 from matplotlib.colors import to_hex
 from nltk.tokenize import sent_tokenize
@@ -264,7 +264,7 @@ class SectionUtilities(object):
         return quals_list, job_fitness
     
     def load_indeed_posting_url(
-        self, viewjob_url, driver=None, jk_str=None, files_list=[], close_notices=True, slowed_for_readability=True, verbose=True
+        self, viewjob_url, driver=None, jk_str=None, files_list=[], close_notices=True, slowed_for_readability=True, search_type='Indeed Unknown', verbose=True
     ):
         file_node_dict = {}
         if jk_str is None:
@@ -277,7 +277,6 @@ class SectionUtilities(object):
             from selenium.webdriver.support import expected_conditions as EC
             from selenium.webdriver.common.by import By
             from selenium.webdriver.common.keys import Keys
-            import time
             
             # Close the login warning
             if close_notices:
@@ -348,9 +347,9 @@ class SectionUtilities(object):
                 # Save the HTML to the file
                 with open(file_path, 'w', encoding=nu.encoding_type) as f:
                     if verbose: print(f'Saving to {file_path}')
-                    f.write('<html><head><title>')
+                    f.write('<html>\n    <head>\n        <title>')
                     f.write(page_title)
-                    f.write('</title></head><body>')
+                    f.write('</title>\n    </head>\n    <body>')
                     
                     # Assume the second div is redundant
                     body_soup = row_div_list[0]
@@ -374,9 +373,100 @@ class SectionUtilities(object):
                 
                 files_list.append(file_name)
             cu.ensure_filename(file_name, verbose=False)
+            
+            # Store the file attributes and update the file node dictionary
             file_node_dict.update(cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
+            file_node_dict.update(cu.set_search_type(file_name, search_type, verbose=verbose))
         
         return file_node_dict, files_list
+    
+    def store_omnijobs_file_attributes(
+        self, driver, viewjob_url, files_list=[], search_type='OmniJobs Unknown', verbose=True
+    ):
+        file_node_dict = {}
+        wsu.driver_get_url(driver, viewjob_url, verbose=verbose)
+        time.sleep(4)
+        viewjob_url = driver.current_url
+        
+        from urllib.parse import urlparse
+        trackingId = urlparse(viewjob_url).path.split('/')[-1]
+        
+        # Create the file name out of the job title and subtitle
+        from selenium.webdriver.common.by import By
+        titles_list = driver.find_elements(By.CSS_SELECTOR, '.text-4xl')
+        assert titles_list, "Missing a job title"
+        job_title_str = titles_list[0].text
+        job_subtitle_str = driver.find_elements(By.CSS_SELECTOR, 'a.hover\:text-white')[0].text
+        page_title = f'{job_title_str} {job_subtitle_str}'
+        file_name = self.ascii_regex.sub(' ', page_title).strip().replace(' ', '_')
+        
+        if len(trackingId):
+            file_name = f'{trackingId}_{file_name}.html'
+        else:
+            file_name = f'{file_name}.html'
+        file_path = os.path.join(cu.SAVES_HTML_FOLDER, file_name)
+        file_node_dict['file_name'] = file_name
+        if not os.path.isfile(file_path):
+            
+            # Save the HTML to the file
+            with open(file_path, 'w', encoding=nu.encoding_type) as f:
+                print(f'Saving to {file_path}')
+                f.write('<html>\n    <head>\n        <title>')
+                f.write(page_title)
+                f.write(
+                    '</title>\n    </head>\n    <body>\n        <div id="jobDescriptionText">\n'
+                )
+                
+                # Get the page soup
+                web_obj = driver.find_elements(By.CSS_SELECTOR, 'div.leading-relaxed > div:nth-child(1)')[0]
+                article_str = web_obj.get_attribute('innerHTML').strip()
+                
+                # Prettify the HTML
+                from bs4.formatter import HTMLFormatter
+                formatter_obj = HTMLFormatter(indent=4)
+                from bs4 import BeautifulSoup as bs
+                page_soup = bs(article_str, 'html.parser')
+                html_str = page_soup.prettify(formatter=formatter_obj)
+                
+                f.write(re.sub('^', '            ', html_str, 0, re.MULTILINE).rstrip())
+                f.write('\n        </div>\n    </body>\n</html>')
+            
+            # Delete the svg tags, remove class attributes from various tags, and tighten up the parent tag for easier viewing
+            wsu.clean_job_posting(file_path)
+            
+            files_list.append(file_name)
+        cu.ensure_filename(file_name, verbose=False)
+        
+        # Store the file attributes and update the file node dictionary
+        file_node_dict.update(cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
+        file_node_dict.update(cu.set_search_type(file_name, search_type, verbose=verbose))
+        
+        return file_node_dict, files_list
+    
+    def clean_indeed_url(self, url_str, driver=None, verbose=False):
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        if driver is not None:
+            wsu.driver_get_url(driver, url_str, verbose=verbose)
+            url_str = driver.current_url
+        
+        # Parse the URL
+        parsed_url = urlparse(url_str)
+        
+        # Parse the query parameters
+        query_params = parse_qs(parsed_url.query)
+        
+        # Remove the junk parameters if they exist
+        for param in ['xpse', 'xfps', 'ad', 'sjdu', 'acatk']:
+            if param in query_params:
+                del query_params[param]
+        
+        # Rebuild the query string
+        new_query_string = urlencode(query_params, doseq=True)
+        
+        # Rebuild the URL without the junk parameters
+        new_url = urlunparse(parsed_url._replace(query=new_query_string))
+        
+        return(new_url)
     
     def load_dice_posting_url(self, viewjob_url, driver, files_list=[], verbose=True):
         file_node_dict = {}

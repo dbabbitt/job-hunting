@@ -7,7 +7,7 @@
 
 # Soli Deo gloria
 
-from . import nu
+from . import nu, osp
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -60,6 +60,10 @@ class WebScrapingUtilities(object):
         
         self.linkedin_url = 'https://www.linkedin.com/home'
         self.dice_url = 'https://www.dice.com/dashboard/logout'
+        
+        # Local paths
+        self.html_folder = osp.abspath(osp.join(nu.data_folder, 'html'))
+        self.notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
     
     
     
@@ -83,6 +87,8 @@ class WebScrapingUtilities(object):
     
     
     def clean_job_posting(self, file_path):
+        
+        # Clean up the Document Object Model
         page_soup = self.get_page_soup(file_path)
         
         # Make the job description text <div> the only tag in the <body>, if it exists
@@ -116,6 +122,27 @@ class WebScrapingUtilities(object):
                 if tag_obj.children:
                     tag_obj.unwrap()
         
+        # Remove class attributes from various tags
+        for tag_name in ['p', 'ul', 'li', 'strong']:
+            for tag_obj in page_soup.find_all(tag_name):
+                if 'class' in tag_obj.attrs:
+                    del tag_obj.attrs['class']
+        
+        # Collect all <a> tags and replace them with their text
+        a_tags = page_soup.find_all('a')
+        link_texts = [a_tag.text.strip() for a_tag in a_tags]
+        parent_tags = [a_tag.parent for a_tag in a_tags if a_tag.parent]
+        for a_tag, link_text in zip(a_tags, link_texts):
+            
+            # Replace the <a> tag with its text
+            a_tag.replace_with(link_text)
+            
+        # Clean up whitespace in the parent of the replaced <a> tag
+        for parent in parent_tags:
+                
+            # Join the strings in the parent to remove extraneous whitespace
+            parent.string = ' '.join(parent.stripped_strings)
+        
         # Prettify the HTML and convert to a string
         from bs4.formatter import HTMLFormatter
         formatter_obj = HTMLFormatter(indent=4)
@@ -135,6 +162,10 @@ class WebScrapingUtilities(object):
             r'<([^></ ]+)([^></]*)>[\r\n]+ +([^><\r\n]+)[\r\n]+ +</\1>',
             r'<\1\2>\3</\1>', html_str
         )
+        
+        # Fix badly-styled colons
+        html_str = re.sub(r'(?<!:)</(\w+)>[\r\n]+( +):', r':</\1>\n\2', html_str)
+        html_str = re.sub(r'(?<!:)</(\w+)>\s+<\1>:', ':', html_str)
         
         # Strip any leading/trailing whitespace and save the cleaned HTML back to the file
         with open(file_path, 'w', encoding=nu.encoding_type) as f:
@@ -695,7 +726,7 @@ class WebScrapingUtilities(object):
     ### Storage Functions ###
     
     
-    ### Module Functions ###
+    ### Subprocess Functions ###
     
     
     @staticmethod
@@ -711,10 +742,9 @@ class WebScrapingUtilities(object):
         subprocess.run(popenargs_list)
     
     
-    @staticmethod
-    def save_indeed_email_to_file(verbose=False):
+    def save_email_to_file(self, filename_prefix, verbose=False):
         """
-        Opens the Indeed HTML file with Notepad++ using PowerShell.
+        Opens the HTML file with Notepad++ using PowerShell.
         
         Parameters:
             verbose (bool, optional): If True, print debug information (default is False).
@@ -722,80 +752,10 @@ class WebScrapingUtilities(object):
         import subprocess
         
         # Define the paths
-        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\indeed_email.html'
-        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
+        html_file_path = osp.join(self.html_folder, f'{filename_prefix}_email.html')
         
         # Script block with Notepad++ open function
-        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
-        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
-        if verbose: print(popenargs_list)
-        
-        # Call PowerShell with the script block
-        subprocess.run(popenargs_list)
-    
-    
-    @staticmethod
-    def save_linkedin_email_to_file(verbose=False):
-        """
-        Opens the Linkedin HTML file with Notepad++ using PowerShell.
-        
-        Parameters:
-            verbose (bool, optional): If True, print debug information (default is False).
-        """
-        import subprocess
-        
-        # Define the paths
-        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\linkedin_email.html'
-        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
-        
-        # Script block with Notepad++ open function
-        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
-        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
-        if verbose: print(popenargs_list)
-        
-        # Call PowerShell with the script block
-        subprocess.run(popenargs_list)
-    
-    
-    @staticmethod
-    def save_dice_email_to_file(verbose=False):
-        """
-        Opens the Dice HTML file with Notepad++ using PowerShell.
-        
-        Parameters:
-            verbose (bool, optional): If True, print debug information (default is False).
-        """
-        import subprocess
-        
-        # Define the paths
-        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\dice_email.html'
-        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
-        
-        # Script block with Notepad++ open function
-        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
-        popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
-        if verbose: print(popenargs_list)
-        
-        # Call PowerShell with the script block
-        subprocess.run(popenargs_list)
-    
-    
-    @staticmethod
-    def save_builtin_email_to_file(verbose=False):
-        """
-        Opens the built-in HTML file with Notepad++ using PowerShell.
-        
-        Parameters:
-            verbose (bool, optional): If True, print debug information (default is False).
-        """
-        import subprocess
-        
-        # Define the paths
-        html_file_path = r'C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\data\html\builtin_email.html'
-        notepad_path = r'C:\Program Files\Notepad++\notepad++.exe'
-        
-        # Script block with Notepad++ open function
-        script_block = f'Start-Process "{notepad_path}" -ArgumentList "{html_file_path}"'
+        script_block = f'Start-Process "{self.notepad_path}" -ArgumentList "{html_file_path}"'
         popenargs_list = ['powershell.exe', '-ExecutionPolicy', 'Bypass', '-Command', script_block]
         if verbose: print(popenargs_list)
         

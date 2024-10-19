@@ -466,8 +466,8 @@ class CypherUtilities(object):
                 file_node_dict = df.T[0].to_dict()
 
         return file_node_dict
-
-
+    
+    
     def set_posting_url(self, file_name, url_str, verbose=False):
         assert pd.notna(url_str), f"{file_name} cannot take {url_str} as a url_str"
         file_node_dict = {}
@@ -488,9 +488,9 @@ class CypherUtilities(object):
                 rows_list.append(row_dict)
             from pandas import DataFrame
             df = DataFrame(rows_list)
-
+            
             return df
-
+        
         with self.driver.session() as session:
             df = session.write_transaction(
                 do_cypher_tx, file_name=file_name, url_str=url_str, verbose=verbose
@@ -499,7 +499,42 @@ class CypherUtilities(object):
                 print(df.to_dict('records'))
             if df.shape[1]:
                 file_node_dict = df.T[0].to_dict()
-
+        
+        return file_node_dict
+    
+    
+    def set_search_type(self, file_name, search_type, verbose=False):
+        assert pd.notna(search_type), f"{file_name} cannot take {search_type} as a search_type"
+        file_node_dict = {}
+        def do_cypher_tx(tx, file_name, search_type, verbose=False):
+            cypher_str = """
+                MATCH (fn:FileNames {file_name: $file_name})
+                SET fn.search_type = $search_type
+                RETURN fn;"""
+            if verbose:
+                clear_output(wait=True)
+                print(
+                    cypher_str.replace('$file_name', f'"{file_name}"').replace('$search_type', f'"{search_type}"')
+                )
+            parameter_dict = {'file_name': file_name, 'search_type': search_type}
+            rows_list = []
+            for record in tx.run(query=cypher_str, parameters=parameter_dict):
+                row_dict = {k: v for k, v in dict(record.items())['fn'].items()}
+                rows_list.append(row_dict)
+            from pandas import DataFrame
+            df = DataFrame(rows_list)
+            
+            return df
+        
+        with self.driver.session() as session:
+            df = session.write_transaction(
+                do_cypher_tx, file_name=file_name, search_type=search_type, verbose=verbose
+            )
+            if verbose:
+                print(df.to_dict('records'))
+            if df.shape[1]:
+                file_node_dict = df.T[0].to_dict()
+        
         return file_node_dict
 
 
