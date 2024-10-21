@@ -1,12 +1,10 @@
 
-// Update File Names node with rejection email text
+// Count successful applications by search type
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1338794_Data_Scientist_III_Availity.html"]
-SET
-    fn.rejection_email_text = "However, at this time, we are pursuing candidates with skills and experience which more closely match the position.",
-    fn.rejection_email_date = date("2024-10-18"),
-    fn.is_closed = true
-RETURN fn;
+WHERE fn.search_type IS NOT NULL AND fn.opportunity_application_email_date IS NOT NULL
+WITH fn.search_type AS search_type, COUNT(fn) AS email_application_count
+RETURN search_type, email_application_count
+ORDER BY search_type;
 
 // Find all work search activities for the date range
 WITH "Sunday, 10/06/2024 - Saturday, 10/12/2024" AS date_range
@@ -39,6 +37,28 @@ RETURN
     fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
     fn.rejection_email_date AS rejection_email_date,
     fn.tech_interview_completion_date AS tech_interview_completion_date;
+
+// Find all File Names nodes with search types
+MATCH (fn:FileNames)
+WHERE fn.search_type IS NOT NULL
+RETURN
+    fn.search_type AS search_type,
+    fn.file_name AS file_name,
+    fn.opportunity_application_email_date AS opportunity_application_email_date,
+    fn.posting_url AS posting_url,
+    fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.tech_interview_completion_date AS tech_interview_completion_date
+ORDER BY fn.search_type;
+
+// Update File Names node with rejection email text
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["1338794_Data_Scientist_III_Availity.html"]
+SET
+    fn.rejection_email_text = "However, at this time, we are pursuing candidates with skills and experience which more closely match the position.",
+    fn.rejection_email_date = date("2024-10-18"),
+    fn.is_closed = true
+RETURN fn;
 
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
