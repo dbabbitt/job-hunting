@@ -468,7 +468,7 @@ class LrUtilities(object):
             percent_completed /= self.hunting_df.shape[0]
             print('{}/{} = {}% completed'.format(
                 self.hunting_df[mask_series].shape[0], self.hunting_df.shape[0],
-                round(percent_completed, 1)
+                round(percent_completed, 2)
             ))
         
         return quals_list, file_name

@@ -194,11 +194,12 @@ class SectionUtilities(object):
         # Fix various abbreviations, et al
         fake_stops_list = [
             'e.g.', 'etc.', 'M.S.', 'B.S.', 'Ph.D.', '(ex.', '(Ex.', 'U.S.', 'i.e.',
-            '&amp;', 'E.g.', 'Bsc.', 'MSc.', 'incl.', ',...)', '.).', 'Approx. ', 'approx. '
+            '&amp;', 'E.g.', 'Bsc.', 'MSc.', 'incl.', ',...)', '.).', 'Approx. ', 'approx. ',
+            ' lbs. '
         ]
         replacements_list = [
             'eg', 'etc', 'MS', 'BS', 'PhD', '(eg', '(eg', 'US', 'ie', '&', 'eg', 'BS',
-            'MS', 'including', ')', '.)', 'Approximately ', 'approximately '
+            'MS', 'including', ')', '.)', 'Approximately ', 'approximately ', ' lbs '
         ]
         for fake_stop, replacement in zip(fake_stops_list, replacements_list):
             child_str = child_str.replace(fake_stop, replacement)

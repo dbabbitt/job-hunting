@@ -96,9 +96,6 @@ class PosSymbolSgdClassifier:
         self.count_vect.validate_and_restore_vocab()
         X_counts = self.count_vect.transform([navigable_parent])
         
-        # Validate the vocabulary using the _check_vocabulary method
-        self.count_vect._check_vocabulary()
-        
         X_tfidf = self.tfidf_transformer.transform(X_counts)
         X_test = X_tfidf.toarray()
         y_predict_proba = self.classifier.predict_proba(X_test).flatten().tolist()

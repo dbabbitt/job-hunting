@@ -1,10 +1,76 @@
 
-// Count successful applications by search type
+// Count applications by search type
 MATCH (fn:FileNames)
-WHERE fn.search_type IS NOT NULL AND fn.opportunity_application_email_date IS NOT NULL
-WITH fn.search_type AS search_type, COUNT(fn) AS email_application_count
-RETURN search_type, email_application_count
-ORDER BY search_type;
+WHERE fn.search_type IS NOT NULL
+WITH fn.search_type AS search_type,
+     COUNT(CASE WHEN fn.opportunity_application_email_date IS NOT NULL THEN 1 END) AS successful_count,
+     COUNT(CASE WHEN fn.opportunity_application_email_date IS NULL THEN 1 END) AS unsuccessful_count,
+     COUNT(fn) AS total_count
+RETURN search_type, 
+       successful_count, 
+       unsuccessful_count,
+       CASE WHEN total_count > 0 THEN ROUND((successful_count * 100.0 / total_count) * 10) / 10 ELSE 0 END AS percentage_successful
+ORDER BY percentage_successful DESC;
+
+// Check for application duplicates or unrejected postings
+MATCH (fn:FileNames)
+WHERE
+    (fn.file_name IN ["QJXzzmWRANif0wabGXFE7w_Senior_Data_Scientist_Massachusetts_United_States.html"])
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.is_closed AS is_closed,
+    fn.percent_fit AS percent_fit,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
+// Update File Names node with rejection email text
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["1331285_Forward_Deployment_Engineer_Jellyfish.html"]
+SET
+    fn.rejection_email_text = "After review, we wanted to let you know that we have chosen to move forward with a few other candidates at this time for the Forward Deployed Engineer position.",
+    fn.rejection_email_date = date("2024-10-23"),
+    fn.is_closed = true
+RETURN fn;
+
+// Get all unique node types and their properties, including node types without properties
+MATCH (n)
+WITH DISTINCT labels(n) AS nodeLabels, keys(n) AS nodeProperties
+UNWIND nodeLabels AS label
+WITH DISTINCT label, nodeProperties
+UNWIND nodeProperties AS property
+RETURN DISTINCT label AS node_type, property AS unique_property
+ORDER BY node_type, unique_property
+UNION
+MATCH (n)
+WHERE size(keys(n)) = 0
+WITH DISTINCT labels(n) AS nodeLabels
+UNWIND nodeLabels AS label
+RETURN DISTINCT label AS node_type, null AS unique_property
+ORDER BY node_type;
+
+// Get all unique properties across all FileNames nodes
+MATCH (fn:FileNames)
+WITH collect(keys(fn)) AS all_properties
+WITH apoc.coll.toSet(apoc.coll.flatten(all_properties)) AS unique_properties
+UNWIND unique_properties AS property
+RETURN property
+ORDER BY property;
+
+// Get all unique node and relationship labels that have a file_name or sequence_order property
+CALL db.labels() YIELD label
+WITH label
+MATCH (n)
+WHERE label IN labels(n) AND (exists(n.file_name) OR exists(n.sequence_order))
+RETURN DISTINCT label AS unique_label
+UNION
+CALL db.relationshipTypes() YIELD relationshipType
+WITH relationshipType
+MATCH ()-[r]->()
+WHERE type(r) = relationshipType AND (exists(r.file_name) OR exists(r.sequence_order))
+RETURN DISTINCT relationshipType AS unique_label
+ORDER BY unique_label;
 
 // Find all work search activities for the date range
 WITH "Sunday, 10/06/2024 - Saturday, 10/12/2024" AS date_range
@@ -51,28 +117,6 @@ RETURN
     fn.tech_interview_completion_date AS tech_interview_completion_date
 ORDER BY fn.search_type;
 
-// Update File Names node with rejection email text
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1338794_Data_Scientist_III_Availity.html"]
-SET
-    fn.rejection_email_text = "However, at this time, we are pursuing candidates with skills and experience which more closely match the position.",
-    fn.rejection_email_date = date("2024-10-18"),
-    fn.is_closed = true
-RETURN fn;
-
-// Check for application duplicates or unrejected postings
-MATCH (fn:FileNames)
-WHERE
-    (fn.file_name IN ["2MTx8MH_Qi2lXNRyK8p4eQ_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "c0ZxaPJOVkBXO_mvv81t0w_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "CDPQnexg1o1I50qz_3Pu0A_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "HZzUjJEw48m6d_fUeeIOfA_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "lczt6KSA9MU6qm_jBjagrA_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "upKoUNAylsvorTHBA2XThw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "upUqAPz09NaTfzXPJrXW_A_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "WSvFXPuNIKBNPwD8F_M5sg_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "wvoi4RlIKeM15G9x9_MTNw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html"])
-RETURN
-    fn.opportunity_application_email_date AS application_date,
-    fn.is_closed AS is_closed,
-    fn.percent_fit AS percent_fit,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url
-ORDER BY fn.opportunity_application_email_date DESC;
-
 // Show rejection info on selected postings
 MATCH (fn:FileNames)
 WHERE
@@ -93,14 +137,6 @@ CALL db.labels() YIELD label
 WITH label AS node_label
 RETURN node_label
 ORDER BY node_label;
-
-// Get all unique properties across all FileNames nodes
-MATCH (fn:FileNames)
-WITH collect(keys(fn)) AS all_properties
-WITH apoc.coll.toSet(apoc.coll.flatten(all_properties)) AS unique_properties
-UNWIND unique_properties AS property
-RETURN property
-ORDER BY property;
 
 // Update File Names node with phone screen date
 MATCH (fn:FileNames)
@@ -202,16 +238,6 @@ RETURN
     total_applications,
     total_rejections
 ORDER BY action_date ASC;
-
-// Step 1: Get all unique relationship types
-MATCH ()-[r]->()
-WITH DISTINCT type(r) AS relType
-// Step 2: Check each relationship type for the 'file_name' property
-MATCH ()-[r]->()
-WHERE type(r) = relType AND exists(r.file_name)
-WITH DISTINCT relType
-// Step 3: Return the relationship types that have the 'file_name' property
-RETURN relType AS relationshipType
 
 // Unset the the percent fit for a specific file name
 MATCH (fn:FileNames)
