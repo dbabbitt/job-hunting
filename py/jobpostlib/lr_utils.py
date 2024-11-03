@@ -5,7 +5,7 @@
 
 # Soli Deo gloria
 
-from . import nu, hau, cu
+from . import nu, hau, cu, time, t0
 from IPython.display import clear_output
 from .section_classifier_utils import HtmlVectorizer
 from sklearn.exceptions import NotFittedError
@@ -419,6 +419,7 @@ class LrUtilities(object):
         self.hunting_df = pd.DataFrame(
             [{k: v for k, v in row_obj['fn'].items()} for row_obj in row_objs_list]
         )
+        self.max_togo = self.hunting_df.shape[0] - self.hunting_df[self.hunting_df.percent_fit >= 0.0].shape[0]
         
         # Get everything in the dictionary
         rows_list = [
@@ -464,12 +465,16 @@ class LrUtilities(object):
             ):
                 self.update_hunting(row_index, row_series, quals_list)
         if verbose:
-            percent_completed = 100 * self.hunting_df[mask_series].shape[0]
-            percent_completed /= self.hunting_df.shape[0]
-            print('{}/{} = {}% completed'.format(
-                self.hunting_df[mask_series].shape[0], self.hunting_df.shape[0],
-                round(percent_completed, 2)
-            ))
+            processed_count = self.hunting_df[mask_series].shape[0]
+            total_postings = self.hunting_df.shape[0]
+            percent_completed = 100 * processed_count / total_postings
+            mpp = round(((time.time() - t0)//60)/self.max_togo, 1) if self.max_togo else "N/A"
+            print(
+                '{} left to go: {}/{} = {}% completed (taking about {} minutes per post)'.format(
+                    total_postings - processed_count, processed_count, total_postings,
+                    round(percent_completed, 2), mpp
+                )
+            )
         
         return quals_list, file_name
     

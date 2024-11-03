@@ -1,5 +1,5 @@
 
-# https://neo4j.com/docs/operations-manual/current/installation/windows
+# C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\ps1\run_neo4j_as_console_application.ps1
 # Run this in a PowerShell window:
 # 
 # conda activate base; cd C:\Users\daveb\OneDrive\Documents\GitHub\job-hunting\ps1; cls; .\run_neo4j_as_console_application.ps1

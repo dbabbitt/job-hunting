@@ -2684,7 +2684,7 @@ class NotebookUtilities(object):
         if (X_train.shape[0] == 0) or (y_train.shape[0] == 0): return np.array([], dtype=bool)
         
         # Create a mask across the X_train and y_train columns (notnull checking for both inf and NaN values)
-        mask_series = concat([y_train, X_train], axis='columns').applymap(notnull).all(axis='columns')
+        mask_series = concat([DataFrame(y_train), DataFrame(X_train)], axis='columns').applymap(notnull).all(axis='columns')
         
         # Return the mask indicating which elements of both X_train and y_train are not inf or nan
         return mask_series
@@ -3060,7 +3060,8 @@ class NotebookUtilities(object):
                 
                 # Recursively call get row dictionary with the dictionary key as part of the prefix
                 row_dict = self.get_flattened_dictionary(
-                    v, row_dict=row_dict, key_prefix=f'{key_prefix}_{k}'
+                    v, row_dict=row_dict,
+                    key_prefix=f'{key_prefix}{"_" if key_prefix else ""}{k}'
                 )
                 
         # Check if the value is a list
@@ -3663,13 +3664,13 @@ class NotebookUtilities(object):
         return color_distance
     
     
-    def get_text_color(self, text_color='white', background_color_rgb=(0, 0, 0), verbose=False):
+    def get_text_color(self, text_color='white', bar_color_rgb=(0, 0, 0), verbose=False):
         """
         Determine an appropriate text color based on the background color 
         for improved readability.
         
         This function calculates the most suitable text color to be used 
-        on a given background color (`background_color_rgb`). It compares the 
+        on a given background color (`bar_color_rgb`). It compares the 
         distance of the background color to predefined text colors 
         ('white', '#404040', 'black') and selects the most distinct color. 
         The default text color is 'white'.
@@ -3678,7 +3679,7 @@ class NotebookUtilities(object):
             text_color (str, optional):
                 The default text color to be used if the background color is 
                 black. Defaults to 'white'.
-            background_color_rgb (tuple, optional):
+            bar_color_rgb (tuple, optional):
                 A tuple representing the RGB values of the background color. 
                 Defaults to (0, 0, 0), which is black.
             verbose (bool, optional):
@@ -3696,7 +3697,7 @@ class NotebookUtilities(object):
         """
         
         # Check if a non-black background color is provided
-        if background_color_rgb != (0, 0, 0):
+        if bar_color_rgb != (0, 0, 0):
             
             # Initialize the list to store the distances for each color
             text_colors_list = []
@@ -3705,7 +3706,7 @@ class NotebookUtilities(object):
             for color in ['white', '#404040', 'black']:
                 
                 # Calculate the distance between the current text color and the background color
-                color_distance = self.color_distance_from(color, background_color_rgb)
+                color_distance = self.color_distance_from(color, bar_color_rgb)
                 color_tuple = (color_distance, color)
                 
                 # Append the color and its distance to the list

@@ -1,21 +1,7 @@
 
-// Count applications by search type
-MATCH (fn:FileNames)
-WHERE fn.search_type IS NOT NULL
-WITH fn.search_type AS search_type,
-     COUNT(CASE WHEN fn.opportunity_application_email_date IS NOT NULL THEN 1 END) AS successful_count,
-     COUNT(CASE WHEN fn.opportunity_application_email_date IS NULL THEN 1 END) AS unsuccessful_count,
-     COUNT(fn) AS total_count
-RETURN search_type, 
-       successful_count, 
-       unsuccessful_count,
-       CASE WHEN total_count > 0 THEN ROUND((successful_count * 100.0 / total_count) * 10) / 10 ELSE 0 END AS percentage_successful
-ORDER BY percentage_successful DESC;
-
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
-WHERE
-    (fn.file_name IN ["QJXzzmWRANif0wabGXFE7w_Senior_Data_Scientist_Massachusetts_United_States.html"])
+WHERE (fn.file_name IN ["0kJ1DJZCYRJRfyfXsZ3rrg_Senior_Data_Scientist_Assortment_Wellesley_Hills_MA.html", "VibdWPZVRDjuUwRYPIllEQ_Senior_Data_Scientist_Assortment_Wellesley_Hills_MA.html"])
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
@@ -27,12 +13,61 @@ ORDER BY fn.opportunity_application_email_date DESC;
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1331285_Forward_Deployment_Engineer_Jellyfish.html"]
+WHERE (fn.file_name IN ["0kJ1DJZCYRJRfyfXsZ3rrg_Senior_Data_Scientist_Assortment_Wellesley_Hills_MA.html", "VibdWPZVRDjuUwRYPIllEQ_Senior_Data_Scientist_Assortment_Wellesley_Hills_MA.html"])
 SET
-    fn.rejection_email_text = "After review, we wanted to let you know that we have chosen to move forward with a few other candidates at this time for the Forward Deployed Engineer position.",
-    fn.rejection_email_date = date("2024-10-23"),
+    fn.rejection_email_text = "After careful consideration, we will not be moving you to the next step in the hiring process for: R0415245 Senior Data Scientist - Assortment (Open)",
+    fn.rejection_email_date = date("2024-11-03"),
     fn.is_closed = true
 RETURN fn;
+
+// Count applications by search type
+MATCH (fn:FileNames)
+WHERE fn.search_type IS NOT NULL
+WITH
+    fn.search_type AS search_type,
+    COUNT(CASE WHEN fn.opportunity_application_email_date IS NOT NULL THEN 1 END) AS successful_count,
+    COUNT(CASE WHEN fn.opportunity_application_email_date IS NULL THEN 1 END) AS unsuccessful_count,
+    COUNT(fn) AS total_count
+RETURN
+    search_type, 
+    successful_count, 
+    unsuccessful_count,
+    CASE WHEN total_count > 0 THEN ROUND((successful_count * 100.0 / total_count) * 10) / 10 ELSE 0 END AS percentage_successful
+ORDER BY
+    percentage_successful DESC,
+    unsuccessful_count DESC;
+
+// Find all work search activities for the date range
+WITH "Sunday, 10/20/2024 - Saturday, 10/26/2024" AS date_range
+WITH split(date_range, " - ") AS dates
+WITH
+    split(dates[0], ", ") AS start_components,
+    split(dates[1], ", ") AS end_components
+WITH
+    [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
+    [item in split(end_components[1], "/") | toInteger(item)] AS end_components
+WITH
+    date({
+        day: start_components[1],
+        month: start_components[0],
+        year: start_components[2]
+    }) AS date_start,
+    date({
+        day: end_components[1],
+        month: end_components[0],
+        year: end_components[2]
+    }) AS date_end
+MATCH (fn:FileNames)
+WHERE
+    (fn.opportunity_application_email_date >= date_start) AND
+    (fn.opportunity_application_email_date <= date_end)
+RETURN
+    fn.file_name AS file_name,
+    fn.opportunity_application_email_date AS opportunity_application_email_date,
+    fn.posting_url AS posting_url,
+    fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.tech_interview_completion_date AS tech_interview_completion_date;
 
 // Get all unique node types and their properties, including node types without properties
 MATCH (n)
@@ -71,38 +106,6 @@ MATCH ()-[r]->()
 WHERE type(r) = relationshipType AND (exists(r.file_name) OR exists(r.sequence_order))
 RETURN DISTINCT relationshipType AS unique_label
 ORDER BY unique_label;
-
-// Find all work search activities for the date range
-WITH "Sunday, 10/06/2024 - Saturday, 10/12/2024" AS date_range
-WITH split(date_range, " - ") AS dates
-WITH
-    split(dates[0], ", ") AS start_components,
-    split(dates[1], ", ") AS end_components
-WITH
-    [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
-    [item in split(end_components[1], "/") | toInteger(item)] AS end_components
-WITH
-    date({
-        day: start_components[1],
-        month: start_components[0],
-        year: start_components[2]
-    }) AS date_start,
-    date({
-        day: end_components[1],
-        month: end_components[0],
-        year: end_components[2]
-    }) AS date_end
-MATCH (fn:FileNames)
-WHERE
-    (fn.opportunity_application_email_date >= date_start) AND
-    (fn.opportunity_application_email_date <= date_end)
-RETURN
-    fn.file_name AS file_name,
-    fn.opportunity_application_email_date AS opportunity_application_email_date,
-    fn.posting_url AS posting_url,
-    fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.tech_interview_completion_date AS tech_interview_completion_date;
 
 // Find all File Names nodes with search types
 MATCH (fn:FileNames)

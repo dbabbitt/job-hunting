@@ -6,7 +6,7 @@
 
 # Soli Deo gloria
 
-from . import nu, wsu, hau, cu, hc, lru, ssgdcu, scrfcu, crf, time
+from . import nu, wsu, hau, cu, hc, lru, ssgdcu, scrfcu, crf, time, humanize, speech_engine
 from IPython.display import clear_output
 from matplotlib.colors import to_hex
 from nltk.tokenize import sent_tokenize
@@ -248,6 +248,8 @@ class SectionUtilities(object):
             else: quals_set.add(qual)
         quals_list = list(quals_set)
         assert all([isinstance(qual_str, str) for qual_str in quals_list]), f'Error in print_fit_job:\nquals_list = {quals_list}\nrow_series:\n{row_series}'
+        # import random
+        # random.shuffle(quals_list)
         prediction_list = list(lru.predict_job_hunt_percent_fit(
             quals_list, verbose=verbose
         ))
@@ -442,7 +444,80 @@ class SectionUtilities(object):
         file_node_dict.update(cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
         file_node_dict.update(cu.set_search_type(file_name, search_type, verbose=verbose))
         
-        return file_node_dict, files_list
+        return file_node_dict, files_list    
+    def store_linkedin_file_attributes(
+        self, driver, url_str, search_type, files_list=[], verbose=False
+    ):
+        wsu.driver_get_url(driver, url_str, verbose=False)
+        time.sleep(4)
+        viewjob_url = driver.current_url
+        
+        from urllib.parse import parse_qs, urlparse
+        trackingId = self.ascii_regex.sub(
+            ' ', parse_qs(urlparse(viewjob_url).query).get('trackingId', [''])[0]
+        ).strip().replace(' ', '_')
+        
+        # Create the file name out of the job title and subtitle
+        from selenium.webdriver.common.by import By
+        titles_list = driver.find_elements(By.CSS_SELECTOR, 'h1.t-24')
+        if not titles_list:
+            titles_list = driver.find_elements(By.CSS_SELECTOR, '#ember130 > h2:nth-child(1)')
+        assert titles_list, "You need to find your job title from somewhere else"
+        job_title_str = titles_list[0].text
+        job_subtitle_str = driver.find_elements(
+            By.CSS_SELECTOR, 'span.tvm__text:nth-child(1)'
+        )[0].text
+        page_title = f'{job_title_str} {job_subtitle_str}'
+        file_name = self.ascii_regex.sub(' ', page_title).strip().replace(' ', '_')
+        
+        if len(trackingId):
+            file_name = f'{trackingId}_{file_name}.html'
+        else:
+            file_name = f'{file_name}.html'
+        file_path = os.path.join(cu.SAVES_HTML_FOLDER, file_name)
+        if not os.path.isfile(file_path):
+            
+            # Save the HTML to the file
+            with open(file_path, 'w', encoding=nu.encoding_type) as f:
+                print(f'Saving to {file_path}')
+                f.write('<html>\n    <head>\n        <title>')
+                f.write(page_title)
+                head_str = '</title>\n    </head>\n    <body>\n        <div class="jobsearc'
+                head_str += 'h-JobComponent-description" id="jobDescriptionText">\n'
+                f.write(head_str)
+                
+                # Get the page soup
+                overlay_tag = driver.find_elements(
+                    By.CSS_SELECTOR, '.global-nav__content'
+                )[0]
+                driver.execute_script(
+                    "arguments[0].setAttribute('style','display:none;');", overlay_tag
+                )
+                wsu.click_by_xpath(driver, '/html/body//footer/button', verbose=False)
+                web_obj = driver.find_elements(By.CSS_SELECTOR, '#job-details')[0]
+                article_str = web_obj.get_attribute('innerHTML').strip()
+                
+                # Prettify the HTML
+                from bs4.formatter import HTMLFormatter
+                formatter_obj = HTMLFormatter(indent=4)
+                from bs4 import BeautifulSoup as bs
+                page_soup = bs(article_str, 'html.parser')
+                html_str = page_soup.prettify(formatter=formatter_obj)
+                
+                f.write(re.sub('^', '            ', html_str, 0, re.MULTILINE).rstrip())
+                f.write('\n        </div>\n    </body>\n</html>')
+            
+            # Delete the svg tags, remove class attributes from various tags, and tighten up the parent tag for easier viewing
+            wsu.clean_job_posting(file_path)
+            
+            files_list.append(file_name)
+        cu.ensure_filename(file_name, verbose=False)
+        
+        # Store the file attributes
+        cu.set_posting_url(file_name, viewjob_url, verbose=False)
+        cu.set_search_type(file_name, search_type, verbose=False)
+        
+        return files_list
     
     def clean_indeed_url(self, url_str, driver=None, verbose=False):
         from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
@@ -521,3 +596,35 @@ class SectionUtilities(object):
             file_node_dict.update(cu.set_posting_url(file_name, viewjob_url, verbose=verbose))
         
         return file_node_dict, files_list
+    
+    def populate_postings(self, driver, postings_count, files_list=[], verbose=True):
+        t1 = time.time()
+        try: driver.close()
+        except Exception as e: print(f'{e.__class__.__name__} error: {str(e).strip()}')
+        cu.ensure_navigableparent('END', verbose=False)
+        from tqdm import tqdm
+        progress_bar = tqdm(
+            files_list, total=len(files_list), desc="Populate the Child Strings"
+        )
+        for file_name in progress_bar:
+            file_path = os.path.join(cu.SAVES_HTML_FOLDER, file_name)
+            
+            # Delete each of the previous siblings of the target_div that are <div> elements
+            wsu.clean_job_posting(file_path)
+            
+            page_soup = wsu.get_page_soup(file_path)
+            row_div_list = page_soup.find_all(name='div', id='jobDescriptionText')
+            assert row_div_list, f'{file_name} is missing <div id="jobDescriptionText">'
+            for div_soup in row_div_list:
+                child_strs_list = hau.get_navigable_children(div_soup, [])
+                assert child_strs_list, f'{file_name} is missing its child strings'
+                cu.populate_from_child_strings(child_strs_list, file_name, verbose=False)
+        if verbose:
+            duration_str = humanize.precisedelta(
+                time.time() - t1, minimum_unit='seconds', format='%0.0f'
+            )
+            speech_str = f'Populating {len(files_list)} out of {postings_count} postings'
+            speech_str += f' completed in {duration_str}'
+            speech_engine.say(speech_str); speech_engine.runAndWait()
+        
+        return files_list

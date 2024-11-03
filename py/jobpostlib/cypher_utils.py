@@ -188,11 +188,11 @@ class CypherUtilities(object):
         np.is_header AS is_header,
         np.""" + """,
         np.""".join([f'{subtype} AS {subtype}' for subtype in self.subtypes_list])
-
-
+        
+        
         # Header Tags Table CYPHER
-
-
+        
+        
         # Navigable Parents CYPHER strings
         self.set_is_header1_cypher_str = """
             MERGE (np:NavigableParents {{navigable_parent: '{}'}})
@@ -200,21 +200,35 @@ class CypherUtilities(object):
         self.set_is_header0_cypher_str = """
             MERGE (np:NavigableParents {{navigable_parent: '{}'}})
             SET np.is_header = false;"""
-
-
+        
+        
         # Header Tags Sequence CYPHER strings
-
-
+        
+        
         # Navigable Parents Sequence CYPHER strings
-
-
+        
+        
         # Parts of Speech CYPHER strings
-
-
+        
+        
         # Minimum Requirements Section CYPHER strings
-
+        
+        
         # CYPHER strings for Various Relationships
-
+        self.get_job_application_links = '''
+            // Get job application links for jobs you should apply to
+            MATCH (fn:FileNames)
+            WHERE
+                fn.percent_fit >= 0.8 AND
+                ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
+                ((fn.is_opportunity_application_emailed IS NULL) OR (fn.is_opportunity_application_emailed = false))
+            RETURN
+                fn.percent_fit AS percent_fit,
+                fn.file_name AS filename,
+                fn.posting_url AS posting_url
+            ORDER BY fn.percent_fit DESC;'''
+        
+        
         # Various CYPHER strings
         self.SAVES_HTML_FOLDER = os.path.join(nu.saves_folder, 'html')
         self.BACKSLASH = chr(92)
@@ -2215,8 +2229,8 @@ class CypherUtilities(object):
         # Initialize and populate the posting date list
         POSTING_DATE_HEADERS_LIST = post_date_df[post_date_df.is_posting_date].navigable_parent.tolist()
         nu.store_objects(POSTING_DATE_HEADERS_LIST=POSTING_DATE_HEADERS_LIST, verbose=verbose)
-
-
+    
+    
     def create_other_pickle(self, verbose=False):
 
         # Get the other headers
@@ -2230,7 +2244,88 @@ class CypherUtilities(object):
                 np.is_other AS is_other;"""
         other_df = pd.DataFrame(self.get_execution_results(cypher_str, verbose=verbose))
         other_df.is_other = other_df.is_other.map(lambda x: {true: True, false: False}[x])
-
+        
         # Initialize and populate the other list
         OTHER_HEADERS_LIST = other_df[other_df.is_other].navigable_parent.tolist()
         nu.store_objects(OTHER_HEADERS_LIST=OTHER_HEADERS_LIST, verbose=verbose)
+    
+    
+    def get_cypher_for_job_hunting_activity(self, last_day_of_work=None, verbose=False):
+        if last_day_of_work is None:
+            comment_str = 'the beginning of recorded history'
+            interview_count_str = ''
+            screen_count_str = ''
+            rejection_count_str = ''
+            application_count_str = ''
+        else:
+            comment_str = 'last day of work'
+            formatted_date = last_day_of_work.strftime("%Y-%m-%d")
+            interview_count_str = f' AND date >= date("{formatted_date}")'
+            screen_count_str = f' AND fn.recruiter_screen_completion_date >= date("{formatted_date}")'
+            rejection_count_str = f' AND fn.rejection_email_date >= date("{formatted_date}")'
+            application_count_str = f' AND fn.opportunity_application_email_date >= date("{formatted_date}")'
+        
+        cypher_str = f'''
+            // Count job hunting activity since {comment_str}
+            CALL {{
+                
+                MATCH (fn:FileNames)
+                WITH fn, [date IN fn.technical_interview_dates WHERE date <= date(){interview_count_str}] AS action_dates
+                WHERE size(action_dates) > 0
+                UNWIND action_dates AS action_date
+                RETURN
+                    action_date,
+                    0 AS application_count,
+                    0 AS rejection_count,
+                    0 AS screen_count,
+                    1 AS interview_count
+                
+                UNION
+                
+                MATCH (fn:FileNames)
+                WHERE fn.recruiter_screen_completion_date <= date(){screen_count_str}
+                RETURN
+                    fn.recruiter_screen_completion_date AS action_date,
+                    0 AS application_count,
+                    0 AS rejection_count,
+                    COUNT(fn.recruiter_screen_completion_date) AS screen_count,
+                    0 AS interview_count
+                
+                UNION
+                
+                MATCH (fn:FileNames)
+                WHERE fn.rejection_email_date <= date(){rejection_count_str}
+                RETURN
+                    fn.rejection_email_date AS action_date,
+                    0 AS application_count,
+                    COUNT(fn.rejection_email_date) AS rejection_count,
+                    0 AS screen_count,
+                    0 AS interview_count
+                
+                UNION
+                
+                MATCH (fn:FileNames)
+                WHERE fn.opportunity_application_email_date <= date(){application_count_str}
+                RETURN
+                    fn.opportunity_application_email_date AS action_date,
+                    COUNT(fn.opportunity_application_email_date) AS application_count,
+                    0 AS rejection_count,
+                    0 AS screen_count,
+                    0 AS interview_count
+            
+            }}
+            WITH
+                action_date,
+                SUM(application_count) AS total_applications,
+                SUM(rejection_count) AS total_rejections,
+                SUM(screen_count) AS total_screens,
+                SUM(interview_count) AS total_interviews
+            RETURN
+                action_date,
+                total_applications,
+                total_rejections,
+                total_screens,
+                total_interviews
+            ORDER BY action_date ASC;'''
+        
+        return cypher_str
