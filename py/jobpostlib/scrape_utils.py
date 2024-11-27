@@ -88,7 +88,7 @@ class WebScrapingUtilities(object):
     
     def clean_job_posting(self, file_path):
         
-        # Clean up the Document Object Model
+        # Get the Document Object Model
         page_soup = self.get_page_soup(file_path)
         
         # Make the job description text <div> the only tag in the <body>, if it exists
@@ -132,9 +132,9 @@ class WebScrapingUtilities(object):
         a_tags = page_soup.find_all('a')
         link_texts = [a_tag.text.strip() for a_tag in a_tags]
         parent_tags = [a_tag.parent for a_tag in a_tags if a_tag.parent]
+        
+        # Replace the <a> tag with its text
         for a_tag, link_text in zip(a_tags, link_texts):
-            
-            # Replace the <a> tag with its text
             a_tag.replace_with(link_text)
             
         # Clean up whitespace in the parent of the replaced <a> tag
@@ -166,6 +166,181 @@ class WebScrapingUtilities(object):
         # Fix badly-styled colons
         html_str = re.sub(r'(?<!:)</(\w+)>[\r\n]+( +):', r':</\1>\n\2', html_str)
         html_str = re.sub(r'(?<!:)</(\w+)>\s+<\1>:', ':', html_str)
+        
+        # Strip any leading/trailing whitespace and save the cleaned HTML back to the file
+        with open(file_path, 'w', encoding=nu.encoding_type) as f:
+            print(html_str.strip(), file=f)
+    
+    
+    
+    def replace_phrase_elements_in_block_elements(self, file_path, block_elements_set, phrase_elements_set={'b', 'strong'}, verbose=False):
+        
+        # Get the Document Object Model
+        page_soup = self.get_page_soup(file_path)
+        
+        # Find all <b> and <strong> tags
+        b_tags = page_soup.find_all(phrase_elements_set)
+        b_texts = [b_tag.text.strip() for b_tag in b_tags]
+        
+        # List to track parents that need whitespace cleanup
+        cleanup_list = []
+        
+        # Iterate over each <b> tag
+        for b_tag, b_text in zip(b_tags, b_texts):
+            parent_tag = b_tag.parent
+            
+            # Check if the parent of the <b> tag is a block element
+            if parent_tag and parent_tag.name in block_elements_set:
+                
+                # Replace the <b> tag with its text
+                b_tag.replace_with(b_text)
+                
+                # Add parent to cleanup list
+                cleanup_list.append(parent_tag)
+            
+        # Clean up whitespace in the parents of the replaced <b> tags without affecting <br />
+        from bs4 import BeautifulSoup
+        from bs4.element import Tag
+        for parent in cleanup_list:
+                
+            # Collect content parts, preserving <br /> tags
+            p_contents = [p for p in parent.contents if (isinstance(p, str) and p.strip()) or isinstance(p, Tag)]
+            contents = []
+            for element in parent.contents:
+                if element.name == 'br':
+                    contents.append(str(element))  # Preserve <br /> as a string
+                else:
+                    contents.append(element.strip() if isinstance(element, str) else element.text.strip())
+            
+            # Join them with a space while ensuring <br /> tags are preserved
+            html_str = ' '.join(contents)
+            
+            # Tighten up the gaps
+            for suffix in [' ', ',']:
+                html_str = html_str.replace(' ' + suffix, suffix)
+            
+            parent.clear()  # Clear existing content
+            parent.append(BeautifulSoup(html_str, 'html.parser'))
+        
+        # Prettify the HTML and convert to a string
+        from bs4.formatter import HTMLFormatter
+        formatter_obj = HTMLFormatter(indent=4)
+        html_str = page_soup.prettify(formatter=formatter_obj)
+        
+        # Strip any leading/trailing whitespace and save the cleaned HTML back to the file
+        with open(file_path, 'w', encoding=nu.encoding_type) as f:
+            print(html_str.strip(), file=f)
+    
+    
+    
+    def convert_p_b_to_h3(self, file_path, basic_text_set={'p'}, phrase_elements_set={'b', 'strong'}, verbose=False):
+        """
+        Convert <p> tags containing exactly one phrase_elements_set tag to <h3> tags with specific attributes.
+        
+        Parameters:
+            file_path (str): The file path to the HTML content to parse and modify.
+            basic_text_set (set): the tag set, defaulting to {'p'}, that is the parent tag we are referring to as the <p> tag
+            phrase_elements_set (set): the tag name, like 'b' or 'strong', that we are looking for inside the <p> tag
+        
+        Returns:
+            None
+        """
+        
+        # Get the Document Object Model
+        page_soup = self.get_page_soup(file_path)
+        
+        # Find all <p> tags
+        p_tags = page_soup.find_all(basic_text_set)
+        
+        from bs4 import BeautifulSoup
+        from bs4.element import Tag
+        for p_tag in p_tags:
+            p_contents = [p for p in p_tag.contents if (isinstance(p, str) and p.strip()) or (isinstance(p, Tag) and p.name in phrase_elements_set)]
+            
+            # Check if the <p> tag contains exactly one <b> tag as its only content
+            if len(p_contents) == 1 and isinstance(p_contents[0], Tag) and p_contents[0].name in phrase_elements_set:
+                b_tag = p_contents[0]
+                
+                # Get the stripped text of the <b> tag
+                b_text = b_tag.text.strip()
+                
+                # Ensure that the text ends with a colon
+                if not any(map(lambda x: b_text.endswith(x), [':', '?', '!', '.', '*'])):
+                    b_text += ':'
+                
+                # Create a new <h3> tag with the desired attributes
+                h3_tag = page_soup.new_tag('h3', **{'class': 'jobSectionHeader', 'pos': 'H-XX'})
+                
+                # Set the text of the new <h3> tag
+                h3_tag.string = b_text
+                
+                # Replace the <p> tag with the new <h3> tag
+                p_tag.replace_with(h3_tag)
+        
+        # Check the modified page_soup to ensure the <p> tag has been replaced
+        if verbose:
+            print("After replacement:")
+            for tag in page_soup.find_all('h3'):
+                print(str(tag))  # This will show the new <h3> tags in the page_soup
+        
+        # Prettify the HTML and convert to a string
+        from bs4.formatter import HTMLFormatter
+        formatter_obj = HTMLFormatter(indent=4)
+        html_str = page_soup.prettify(formatter=formatter_obj)
+        if verbose:
+            print(html_str)
+        
+        # Try converting <p> tags containing exactly one <b> tag to <h3> tags with regex
+        import re
+        pattern = r'<p>\s+<(' + '|'.join(phrase_elements_set) + r')>\s*([^><\r\n]+):?\s*</\1>\s+</p>'
+        repl = r'<h3 class="jobSectionHeader" pos="H-O">\2:</h3>'
+        html_str = re.sub(pattern, repl, html_str).strip() # Strip any leading/trailing white space
+        if verbose:
+            print(pattern)
+            print(repl)
+            print(html_str)
+        
+        # Save the cleaned HTML back to the file
+        with open(file_path, 'w', encoding=nu.encoding_type) as f:
+            print(html_str, file=f)
+
+    
+    
+    def replace_single_child_tags_in_li(self, file_path, verbose=False):
+        """
+        Replace child tags with their text content if the parent is an
+        <li> tag and it contains only that single child tag.
+
+        Parameters:
+            file_path (str): The file path to the HTML content to parse and modify.
+
+        Returns:
+            None
+        """
+        
+        # Get the Document Object Model
+        page_soup = self.get_page_soup(file_path)
+        
+        # Find all <li> tags
+        li_tags = page_soup.find_all('li')
+        
+        from bs4.element import Tag
+        for li_tag in li_tags:
+            
+            # Check if the <li> tag contains exactly one child that is a tag
+            child_tags = [c for c in li_tag.contents if (isinstance(c, Tag) or (isinstance(c, str) and c.strip()))]
+            if len(child_tags) == 1:
+                child_tag = child_tags[0]
+                if isinstance(child_tag, Tag):
+                    
+                    # Replace the child tag with its text content
+                    li_tag.string = child_tag.text.strip()
+                    # child_tag.replace_with(child_tag.text.strip())
+        
+        # Prettify the HTML and convert to a string
+        from bs4.formatter import HTMLFormatter
+        formatter_obj = HTMLFormatter(indent=4)
+        html_str = page_soup.prettify(formatter=formatter_obj)
         
         # Strip any leading/trailing whitespace and save the cleaned HTML back to the file
         with open(file_path, 'w', encoding=nu.encoding_type) as f:
@@ -545,13 +720,15 @@ class WebScrapingUtilities(object):
     
     def log_into_indeed(self, driver, verbose=True):
         self.driver_get_url(driver, self.indeed_url, verbose=verbose)
-        self.fill_in_field(driver, field_name='email',
-                           field_value=self.secrets_json['indeed']['email'],
-                           input_css='#ifl-InputFormField-3',
-                           verbose=verbose)
+        self.fill_in_field(
+            driver, field_name='email',
+            field_value=self.secrets_json['indeed']['email'],
+            input_css='#ifl-InputFormField-ihl-useId-passport-webapp-1',
+            verbose=verbose
+        )
         # button_xpath = '/html/body/div/div[2]/main/div/div/div[2]/div/form/button'
         # self.click_by_xpath(driver, xpath=button_xpath, verbose=verbose)
-        button_css = 'button.i-unmask > span:nth-child(1)'
+        button_css = 'button.dd-privacy-allow > span:nth-child(1)'
         self.click_by_css(driver, button_css, wait=10, verbose=verbose)
         
         # Look for password field

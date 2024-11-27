@@ -255,14 +255,17 @@ class LrUtilities(object):
             verbose=verbose
         )
     
-    def get_quals_str(self, prediction_list, quals_list):
+    def get_quals_str(self, prediction_list, quals_list, verbose=True):
         qual_count = 0
         quals_str = ''
-        from tqdm import tqdm
-        progress_bar = tqdm(
-            zip(prediction_list, enumerate(quals_list)), total=len(quals_list),
-            desc="List Predictions of Qualifications"
-        )
+        if verbose:
+            from tqdm import tqdm
+            progress_bar = tqdm(
+                zip(prediction_list, enumerate(quals_list)), total=len(quals_list),
+                desc="List Predictions of Qualifications"
+            )
+        else:
+            progress_bar = zip(prediction_list, enumerate(quals_list))
         for pred_array, (i, qual_str) in progress_bar:
             if qual_str in self.basic_quals_dict:
                 formatted_str = '\nquals_list[{}] = "{}" ({})'

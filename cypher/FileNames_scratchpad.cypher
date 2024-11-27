@@ -1,7 +1,11 @@
 
-// Check for application duplicates or unrejected postings
+// Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["0kJ1DJZCYRJRfyfXsZ3rrg_Senior_Data_Scientist_Assortment_Wellesley_Hills_MA.html", "VibdWPZVRDjuUwRYPIllEQ_Senior_Data_Scientist_Assortment_Wellesley_Hills_MA.html"])
+WHERE (fn.file_name IN ["7f1ec2d01345f3a8_Data_Scientist_I_Payment_Integrity_New_York_NY_Indeed_com.html"])
+SET
+    fn.rejection_email_text = "We appreciate your interest in Oscar Health and the time you’ve invested in applying for the Data Scientist II role. We recently closed this role and are no longer reviewing candidates for the position. We encourage you to keep an eye on our website and apply to any positions that you may be interested in. We will keep your resume on file and may reach out if a role opens that matches your skills and experience.",
+    fn.rejection_email_date = date("2024-11-26"),
+    fn.is_closed = true
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
@@ -11,34 +15,20 @@ RETURN
     fn.posting_url AS posting_url
 ORDER BY fn.opportunity_application_email_date DESC;
 
-// Update File Names node with rejection email text
+// Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["0kJ1DJZCYRJRfyfXsZ3rrg_Senior_Data_Scientist_Assortment_Wellesley_Hills_MA.html", "VibdWPZVRDjuUwRYPIllEQ_Senior_Data_Scientist_Assortment_Wellesley_Hills_MA.html"])
-SET
-    fn.rejection_email_text = "After careful consideration, we will not be moving you to the next step in the hiring process for: R0415245 Senior Data Scientist - Assortment (Open)",
-    fn.rejection_email_date = date("2024-11-03"),
-    fn.is_closed = true
-RETURN fn;
-
-// Count applications by search type
-MATCH (fn:FileNames)
-WHERE fn.search_type IS NOT NULL
-WITH
-    fn.search_type AS search_type,
-    COUNT(CASE WHEN fn.opportunity_application_email_date IS NOT NULL THEN 1 END) AS successful_count,
-    COUNT(CASE WHEN fn.opportunity_application_email_date IS NULL THEN 1 END) AS unsuccessful_count,
-    COUNT(fn) AS total_count
+WHERE (fn.file_name IN ["3d87bc8fcd2a66b5_Sr_Data_Scientist_II_Alpharetta_GA_30005_Indeed_com.html", "6cd512fc61cd4572_Data_Scientist_II_JR14367_Remote_Indeed_com.html", "9f3b46174986d905_Data_Scientist_II_Remote_Indeed_com.html", "40f70f73663d2525_Data_Scientist_II_Remote_Indeed_com.html", "40f8709b20021987_Data_Scientist_II_Washington_DC_Indeed_com.html", "80b9c9a85f452959_Data_Scientist_III_Raleigh_NC_27606_Indeed_com.html", "91a9d1584bd3ea76_Data_Scientist_III_Remote_Indeed_com.html", "3749f33483ea1253_Data_Scientist_III_Remote_Indeed_com.html", "80168c7a079d6fa4_Data_Scientist_II_Remote_Indeed_com.html", "532002b34707356c_Data_Scientist_III_Remote_Indeed_com.html", "1338794_Data_Scientist_III_Availity.html", "1509255_Data_Scientist_II_Elsevier_BV_Company.html", "1537294f4c1e0417_CPAESS_Associate_Data_Scientist_II_Boulder_CO_80305_Indeed_com.html", "1669614_Data_Scientist_Music_Monetisation_Spotify.html", "a2214d95d916ff08_Sr_Data_Scientist_II_Alpharetta_GA_Indeed_com.html", "b36ec850cce3d36b_Data_Scientist_II_Remote_Remote_Indeed_com.html", "c2c6ffc0b75e0f99_Sr_Data_Scientist_II_Boston_MA_Indeed_com.html", "c2840f1b33525c57_Data_Scientist_II_AI_ML_Remote_Indeed_com.html", "d1149aa75b7c4498_Data_Scientist_III_Marlborough_MA_01752_Indeed_com.html", "Data_Scientist_II,_Economic_Data_-_Remote_Position_Data_Scientist_II,_Economic_Data_-_Remote_Position_a3569c3f5c6cffdc.html.html", "Data_Scientist_II_Remote.html", "Data_Scientist_II_Remote_Indeed_com.html", "Data_Scientist_III,_Business_Analytics_-_California_-_Indeed.com_88f5d9a70576ec2a.html", "df96c283373514e1_Data_Scientist_III_Remote_Indeed_com.html", "e2440208975cf80a_Data_Scientist_II_Remote_Remote_Indeed_com.html", "ea15987ed6bc3ee2_Data_Scientist_II_Remote_Indeed_com.html", "ecf20170b88c7b71_Data_Scientist_II_Remote_Indeed_com.html", "f39dd8ab67a6a98e_Data_Scientist_II_Outcomes_Research_Chicago_IL_Indeed_com.html", "u1w5o1yiSJHlpBAwN4O9Rw_Data_Scientist_III_Myriad_Genetics_United_States_Remote.html"])
 RETURN
-    search_type, 
-    successful_count, 
-    unsuccessful_count,
-    CASE WHEN total_count > 0 THEN ROUND((successful_count * 100.0 / total_count) * 10) / 10 ELSE 0 END AS percentage_successful
-ORDER BY
-    percentage_successful DESC,
-    unsuccessful_count DESC;
+    fn.opportunity_application_email_date AS application_date,
+    fn.is_closed AS is_closed,
+    fn.percent_fit AS percent_fit,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.opportunity_application_email_date DESC;
 
 // Find all work search activities for the date range
-WITH "Sunday, 10/20/2024 - Saturday, 10/26/2024" AS date_range
+WITH "Sunday, 11/17/2024 - Saturday, 11/23/2024" AS date_range
 WITH split(date_range, " - ") AS dates
 WITH
     split(dates[0], ", ") AS start_components,
@@ -69,6 +59,47 @@ RETURN
     fn.rejection_email_date AS rejection_email_date,
     fn.tech_interview_completion_date AS tech_interview_completion_date;
 
+// Count applications by search type
+MATCH (fn:FileNames)
+WHERE fn.search_type IS NOT NULL
+WITH
+    fn.search_type AS search_type,
+    COUNT(CASE WHEN fn.opportunity_application_email_date IS NOT NULL THEN 1 END) AS successful_count,
+    COUNT(CASE WHEN fn.opportunity_application_email_date IS NULL THEN 1 END) AS unsuccessful_count,
+    COUNT(fn) AS total_count
+RETURN
+    search_type, 
+    successful_count, 
+    unsuccessful_count,
+    CASE WHEN total_count > 0 THEN ROUND((successful_count * 100.0 / total_count) * 10) / 10 ELSE 0 END AS percentage_successful
+ORDER BY
+    percentage_successful DESC,
+    unsuccessful_count DESC;
+
+// Get all the rejection sentences
+MATCH (fn:FileNames)
+WHERE (fn.rejection_email_text IS NOT NULL)
+RETURN fn.rejection_email_text AS rejection_email_text;
+
+// Update File Names node with phone screen date
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["e90e83851650a0d3_AI_ML_NLP_Trainer_for_Part_Time_Freelance_100_Remote_Work_From_Home_Remote_Indeed_com.html"]
+SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
+RETURN fn;
+
+// Get all apoc procedures
+SHOW PROCEDURES YIELD name, description, signature
+RETURN name, description, signature
+ORDER BY name;
+
+// Get all unique properties across all FileNames nodes
+MATCH (fn:FileNames)
+WITH collect(keys(fn)) AS all_properties
+UNWIND all_properties AS property_list
+UNWIND property_list AS property
+RETURN DISTINCT property
+ORDER BY property;
+
 // Get all unique node types and their properties, including node types without properties
 MATCH (n)
 WITH DISTINCT labels(n) AS nodeLabels, keys(n) AS nodeProperties
@@ -84,14 +115,6 @@ WITH DISTINCT labels(n) AS nodeLabels
 UNWIND nodeLabels AS label
 RETURN DISTINCT label AS node_type, null AS unique_property
 ORDER BY node_type;
-
-// Get all unique properties across all FileNames nodes
-MATCH (fn:FileNames)
-WITH collect(keys(fn)) AS all_properties
-WITH apoc.coll.toSet(apoc.coll.flatten(all_properties)) AS unique_properties
-UNWIND unique_properties AS property
-RETURN property
-ORDER BY property;
 
 // Get all unique node and relationship labels that have a file_name or sequence_order property
 CALL db.labels() YIELD label
@@ -123,7 +146,7 @@ ORDER BY fn.search_type;
 // Show rejection info on selected postings
 MATCH (fn:FileNames)
 WHERE
-    (fn.file_name IN ["089a64e5c6632951_Senior_Data_Engineer_Data_Scientist_Frisco_TX_75034_Indeed_com.html", "089a64e5c6632951_Senior_Data_Engineer_Data_Scientist_Toronto_ON_Indeed_com.html"]) AND
+    (fn.file_name IN ["2MTx8MH_Qi2lXNRyK8p4eQ_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "c0ZxaPJOVkBXO_mvv81t0w_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "CDPQnexg1o1I50qz_3Pu0A_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "HZzUjJEw48m6d_fUeeIOfA_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "lczt6KSA9MU6qm_jBjagrA_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "m5ZwHrLY6Kc2HmseMji3Pw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "upKoUNAylsvorTHBA2XThw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "upUqAPz09NaTfzXPJrXW_A_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "WSvFXPuNIKBNPwD8F_M5sg_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "wvoi4RlIKeM15G9x9_MTNw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html"]) AND
     ((fn.is_closed IS NULL) OR (fn.is_closed = false)) AND
     (fn.rejection_email_text IS NULL) AND
     (fn.rejection_email_date IS NULL) AND
@@ -140,12 +163,6 @@ CALL db.labels() YIELD label
 WITH label AS node_label
 RETURN node_label
 ORDER BY node_label;
-
-// Update File Names node with phone screen date
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1bde8bc35d636065_Computer_Vision_Data_Scientist_at_Jaxon_AI_San_Francisco_Bay_Area_CA_Indeed_com.html"]
-SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
-RETURN fn;
 
 // Update File Names node with technical interview date
 MATCH (fn:FileNames)

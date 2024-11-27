@@ -1,4 +1,20 @@
 
+// Find the shortest and longest qual string
+MATCH (qs:QualificationStrings)
+RETURN qs.qualification_str
+ORDER BY size(qs.qualification_str) ASC
+LIMIT 1
+UNION
+MATCH (qs:QualificationStrings)
+RETURN qs.qualification_str
+ORDER BY size(qs.qualification_str) DESC
+LIMIT 1
+
+// Find out what you're proficient in to an advanced degree
+MATCH (qs:QualificationStrings)
+WHERE qs.qualification_str CONTAINS "Advanced proficiency in " AND qs.is_qualified = 1
+RETURN qs.qualification_str
+
 // Find quals that speak of clearances
 MATCH (qs:QualificationStrings)
 WHERE

@@ -672,19 +672,6 @@ class CypherUtilities(object):
             file_name, remove_node=False, remove_file=False, verbose=verbose
         )
         
-        # Remove any % fit designation
-        def do_cypher_tx(tx, file_name, verbose=False):
-            cypher_str = """
-                MATCH (fn:FileNames {file_name: $file_name})
-                SET fn.percent_fit = NULL;"""
-            if verbose:
-                clear_output(wait=True)
-                print(cypher_str.replace('$file_name', f'"{file_name}"'))
-            parameter_dict = {'file_name': file_name}
-            tx.run(query=cypher_str, parameters=parameter_dict)
-        with self.driver.session() as session:
-            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
-        
         # Remove the O-RQ designation for this no-longer-existing HTML
         if navigable_parent is not None:
             def do_cypher_tx(tx, navigable_parent):
@@ -712,6 +699,19 @@ class CypherUtilities(object):
             self.populate_from_child_strings(
                 child_strs_list, file_name, verbose=verbose
             )
+        
+        # Remove any % fit designation
+        def do_cypher_tx(tx, file_name, verbose=False):
+            cypher_str = """
+                MATCH (fn:FileNames {file_name: $file_name})
+                SET fn.percent_fit = NULL;"""
+            if verbose:
+                clear_output(wait=True)
+                print(cypher_str.replace('$file_name', f'"{file_name}"'))
+            parameter_dict = {'file_name': file_name}
+            tx.run(query=cypher_str, parameters=parameter_dict)
+        with self.driver.session() as session:
+            session.write_transaction(do_cypher_tx, file_name=file_name, verbose=verbose)
 
 
 
