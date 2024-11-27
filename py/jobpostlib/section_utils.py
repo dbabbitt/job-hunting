@@ -584,9 +584,51 @@ class SectionUtilities(object):
         
         return files_list
     
+    
+    @staticmethod
+    def get_final_url(url_str, verbose=False):
+        """
+        Get the final URL after following any redirects from the initial URL.
+        
+        Parameters:
+            url_str (str): The initial URL as a string.
+        
+        Returns:
+            str: The final URL after redirects.
+        """
+        import urllib.request
+        
+        # Open the URL and follow redirects
+        try:
+            with urllib.request.urlopen(url_str) as response:
+                final_url = response.geturl()
+            
+            return final_url
+        
+        # Handle URL errors, such as connection issues
+        except urllib.error.URLError as e:
+            if verbose: print(f"URL Error: {e.reason}")
+            
+            return url_str
+        
+        # Handle HTTP errors
+        except urllib.error.HTTPError as e:
+            if verbose: print(f"HTTP Error: {e.code} - {e.reason}")
+            
+            return url_str
+        
+        # Handle other unexpected exceptions
+        except Exception as e:
+            if verbose: print(f"An error occurred: {str(e)}")
+            
+            return url_str
+    
+    
     def clean_indeed_url(self, url_str, driver=None, verbose=False):
         from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-        if driver is not None:
+        if driver is None:
+            url_str = self.get_final_url(url_str)
+        else:
             wsu.driver_get_url(driver, url_str, verbose=verbose)
             url_str = driver.current_url
         
