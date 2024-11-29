@@ -1,16 +1,10 @@
 
-// Update File Names node with phone screen date
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"]
-SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
-RETURN fn;
-
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["1692573_Junior_Data_Scientist_Clearmark_Solutions_Limited.html"])
+WHERE (fn.file_name IN ["1686765_Data_Scientist_NAVEX_Global_Inc.html"])
 SET
-    fn.rejection_email_text = "We appreciate your interest in Esko and the time you've invested in applying for the Junior Data Scientist position. We decided to move forward with other candidates, but we thank you for giving us the opportunity to learn about your skills and accomplishments.",
-    fn.rejection_email_date = date("2024-11-27"),
+    fn.rejection_email_text = "As follow-up to your application to join our team at NAVEX as a Data Scientist, we want you to know that we have reviewed your application and will be moving forward with other candidates. We recognize you took great care and time to submit your application and hope your future efforts with other organizations will enable you to secure a position you are excited about. Thank you again for your time and interest in joining our team. We wish you the best of success with your career goals.",
+    fn.rejection_email_date = date("2024-11-28"),
     fn.is_closed = true
 RETURN
     fn.opportunity_application_email_date AS application_date,
@@ -20,6 +14,12 @@ RETURN
     fn.file_name AS file_name,
     fn.posting_url AS posting_url
 ORDER BY fn.opportunity_application_email_date DESC;
+
+// Update File Names node with phone screen date
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"]
+SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
+RETURN fn;
 
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
