@@ -1,40 +1,6 @@
 
-// Update File Names node with rejection email text
-MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["1686765_Data_Scientist_NAVEX_Global_Inc.html"])
-SET
-    fn.rejection_email_text = "As follow-up to your application to join our team at NAVEX as a Data Scientist, we want you to know that we have reviewed your application and will be moving forward with other candidates. We recognize you took great care and time to submit your application and hope your future efforts with other organizations will enable you to secure a position you are excited about. Thank you again for your time and interest in joining our team. We wish you the best of success with your career goals.",
-    fn.rejection_email_date = date("2024-11-28"),
-    fn.is_closed = true
-RETURN
-    fn.opportunity_application_email_date AS application_date,
-    fn.is_closed AS is_closed,
-    fn.percent_fit AS percent_fit,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url
-ORDER BY fn.opportunity_application_email_date DESC;
-
-// Update File Names node with phone screen date
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"]
-SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
-RETURN fn;
-
-// Check for application duplicates or unrejected postings
-MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"])
-RETURN
-    fn.opportunity_application_email_date AS application_date,
-    fn.is_closed AS is_closed,
-    fn.percent_fit AS percent_fit,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url
-ORDER BY fn.opportunity_application_email_date DESC;
-
 // Find all work search activities for the date range
-WITH "Sunday, 11/17/2024 - Saturday, 11/23/2024" AS date_range
+WITH "Sunday, 11/24/2024 - Saturday, 11/30/2024" AS date_range
 WITH split(date_range, " - ") AS dates
 WITH
     split(dates[0], ", ") AS start_components,
@@ -64,6 +30,40 @@ RETURN
     fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
     fn.rejection_email_date AS rejection_email_date,
     fn.tech_interview_completion_date AS tech_interview_completion_date;
+
+// Check for application duplicates or unrejected postings
+MATCH (fn:FileNames)
+WHERE (fn.file_name IN ["1aliJDDuRLZLZ_DNs97Hqw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "2MTx8MH_Qi2lXNRyK8p4eQ_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "c0ZxaPJOVkBXO_mvv81t0w_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "CDPQnexg1o1I50qz_3Pu0A_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "cpfp_FUYQ5ThrFNGtW9qSQ_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "HZzUjJEw48m6d_fUeeIOfA_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "lczt6KSA9MU6qm_jBjagrA_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "m5ZwHrLY6Kc2HmseMji3Pw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "mBb1Ajfkcmj2hwQPDPuF_w_Senior_Data_Scientist_Waltham_MA.html", "upKoUNAylsvorTHBA2XThw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "upUqAPz09NaTfzXPJrXW_A_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "WSvFXPuNIKBNPwD8F_M5sg_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "wvoi4RlIKeM15G9x9_MTNw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html"])
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.is_closed AS is_closed,
+    fn.percent_fit AS percent_fit,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
+// Update File Names node with rejection email text
+MATCH (fn:FileNames)
+WHERE (fn.file_name IN ["1686765_Data_Scientist_NAVEX_Global_Inc.html"])
+SET
+    fn.rejection_email_text = "As follow-up to your application to join our team at NAVEX as a Data Scientist, we want you to know that we have reviewed your application and will be moving forward with other candidates. We recognize you took great care and time to submit your application and hope your future efforts with other organizations will enable you to secure a position you are excited about. Thank you again for your time and interest in joining our team. We wish you the best of success with your career goals.",
+    fn.rejection_email_date = date("2024-11-28"),
+    fn.is_closed = true
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.is_closed AS is_closed,
+    fn.percent_fit AS percent_fit,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
+// Update File Names node with phone screen date
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"]
+SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
+RETURN fn;
 
 // Count applications by search type
 MATCH (fn:FileNames)
