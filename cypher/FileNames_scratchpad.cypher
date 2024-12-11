@@ -1,10 +1,10 @@
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["dd134a8687821eb0_Senior_Data_Scientist_Platform_Remote_Indeed_com.html"])
+WHERE (fn.file_name IN ["faa70717d2551db8_Data_Scientist_I_Remote_Indeed_com.html"])
 SET
-    fn.rejection_email_text = "We appreciate your thoughtful consideration of Agero for your prospective career advancement. As a dedicated Talent Acquisition Team, conducting a thorough examination of your application and promptly providing updates on your application status are integral aspects of our commitment. Following a comprehensive evaluation, we have chosen to pursue alternative candidates for the current position. Nevertheless, we express interest in maintaining an ongoing connection with you, as we consistently encounter new positions and prospects within our organization.",
-    fn.rejection_email_date = date("2024-12-09"),
+    fn.rejection_email_text = "Thank you for your interest in the Data Scientist I role. The hiring team has decided to place this role on hold for the immediate future, prioritizing other business objectives before this search is continued. We appreciate your time and interest in FiscalNote and would love to stay in touch as new opportunities develop on both this team and within the company.",
+    fn.rejection_email_date = date("2024-12-11"),
     fn.is_closed = true,
     fn.application_url = "xxxxxxxxxxxxxxx"
 RETURN
@@ -19,7 +19,7 @@ ORDER BY fn.opportunity_application_email_date DESC;
 
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["Health_Science_Officer_-_Oncology_Data_Program_Manager_-_Seattle,_WA_-_Indeed.com_eb24c57e72a85c13.html"])
+WHERE (fn.file_name IN ["faa70717d2551db8_Data_Scientist_I_Remote_Indeed_com.html"])
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,

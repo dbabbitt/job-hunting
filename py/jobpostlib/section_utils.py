@@ -6,7 +6,7 @@
 
 # Soli Deo gloria
 
-from . import nu, wsu, hau, cu, hc, lru, ssgdcu, scrfcu, crf, time, humanize, speech_engine
+from . import nu, wsu, hau, cu, hc, lru, ssgdcu, scrfcu, crf, time, speech_engine
 from IPython.display import clear_output
 from matplotlib.colors import to_hex
 from nltk.tokenize import sent_tokenize
@@ -727,6 +727,7 @@ class SectionUtilities(object):
                 assert child_strs_list, f'{file_name} is missing its child strings'
                 cu.populate_from_child_strings(child_strs_list, file_name, verbose=False)
         if verbose:
+            import humanize
             duration_str = humanize.precisedelta(
                 time.time() - t1, minimum_unit='seconds', format='%0.0f'
             )

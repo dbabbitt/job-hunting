@@ -1,20 +1,34 @@
 
-from datetime import datetime
-import humanize
-import os.path as osp
 import time
-import pyttsx3
-
-duration = 1000  # milliseconds
-freq = 880  # Hz
 t0 = t1 = time.time()
-speech_engine = pyttsx3.init()
 
-# Get the Storage object
-from .notebook_utils import NotebookUtilities
+# Add the path to the shared utilities directory
+import os.path as osp
+
+# Define the shared folder path using join for better compatibility
+shared_folder = osp.abspath(osp.join(
+    osp.dirname(__file__), '..', '..', '..', 'share'
+))
+
+# Add the shared folder to sys.path if it's not already included
+import sys
+if shared_folder not in sys.path:
+    sys.path.insert(1, shared_folder)
+
+# Attempt to import the Storage object
+try:
+    from notebook_utils import NotebookUtilities
+except ImportError as e:
+    print(f"Error importing NotebookUtilities: {e}")
+
+# Initialize with data and saves folder paths
 nu = NotebookUtilities(
-    data_folder_path=osp.abspath('../data'),
-    saves_folder_path=osp.abspath('../saves')
+    data_folder_path=osp.abspath(osp.join(
+        osp.dirname(__file__), '..', '..', 'data'
+    )),
+    saves_folder_path=osp.abspath(osp.join(
+        osp.dirname(__file__), '..', '..', 'saves'
+    ))
 )
 secrets_json_path = osp.abspath(osp.join(nu.data_folder, 'secrets', 'jh_secrets.json'))
 
@@ -37,6 +51,11 @@ cu = CypherUtilities(
     driver=None,
     secrets_json_path=secrets_json_path
 )
+
+import pyttsx3
+speech_engine = pyttsx3.init()
+duration = 1000  # milliseconds
+freq = 880  # Hz
 
 from neo4j.exceptions import ServiceUnavailable
 try:
@@ -83,12 +102,15 @@ crf = CrfUtilities(verbose=True)
 from .section_utils import SectionUtilities
 su = SectionUtilities(verbose=False)
 
+import humanize
 duration_str = humanize.precisedelta(time.time() - t1, minimum_unit='seconds', format='%0.0f')
 # wsu.beep(freq, duration)
 speech_str = f'Utility libraries created in {duration_str}'
 print(speech_str)
 speech_engine.say(speech_str)
 speech_engine.runAndWait()
+
+from datetime import datetime
 
 # print(f"from jobpostlib import ({', '.join(dir())})")
 # print(r'\b(' + '|'.join(dir()) + r')\b')
