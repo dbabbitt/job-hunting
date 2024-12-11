@@ -18,7 +18,7 @@ class TestSuMethods(unittest.TestCase):
     def setUp(self):
         import sys
         import os
-        if ('../py' not in sys.path): sys.path.insert(1, '../py')
+        if (osp.join('..', 'py') not in sys.path): sys.path.insert(1, osp.join('..', 'py'))
         
         # Get the Neo4j driver
         from storage import Storage
