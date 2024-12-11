@@ -20,7 +20,7 @@ class PosSymbolSgdClassifier:
         self.tfidf_transformer = TfidfTransformer(
             norm='l1', smooth_idf=True, sublinear_tf=False, use_idf=True
         )
-        self.classifier = SGDClassifier(loss='log', warm_start=True)
+        self.classifier = SGDClassifier(loss='log_loss', warm_start=True)
         self.total_trained = 0
         self.tf_dict = {'true': 1, 'false': 0, True: 1, False: 0}
     

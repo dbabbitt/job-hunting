@@ -254,31 +254,50 @@ class HeaderCategories(object):
 
         return pos_list
     
-    def get_pos_symbol(
-        self, params_dict, verbose=False
-    ):
-        pos_symbol = None
+    def get_pos_symbol(self, params_dict, verbose=False):
+        """
+        Generate a positional symbol string based on a dictionary of parameters.
         
-        # Convert the values of params_dict to only True and False values
-        params_dict = {
-            k: True if v in [1, true, True] else False
-            for k, v in params_dict.items()
-        }
+        Parameters:
+            params_dict : dict
+                A dictionary of parameters where:
+                - Keys are parameter names (e.g., 'is_header', 'is_task_scope', etc.).
+                - Values represent True-like (e.g., 1, 'true', True) or False-like values.
+            verbose : bool, optional
+                If True, provides additional debug information (not implemented).
         
-        is_header = params_dict.get('is_header')
+        Returns:
+            str
+                A positional symbol string that starts with 'H-' (if 'is_header' is True)
+                or 'O-' (if 'is_header' is False), followed by the suffix of the first
+                matching subtype.
+        
+        Notes:
+            - `cu.subtypes_list` is a predefined list of subtype names.
+            - `cu.subtypes_dict` is a predefined dictionary mapping subtype names to suffixes.
+            - This function assumes the existence of a global `cu` object containing
+              `subtypes_list` and `subtypes_dict` attributes.
+        
+        Examples:
+            >>> cu.get_pos_symbol({'is_header': True, 'is_task_scope': 1, 'is_other': 0})
+            'H-TS'
+            >>> cu.get_pos_symbol({'is_header': False, 'is_minimum_qualification': 1})
+            'O-RQ'
+        """
+        
+        # Ensure 'is_header' is provided, default to False if missing
+        is_header = params_dict.get('is_header', False)
+        
+        # Start the positional symbol with 'H-' (header) or 'O-' (non-header)
+        pos_symbol = 'H-' if is_header else 'O-'
+        
+        # Iterate through `cu.subtypes_list` to find the first matching subtype
         for subtype in cu.subtypes_list:
-            exec(f"{subtype} = params_dict.get('{subtype}')")
+            if params_dict.get(subtype, False) in [1, "true", True]: # Check if the subtype is True
+                return pos_symbol + cu.subtypes_dict[subtype]
         
-        params_list = [is_header] + cu.subtypes_list
-        assert not any(eval(param) is None for param in params_list), f"You have passed a dictionary which is missing some of these: {params_list}"
-        
-        pos_symbol = ['O-', 'H-'][is_header]
-        for column_name, symbol_suffix in cu.subtypes_dict.items():
-            if eval(column_name):
-                pos_symbol += symbol_suffix
-                break
-        
-        return pos_symbol
+        # If no subtypes match, return the base positional symbol
+        return pos_symbol + 'O'
 
     
     def get_feature_tuple(

@@ -1,22 +1,72 @@
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["1747758_Python_Developer_ISTA.html"])
+WHERE (fn.file_name IN ["dd134a8687821eb0_Senior_Data_Scientist_Platform_Remote_Indeed_com.html"])
 SET
-    fn.rejection_email_text = "Thank you for your application for the Python Developer position at ISTA Personnel Solutions. We really appreciate your interest in joining our company, and we’re pleased that you decided to invest time and effort in applying for one of our positions. We carefully reviewed a large number of applications; unfortunately, at this time we won’t be able to invite you to the next stage of the hiring process. Though your work experience was impressive, we have decided to move forward with a candidate who we thought is better suited to this particular role.",
-    fn.rejection_email_date = date("2024-12-01"),
-    fn.is_closed = true
+    fn.rejection_email_text = "We appreciate your thoughtful consideration of Agero for your prospective career advancement. As a dedicated Talent Acquisition Team, conducting a thorough examination of your application and promptly providing updates on your application status are integral aspects of our commitment. Following a comprehensive evaluation, we have chosen to pursue alternative candidates for the current position. Nevertheless, we express interest in maintaining an ongoing connection with you, as we consistently encounter new positions and prospects within our organization.",
+    fn.rejection_email_date = date("2024-12-09"),
+    fn.is_closed = true,
+    fn.application_url = "xxxxxxxxxxxxxxx"
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
     fn.percent_fit AS percent_fit,
     fn.rejection_email_date AS rejection_email_date,
     fn.file_name AS file_name,
-    fn.posting_url AS posting_url
+    fn.posting_url AS posting_url,
+    fn.application_url AS application_url
 ORDER BY fn.opportunity_application_email_date DESC;
 
+// Check for application duplicates or unrejected postings
+MATCH (fn:FileNames)
+WHERE (fn.file_name IN ["Health_Science_Officer_-_Oncology_Data_Program_Manager_-_Seattle,_WA_-_Indeed.com_eb24c57e72a85c13.html"])
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.is_closed AS is_closed,
+    fn.percent_fit AS percent_fit,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url,
+    fn.application_url AS application_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
+// Update File Names node with tech interview dates
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"]
+SET fn.technical_interview_dates = [date("2024-12-02"), date("2024-12-05"), date("2024-12-06")]
+RETURN fn;
+
+// Get all FileNames nodes that have tech interview dates
+MATCH (fn:FileNames)
+WHERE fn.technical_interview_dates IS NOT NULL
+RETURN
+    fn.file_name AS file_name,
+    fn.technical_interview_dates AS technical_interview_dates,
+    fn.role_start_date AS role_start_date,
+    fn.role_end_date AS role_end_date,
+    fn.posting_url AS posting_url,
+    fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.tech_interview_completion_date AS tech_interview_completion_date;
+
+// Get all unique properties across all FileNames nodes
+MATCH (fn:FileNames)
+WITH collect(keys(fn)) AS all_properties
+UNWIND all_properties AS property_list
+UNWIND property_list AS property
+//WITH property
+//WHERE property CONTAINS "_date"
+RETURN DISTINCT property
+ORDER BY property;
+
+// Update File Names node with phone screen date
+MATCH (fn:FileNames)
+WHERE fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"]
+SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
+RETURN fn;
+
 // Find all work search activities for the date range
-WITH "Sunday, 11/24/2024 - Saturday, 11/30/2024" AS date_range
+WITH "Sunday, 12/01/2024 - Saturday, 12/07/2024" AS date_range
 WITH split(date_range, " - ") AS dates
 WITH
     split(dates[0], ", ") AS start_components,
@@ -47,24 +97,6 @@ RETURN
     fn.rejection_email_date AS rejection_email_date,
     fn.tech_interview_completion_date AS tech_interview_completion_date;
 
-// Check for application duplicates or unrejected postings
-MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["1aliJDDuRLZLZ_DNs97Hqw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "2MTx8MH_Qi2lXNRyK8p4eQ_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "c0ZxaPJOVkBXO_mvv81t0w_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "CDPQnexg1o1I50qz_3Pu0A_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "cpfp_FUYQ5ThrFNGtW9qSQ_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "HZzUjJEw48m6d_fUeeIOfA_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "lczt6KSA9MU6qm_jBjagrA_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "m5ZwHrLY6Kc2HmseMji3Pw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "mBb1Ajfkcmj2hwQPDPuF_w_Senior_Data_Scientist_Waltham_MA.html", "upKoUNAylsvorTHBA2XThw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "upUqAPz09NaTfzXPJrXW_A_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "WSvFXPuNIKBNPwD8F_M5sg_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html", "wvoi4RlIKeM15G9x9_MTNw_Senior_Data_Scientist_Electric_Load_Forecasting_Waltham_MA.html"])
-RETURN
-    fn.opportunity_application_email_date AS application_date,
-    fn.is_closed AS is_closed,
-    fn.percent_fit AS percent_fit,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url
-ORDER BY fn.opportunity_application_email_date DESC;
-
-// Update File Names node with phone screen date
-MATCH (fn:FileNames)
-WHERE fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"]
-SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
-RETURN fn;
-
 // Count applications by search type
 MATCH (fn:FileNames)
 WHERE fn.search_type IS NOT NULL
@@ -91,14 +123,6 @@ RETURN fn.rejection_email_text AS rejection_email_text;
 SHOW PROCEDURES YIELD name, description, signature
 RETURN name, description, signature
 ORDER BY name;
-
-// Get all unique properties across all FileNames nodes
-MATCH (fn:FileNames)
-WITH collect(keys(fn)) AS all_properties
-UNWIND all_properties AS property_list
-UNWIND property_list AS property
-RETURN DISTINCT property
-ORDER BY property;
 
 // Get all unique node types and their properties, including node types without properties
 MATCH (n)

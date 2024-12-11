@@ -190,6 +190,9 @@ class SectionLRClassifierUtilities(object):
             verbose (bool, optional): If True, print additional information during
                 execution, by default False.
         '''
+        if verbose:
+            from tqdm import tqdm
+            import sys
         
         # Check if count_vect has been saved and load it, otherwise create a new one
         if nu.pickle_exists('slrcu.count_vect'):
@@ -229,7 +232,7 @@ class SectionLRClassifierUtilities(object):
         # Fit-transform the Bag-of-words from these hand-labeled HTML strings
         sents_list = pos_df.navigable_parent.tolist()
         if verbose:
-            print(f'I have {len(sents_list):,} labeled parts of speech in here')
+            print(f'I have {len(sents_list):,} labeled parts of speech in here', file=sys.stderr)
         
         # Learn the vocabulary dictionary
         bow_matrix = self.count_vect.fit_transform(sents_list)
@@ -260,14 +263,14 @@ class SectionLRClassifierUtilities(object):
                 )
                 self.pos_predict_percent_fit_dict[pos_symbol] = inference_func
             except ValueError as e:
-                print(f'Fitting {pos_symbol} had this error: {str(e).strip()}')
+                import sys
+                print(f'Fitting {pos_symbol} had this error: {str(e).strip()}', file=sys.stderr)
                 self.classifier_dict.pop(pos_symbol, None)
                 self.pos_predict_percent_fit_dict.pop(pos_symbol, None)
         
         # Iterate over unique POS symbols in the training data
         pos_symbols = pos_df.pos_symbol.unique()
         if verbose:
-            from tqdm import tqdm
             progress_bar = tqdm(
                 pos_symbols, total=pos_symbols.shape[0],
                 desc="Train the POS Classifiers"
@@ -300,7 +303,8 @@ class SectionLRClassifierUtilities(object):
                     self.pos_predict_percent_fit_dict[pos_symbol] = inference_func
                     
                 except ValueError as e:
-                    print(f'Fitting {pos_symbol} had this error: {str(e).strip()}')
+                    import sys
+                    print(f'Fitting {pos_symbol} had this error: {str(e).strip()}', file=sys.stderr)
                     self.pos_predict_percent_fit_dict.pop(pos_symbol, None)
     
     
@@ -397,7 +401,7 @@ class SectionSGDClassifierUtilities(object):
             train_data_list = mask_series.to_numpy()
             if pos_symbol not in self.classifier_dict:
                 self.classifier_dict[pos_symbol] = SGDClassifier(
-                    loss='log', warm_start=True
+                    loss='log_loss', warm_start=True
                 )
             try:
                 

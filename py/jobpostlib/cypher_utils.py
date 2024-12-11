@@ -1532,7 +1532,15 @@ class CypherUtilities(object):
     def get_pos_relationships(self, verbose=False):
         def do_cypher_tx(tx, verbose=False):
             cypher_str = """
+                // Filter for NavigableParents nodes with an unambiguous SUMMARIZES relationship
+                MATCH (np:NavigableParents)
+                WHERE size([(np)<-[:SUMMARIZES]-(:PartsOfSpeech) | 1]) = 1
+                
+                // Find all NavigableParents nodes in the graph with an incoming SUMMARIZES relationship
+                WITH np
                 MATCH (pos:PartsOfSpeech)-[r:SUMMARIZES]->(np:NavigableParents)
+                
+                // Return the results
                 RETURN
                     np.navigable_parent AS navigable_parent, 
                     pos.pos_symbol AS pos_symbol;"""
