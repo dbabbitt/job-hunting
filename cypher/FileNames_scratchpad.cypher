@@ -1,12 +1,46 @@
 
+// Find all work search activities for the date range
+WITH "Sunday, 12/01/2024 - Saturday, 12/07/2024" AS date_range
+WITH split(date_range, " - ") AS dates
+WITH
+    split(dates[0], ", ") AS start_components,
+    split(dates[1], ", ") AS end_components
+WITH
+    [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
+    [item in split(end_components[1], "/") | toInteger(item)] AS end_components
+WITH
+    date({
+        day: start_components[1],
+        month: start_components[0],
+        year: start_components[2]
+    }) AS date_start,
+    date({
+        day: end_components[1],
+        month: end_components[0],
+        year: end_components[2]
+    }) AS date_end
+MATCH (fn:FileNames)
+WHERE
+    ((fn.opportunity_application_email_date >= date_start) AND
+    (fn.opportunity_application_email_date <= date_end)) OR
+    ((fn.rejection_email_date >= date_start) AND
+    (fn.rejection_email_date <= date_end))
+RETURN
+    fn.file_name AS file_name,
+    fn.opportunity_application_email_date AS opportunity_application_email_date,
+    fn.posting_url AS posting_url,
+    fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.tech_interview_completion_date AS tech_interview_completion_date;
+
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["faa70717d2551db8_Data_Scientist_I_Remote_Indeed_com.html"])
+WHERE (fn.file_name IN ["0e773b0fbc0ce3f9_Researcher_Remote_Indeed_com.html"])
 SET
-    fn.rejection_email_text = "Thank you for your interest in the Data Scientist I role. The hiring team has decided to place this role on hold for the immediate future, prioritizing other business objectives before this search is continued. We appreciate your time and interest in FiscalNote and would love to stay in touch as new opportunities develop on both this team and within the company.",
+    fn.rejection_email_text = "Thank you so much for taking the time to apply for the Researcher role. We know a lot of thought and consideration went into your application, and we genuinely appreciate your interest in joining the team here at Apollo. Unfortunately, we have made the decision to move forward with other candidates whose experience more closely aligns with our team's needs. Thanks again for your interest in Apollo! We wish you the best of luck in your current search.",
     fn.rejection_email_date = date("2024-12-11"),
     fn.is_closed = true,
-    fn.application_url = "xxxxxxxxxxxxxxx"
+    fn.application_url = "https://job-boards.greenhouse.io/apolloio/jobs/5338280004"
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
@@ -19,7 +53,7 @@ ORDER BY fn.opportunity_application_email_date DESC;
 
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["faa70717d2551db8_Data_Scientist_I_Remote_Indeed_com.html"])
+WHERE (fn.file_name IN ["0e773b0fbc0ce3f9_Researcher_Remote_Indeed_com.html"])
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
@@ -64,38 +98,6 @@ MATCH (fn:FileNames)
 WHERE fn.file_name IN ["1521992_Machine_Learning_Data_Analyst_Keeper_Security_Inc.html"]
 SET fn.is_recruiter_screen_completed = true, fn.recruiter_screen_completion_date = date()
 RETURN fn;
-
-// Find all work search activities for the date range
-WITH "Sunday, 12/01/2024 - Saturday, 12/07/2024" AS date_range
-WITH split(date_range, " - ") AS dates
-WITH
-    split(dates[0], ", ") AS start_components,
-    split(dates[1], ", ") AS end_components
-WITH
-    [item in split(start_components[1], "/") | toInteger(item)] AS start_components,
-    [item in split(end_components[1], "/") | toInteger(item)] AS end_components
-WITH
-    date({
-        day: start_components[1],
-        month: start_components[0],
-        year: start_components[2]
-    }) AS date_start,
-    date({
-        day: end_components[1],
-        month: end_components[0],
-        year: end_components[2]
-    }) AS date_end
-MATCH (fn:FileNames)
-WHERE
-    (fn.opportunity_application_email_date >= date_start) AND
-    (fn.opportunity_application_email_date <= date_end)
-RETURN
-    fn.file_name AS file_name,
-    fn.opportunity_application_email_date AS opportunity_application_email_date,
-    fn.posting_url AS posting_url,
-    fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.tech_interview_completion_date AS tech_interview_completion_date;
 
 // Count applications by search type
 MATCH (fn:FileNames)
