@@ -18,7 +18,7 @@ class TestSuMethods(unittest.TestCase):
     def setUp(self):
         import sys
         import os
-        if (osp.join('..', 'py') not in sys.path): sys.path.insert(1, osp.join('..', 'py'))
+        if (osp.join(os.pardir, 'py') not in sys.path): sys.path.insert(1, osp.join(os.pardir, 'py'))
         
         # Get the Neo4j driver
         from storage import Storage
@@ -66,13 +66,13 @@ class TestSuMethods(unittest.TestCase):
         from section_classifier_utils import SectionLRClassifierUtilities, SectionSGDClassifierUtilities, SectionCRFClassifierUtilities
         slrcu = SectionLRClassifierUtilities(ha=ha, cu=cu, verbose=False)
         ssgdcu = SectionSGDClassifierUtilities(ha=ha, cu=cu, verbose=False)
-        ssgdcu.build_pos_stochastic_gradient_descent_elements(sampling_strategy_limit=None, verbose=True)
+        ssgdcu.build_section_classifier(sampling_strategy_limit=None, verbose=True)
         scrfcu = SectionCRFClassifierUtilities(cu=cu, ha=ha, verbose=False)
-        scrfcu.build_pos_conditional_random_field_elements(verbose=True)
+        scrfcu.build_crf_with_pos_symbol_inputs(verbose=True)
 
         from crf_utils import CrfUtilities
         crf = CrfUtilities(ha=ha, hc=hc, cu=cu, lru=lru, slrcu=slrcu, scrfcu=scrfcu, ssgdcu=ssgdcu, verbose=True)
-        crf.build_pos_conditional_random_field_elements(verbose=True)
+        crf.build_crf_with_header_inputs(verbose=True)
 
         from section_utils import SectionUtilities
         self.su = SectionUtilities(wsu=wsu, ihu=ihu, hc=hc, crf=crf, slrcu=slrcu, scrfcu=scrfcu, ssgdcu=ssgdcu, verbose=False)

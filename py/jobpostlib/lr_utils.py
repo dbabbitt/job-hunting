@@ -38,30 +38,6 @@ class LrUtilities(object):
                 np.""".join([f'{subtype} AS {subtype}' for subtype in cu.subtypes_list]) + """;"""
     
     
-    
-    def rebalance_data(
-        self, unbalanced_df, name_column, value_column, sampling_strategy_limit, verbose=False
-    ):
-        
-        # Create the random under-sampler
-        counts_dict = unbalanced_df.groupby(value_column).count()[name_column].to_dict()
-        sampling_strategy = {k: min(sampling_strategy_limit, v) for k, v in counts_dict.items()}
-        from imblearn.under_sampling import RandomUnderSampler
-        rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
-        
-        # Define the tuple of arrays
-        X_res, y_res = rus.fit_resample(
-            unbalanced_df[name_column].values.reshape(-1, 1),
-            list(map(lambda x: [x], unbalanced_df[value_column]))
-        )
-        
-        # Recreate the Pandas DataFrame
-        rebalanced_df = pd.DataFrame(X_res, columns=[name_column])
-        rebalanced_df[value_column] = y_res
-        
-        return rebalanced_df
-    
-    
     ################################################
     ## Logistic Regression is-qualified functions ##
     ################################################
@@ -136,7 +112,7 @@ class LrUtilities(object):
         missing_from_db_set = qual_dict_set - qual_db_set
         
         # Ensure that everything in the pickle is also in the database
-        def do_cypher_tx(tx, qualification_str, is_qualified, verbose=False):
+        def f(tx, qualification_str, is_qualified, verbose=False):
             cypher_str = '''
                 MERGE (:QualificationStrings {
                     qualification_str: $qualification_str,
@@ -164,7 +140,7 @@ class LrUtilities(object):
                 if (not qual.endswith(':')):
                     with cu.driver.session() as session:
                         df = session.write_transaction(
-                            do_cypher_tx, qualification_str=qualification_str,
+                            f, qualification_str=qualification_str,
                             is_qualified=row_dict['is_qualified'], verbose=verbose
                         )
         
@@ -179,7 +155,7 @@ class LrUtilities(object):
         
         # Rebuild the dataframe from the database
         if sampling_strategy_limit is not None:
-            self.basic_quals_df = self.rebalance_data(
+            self.basic_quals_df = nu.rebalance_data(
                 self.basic_quals_df, name_column='qualification_str',
                 value_column='is_qualified',
                 sampling_strategy_limit=sampling_strategy_limit, verbose=verbose
@@ -312,7 +288,7 @@ class LrUtilities(object):
         self.hunting_df.loc[row_index, 'percent_fit'] = percent_fit
         nu.store_objects(hunting_df=self.hunting_df, verbose=False)
         
-        def do_cypher_tx(tx, file_name, percent_fit, verbose=False):
+        def f(tx, file_name, percent_fit, verbose=False):
             cypher_str = """
                 MATCH (fn:FileNames {file_name: $file_name})
                 SET fn.percent_fit = $percent_fit;"""
@@ -323,7 +299,7 @@ class LrUtilities(object):
             tx.run(query=cypher_str, parameters=parameter_dict)
         
         with cu.driver.session() as session:
-            session.write_transaction(do_cypher_tx, file_name=row_series.file_name, percent_fit=percent_fit, verbose=verbose)
+            session.write_transaction(f, file_name=row_series.file_name, percent_fit=percent_fit, verbose=verbose)
     
     def predict_isqualified(self, child_str):
         if not isinstance(child_str, list):
@@ -381,7 +357,7 @@ class LrUtilities(object):
         return tfidf_matrix
     
     def refit_isqualified_lr(self, X, y=None, verbose=False):
-            
+        
         # Re-train the classifier
         if y is None:
             y = self.basic_quals_df.is_qualified.to_numpy().astype(int)
@@ -396,7 +372,8 @@ class LrUtilities(object):
         INFERENCE_CV = CountVectorizer(vocabulary=self.ISQUALIFIED_VOCAB)
         INFERENCE_CV._validate_vocabulary()
         
-        def predict_percent_fit(quals_list, verbose=False):
+        f = None
+        def f(quals_list, verbose=False):
             y_predict_proba = np.array([])
             
             # The TFIDF Vectorizer expects an array of strings
@@ -409,8 +386,8 @@ class LrUtilities(object):
                 y_predict_proba = self.ISQUALIFIED_LR.predict_proba(X_test)
             
             return y_predict_proba
-
-        return predict_percent_fit
+        
+        return f
     
     def retrain_isqualified_classifier(self, verbose=False):
 

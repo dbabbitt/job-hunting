@@ -35,12 +35,12 @@ RETURN
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["0e773b0fbc0ce3f9_Researcher_Remote_Indeed_com.html"])
+WHERE (fn.file_name IN ["20964dbcac551fbb_Data_Science_Computer_Vision_Co_op_Atlanta_GA_30326_Indeed_com.html"])
 SET
-    fn.rejection_email_text = "Thank you so much for taking the time to apply for the Researcher role. We know a lot of thought and consideration went into your application, and we genuinely appreciate your interest in joining the team here at Apollo. Unfortunately, we have made the decision to move forward with other candidates whose experience more closely aligns with our team's needs. Thanks again for your interest in Apollo! We wish you the best of luck in your current search.",
-    fn.rejection_email_date = date("2024-12-11"),
+    fn.rejection_email_text = "Thank you for your interest in Qlik and your application for Senior Data Scientist, however this role has been filled, and we will not be progressing with further candidates at this stage. We really appreciate the effort you have invested in this process, and we hope that you enjoyed learning about Qlik and will consider us again in future.",
+    fn.rejection_email_date = date("2024-12-13"),
     fn.is_closed = true,
-    fn.application_url = "https://job-boards.greenhouse.io/apolloio/jobs/5338280004"
+    fn.application_url = "xxxxxxxxxxxxxxx"
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
@@ -53,7 +53,7 @@ ORDER BY fn.opportunity_application_email_date DESC;
 
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["0e773b0fbc0ce3f9_Researcher_Remote_Indeed_com.html"])
+WHERE (fn.file_name IN ["20964dbcac551fbb_Data_Science_Computer_Vision_Co_op_Atlanta_GA_30326_Indeed_com.html"])
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,

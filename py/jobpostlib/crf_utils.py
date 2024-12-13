@@ -68,7 +68,7 @@ class CrfUtilities(object):
     #########################################
     ## Conditional Random Fields functions ##
     #########################################
-    def build_pos_conditional_random_field_elements(self, verbose=False):
+    def build_crf_with_header_inputs(self, verbose=False):
         '''Train a model for each labeled POS symbol'''
         
         # Create the CRF model
@@ -127,7 +127,7 @@ class CrfUtilities(object):
             ) for feature_dict in feature_dict_list]
             pos_list = [feature_tuple[2] for feature_tuple in feature_tuple_list]
             y_train.append(pos_list)
-            X_train.append(self.sent2features(feature_tuple_list))
+            X_train.append(self.sentence_to_crf_features(feature_tuple_list))
         self.CRF = sklearn_crfsuite.CRF(
             algorithm='lbfgs', c1=0.1, c2=0.1, max_iterations=100,
             all_possible_transitions=True
@@ -146,7 +146,7 @@ class CrfUtilities(object):
         nu.store_objects(crf_CRF=self.CRF, verbose=verbose)
 
     
-    def word2features(self, feature_tuples_list, i):
+    def word_to_crf_features(self, feature_tuples_list, i):
         """
         This function works with the crf_CRF_20230402.pkl
         """
@@ -216,7 +216,7 @@ class CrfUtilities(object):
                 previous_tag = feature_tuples_list[i+word_offset-1][0]
                 offset_tag = feature_tuples_list[i+word_offset][0]
                 offset_symbol = feature_tuples_list[i+word_offset][2]
-                labels_list = self.sent2labels(feature_tuples_list)[i:]
+                labels_list = self.sentence_to_crf_labels(feature_tuples_list)[i:]
                 consecutives_list = []
                 for k, v in groupby(labels_list):
                     consecutives_list.append((k, len(list(v))))
@@ -254,11 +254,11 @@ class CrfUtilities(object):
 
         return features
 
-    def sent2features(self, sent):
+    def sentence_to_crf_features(self, sent):
 
-        return [self.word2features(sent, i) for i in range(len(sent))]
+        return [self.word_to_crf_features(sent, i) for i in range(len(sent))]
 
-    def sent2labels(self, sent):
+    def sentence_to_crf_labels(self, sent):
 
         return [label for token, child_str, label in sent]
 

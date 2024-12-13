@@ -9,56 +9,6 @@ from pandas import DataFrame
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from nltk import pos_tag
 
-def rebalance_data(
-    unbalanced_df: DataFrame,
-    name_column: str,
-    value_column: str,
-    sampling_strategy_limit: int,
-    verbose: bool = False,
-):
-    """
-    Rebalances the given unbalanced DataFrame by under-sampling the majority
-    class(es) to the specified sampling_strategy_limit.
-    
-    Parameters:
-        unbalanced_df (pandas.DataFrame): The unbalanced DataFrame to rebalance.
-        name_column (str): The name of the column containing the class labels.
-        value_column (str): The name of the column containing the values associated
-            with each class label.
-        sampling_strategy_limit (int): The maximum number of samples to keep for
-            each class label.
-        verbose (bool, optional): Whether to print debug output during the
-            rebalancing process. Defaults to False.
-    
-    Returns:
-        pandas.DataFrame: A rebalanced DataFrame with an undersampled majority class.
-    """
-    
-    # Step 1: Create the random under-sampler
-    if verbose: print("Creating the random under-sampler...")
-    
-    counts_dict = unbalanced_df.groupby(value_column).count()[name_column].to_dict()
-    sampling_strategy = {k: min(sampling_strategy_limit, v) for k, v in counts_dict.items()}
-    
-    from imblearn.under_sampling import RandomUnderSampler
-    rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
-    
-    # Step 2: Define the tuple of arrays
-    if verbose: print("Resampling the data...")
-    
-    data = rus.fit_resample(
-        unbalanced_df[name_column].values.reshape(-1, 1),
-        unbalanced_df[value_column].values.reshape(-1, 1),
-    )
-    
-    # Step 3: Recreate the Pandas DataFrame
-    if verbose: print("Converting data to Pandas DataFrame...")
-    
-    rebalanced_df = DataFrame(data[0], columns=[name_column])
-    rebalanced_df[value_column] = data[1]
-    
-    return rebalanced_df
-
 class HtmlVectorizer:
     """
     Convert a collection of HTML documents to a matrix of token counts.
@@ -224,7 +174,7 @@ class SectionLRClassifierUtilities(object):
         
         # Rebalance the data with the sampling strategy limit if necessary
         if sampling_strategy_limit is not None:
-            pos_df = self.rebalance_data(
+            pos_df = nu.rebalance_data(
                 pos_df, name_column='navigable_parent', value_column='pos_symbol',
                 sampling_strategy_limit=sampling_strategy_limit, verbose=verbose
             )
@@ -326,11 +276,9 @@ class SectionLRClassifierUtilities(object):
     
     
     def build_predict_percent_fit_function(self, pos_symbol, verbose=False):
-        predict_percent_fit = None
+        f = None
         if pos_symbol in self.classifier_dict:
-
-            def predict_percent_fit(navigable_parent):
-
+            def f(navigable_parent):
                 X_test = self.tfidf_transformer.transform(
                     self.count_vect.transform([navigable_parent])
                 ).toarray()
@@ -345,7 +293,7 @@ class SectionLRClassifierUtilities(object):
 
                 return y_predict_proba
 
-        return predict_percent_fit
+        return f
 
 
 ###########################################################
@@ -359,7 +307,7 @@ class SectionSGDClassifierUtilities(object):
         pass
     
     
-    def build_pos_stochastic_gradient_descent_elements(
+    def build_section_classifier(
         self, sampling_strategy_limit=None, verbose=False
     ):
         '''Train a model for each labeled POS symbol'''
@@ -375,7 +323,7 @@ class SectionSGDClassifierUtilities(object):
 
         # Rebalance the data with the sampling strategy limit
         if sampling_strategy_limit is not None:
-            pos_df = self.rebalance_data(
+            pos_df = nu.rebalance_data(
                 pos_df, name_column='navigable_parent', value_column='pos_symbol',
                 sampling_strategy_limit=sampling_strategy_limit, verbose=verbose
             )
@@ -432,19 +380,17 @@ class SectionSGDClassifierUtilities(object):
         return tuple_list[0][0]
     
     def build_predict_percent_fit_function(self, pos_symbol, verbose=False):
-        predict_percent_fit = None
+        f = None
         if pos_symbol in self.classifier_dict:
-
-            def predict_percent_fit(navigable_parent):
-
+            def f(navigable_parent):
                 X_test = self.tfidf_transformer.transform(
                     self.count_vect.transform([navigable_parent])
                 ).toarray()
                 y_predict_proba = self.classifier_dict[pos_symbol].predict_proba(X_test)
-
+                
                 return y_predict_proba.flatten().tolist()[-1]
-
-        return predict_percent_fit
+        
+        return f
 
 #########################################################
 ## Conditional Random Fields parts-of-speech functions ##
@@ -457,7 +403,7 @@ class SectionCRFClassifierUtilities(object):
         pass
     
     # Define features to be used in the CRF model
-    def word2features(self, sent, i):
+    def word_to_section_features(self, sent, i):
         word = sent[i][0]
         postag = sent[i][1]
         features = {
@@ -468,17 +414,17 @@ class SectionCRFClassifierUtilities(object):
         return features
     
     
-    def sent2features(self, sent):
+    def sentence_to_section_features(self, sent):
 
-        return [self.word2features(sent, i) for i in range(len(sent))]
+        return [self.word_to_section_features(sent, i) for i in range(len(sent))]
     
     
-    def sent2labels(self, pos_symbol, sent):
+    def sentence_to_section_labels(self, pos_symbol, sent):
 
         return [pos_symbol] * len(sent)
     
     
-    def build_pos_conditional_random_field_elements(
+    def build_crf_with_pos_symbol_inputs(
         self, sampling_strategy_limit=None, verbose=False
     ):
         '''Train a model for each labeled POS symbol'''
@@ -499,7 +445,7 @@ class SectionCRFClassifierUtilities(object):
         
         # Rebalance the data with the sampling strategy limit
         if sampling_strategy_limit is not None:
-            pos_df = rebalance_data(
+            pos_df = nu.rebalance_data(
                 pos_df, name_column='navigable_parent', value_column='pos_symbol',
                 sampling_strategy_limit=sampling_strategy_limit, verbose=verbose
             )
@@ -521,8 +467,8 @@ class SectionCRFClassifierUtilities(object):
             pos_symbols_list = pos_df.pos_symbol.tolist()
             
             # Prepare the training and test data
-            feature_dicts_list = [self.sent2features(pos_tags) for pos_tags in pos_tags_list]
-            y = [self.sent2labels(pos_symbol, pos_tag) for pos_tag, pos_symbol in zip(
+            feature_dicts_list = [self.sentence_to_section_features(pos_tags) for pos_tags in pos_tags_list]
+            y = [self.sentence_to_section_labels(pos_symbol, pos_tag) for pos_tag, pos_symbol in zip(
                 pos_tags_list, pos_symbols_list
             )]
             
@@ -547,24 +493,24 @@ class SectionCRFClassifierUtilities(object):
         tokens_list = [hau.html_regex_tokenizer(html_str)]
         if tokens_list != [[]]:
             pos_tags_list = [pos_tag(tokens) for tokens in tokens_list]
-            feature_dicts_list = [self.sent2features(pos_tags) for pos_tags in pos_tags_list]
+            feature_dicts_list = [self.sentence_to_section_features(pos_tags) for pos_tags in pos_tags_list]
             y_pred = self.pos_symbol_crf.predict(feature_dicts_list)[0][0]
 
         return y_pred
     
     def build_predict_percent_fit_function(self, pos_symbol, verbose=False):
-        predict_percent_fit = None
         import numpy as np
         
-        def predict_percent_fit(html_str):
+        f = None
+        def f(html_str):
             y_pred = 0.0
             tokens_list = [hau.html_regex_tokenizer(html_str)]
             if tokens_list != [[]]:
                 pos_tags_list = [pos_tag(tokens) for tokens in tokens_list]
-                X = [self.sent2features(pos_tags) for pos_tags in pos_tags_list]
+                X = [self.sentence_to_section_features(pos_tags) for pos_tags in pos_tags_list]
                 symbols_dicts_list = self.pos_symbol_crf.predict_marginals(X)[0]
                 y_pred = np.mean([symbol_dict[pos_symbol] for symbol_dict in symbols_dicts_list])
             
             return y_pred
         
-        return predict_percent_fit
+        return f

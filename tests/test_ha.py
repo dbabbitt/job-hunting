@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 class TestHaMethods(unittest.TestCase):
     def setUp(self):
         import sys
-        if (osp.join('..', 'py') not in sys.path): sys.path.insert(1, osp.join('..', 'py'))
+        if (osp.join(os.pardir, 'py') not in sys.path): sys.path.insert(1, osp.join(os.pardir, 'py'))
         
         from storage import Storage
         self.s = Storage()
@@ -69,18 +69,18 @@ class TestHaMethods(unittest.TestCase):
         html_str += '</template><script>a = 5;</script><p>Hello <i>World</i>!</p></body><body>Not this!!</body></html>'
         with open(file_path, 'w', encoding='utf-8') as f:
             print(html_str, file=f)
-        self.assertEqual(self.ha.get_child_strs_from_file(file_name), ['Hello', '<i>World</i>', '!'])
+        self.assertEqual(self.ha.get_navigable_children_from_file(file_name), ['Hello', '<i>World</i>', '!'])
 
     def test_get_child_tags_list(self):
         child_strs_list = ['Hello', '<i>World</i>', '!']
-        self.assertEqual(self.ha.get_child_tags_list(child_strs_list), ['plaintext', 'i', 'plaintext'])
+        self.assertEqual(self.ha.construct_child_tags_list(child_strs_list), ['plaintext', 'i', 'plaintext'])
 
     def test_get_is_header_list(self):
         child_strs_list = ['<li>Expertise with GCP and AWS including Docker containers and Kubernetes</li>',
                            "<b>What you'll have:</b>",
                            '<div>Experience with SaaS applications in the cloud and a solid understanding of cloud technologies ' +
                            '(AWS preferably)</div>']
-        self.assertEqual(self.ha.get_is_header_list(child_strs_list), [False, True, False])
+        self.assertEqual(self.ha.construct_is_header_list(child_strs_list), [False, True, False])
 
     def test_html_regex_tokenizer(self):
         corpus = '<li>Experience in one of more programming languages – Python, .Net, Java, C++, R, etc.</li>'

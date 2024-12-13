@@ -19,7 +19,7 @@ import sys
 import os.path as osp
 executable_path = sys.executable
 scripts_folder = osp.join(osp.dirname(executable_path), 'Scripts')
-py_folder = osp.abspath(osp.join('..', 'py')); ffmpeg_folder = r'C:\ffmpeg\bin'
+py_folder = osp.abspath(osp.join(os.pardir, 'py')); ffmpeg_folder = r'C:\ffmpeg\bin'
 if (scripts_folder not in sys.path): sys.path.insert(1, scripts_folder)
 if (py_folder not in sys.path): sys.path.insert(1, py_folder)
 if (ffmpeg_folder not in sys.path): sys.path.insert(1, ffmpeg_folder)

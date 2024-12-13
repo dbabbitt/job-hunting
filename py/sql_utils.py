@@ -510,11 +510,11 @@ class SqlUtilities(object):
         files_list = self.get_files_list(db, verbose=verbose)
         navigable_parent_set = set()
         for file_name in files_list:
-            child_strs_list = hau.get_child_strs_from_file(file_name.strip())
+            child_strs_list = hau.get_navigable_children_from_file(file_name.strip())
             for child_str in child_strs_list:
                 navigable_parent_set.add(child_str)
         child_strs_list = sorted(navigable_parent_set)
-        child_tags_list = hau.get_child_tags_list(child_strs_list)
+        child_tags_list = hau.construct_child_tags_list(child_strs_list)
         for i, (child_str, child_tag) in enumerate(zip(child_strs_list, child_tags_list)):
             try:
                 cursor_obj = db.execute("SELECT header_tag_id FROM HeaderTags WHERE header_tag = ?",
@@ -668,8 +668,8 @@ class SqlUtilities(object):
                 print(str(e).strip())
                 print(f'SELECT file_name_id FROM FileNames WHERE RTRIM(file_name) = "{file_name}"')
                 break
-            child_strs_list = hau.get_child_strs_from_file(file_name)
-            child_tags_list = hau.get_child_tags_list(child_strs_list)
+            child_strs_list = hau.get_navigable_children_from_file(file_name)
+            child_tags_list = hau.construct_child_tags_list(child_strs_list)
             for sequence_order, header_tag in enumerate(child_tags_list):
                 cursor_obj = db.execute("SELECT header_tag_id FROM HeaderTags WHERE header_tag = ?",
                                         (header_tag,))
@@ -731,7 +731,7 @@ class SqlUtilities(object):
             columns_list = [c[0] for c in cursor_obj.description]
             params_dict = dict(zip(columns_list, list(cursor_obj.fetchone())))
             file_name_id = params_dict['file_name_id']
-            child_strs_list = hau.get_child_strs_from_file(file_name)
+            child_strs_list = hau.get_navigable_children_from_file(file_name)
             for sequence_order, navigable_parent in enumerate(child_strs_list):
                 try:
                     cursor_obj = db.execute(self.select_navigableparentid_sql_str, (self.wc_rgx.sub(r'\\\g<1>', navigable_parent),))

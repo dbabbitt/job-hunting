@@ -18,7 +18,7 @@ class TestCrfMethods(unittest.TestCase):
     def setUp(self):
         import sys
         import os
-        if (osp.join('..', 'py') not in sys.path): sys.path.insert(1, osp.join('..', 'py'))
+        if (osp.join(os.pardir, 'py') not in sys.path): sys.path.insert(1, osp.join(os.pardir, 'py'))
 
         # Get the Storage object
         from storage import Storage
@@ -91,18 +91,18 @@ class TestCrfMethods(unittest.TestCase):
         
         # Check if the scrfcu has built its parts-of-speech conditional random field elements
         if not hasattr(scrfcu, 'pos_symbol_crf'):
-            scrfcu.build_pos_conditional_random_field_elements(verbose=False)
+            scrfcu.build_crf_with_pos_symbol_inputs(verbose=False)
         
         # Check if the ssgdcu has built its parts-of-speech
         # stochastic gradient decent elements
         if not hasattr(ssgdcu, 'pos_predict_percent_fit_dict'):
-            ssgdcu.build_pos_stochastic_gradient_descent_elements(
+            ssgdcu.build_section_classifier(
                 sampling_strategy_limit=None, verbose=False
             )
         
         # Check if the crf has built its parts-of-speech classifier
         if not hasattr(self.crf, 'CRF'):
-            self.crf.build_pos_conditional_random_field_elements(verbose=False)
+            self.crf.build_crf_with_header_inputs(verbose=False)
         
         # Check if the lru has built its is-qualified classifier
         if not (hasattr(lru, 'ISQUALIFIED_LR') and hasattr(lru, 'ISQUALIFIED_CV')):
@@ -162,163 +162,163 @@ class TestCrfMethods(unittest.TestCase):
     
     def test_word2features(self):
         feature_dict = {'bias': 1.0, 'child_str.pos_lr_predict_single': 'O-CS', 'position': 1, 'postag': 'O', 'tag.basic_text_set': False, 'tag.block_elements_set': True, 'tag.document_body_elements_set': True, 'tag.inline_elements_set': False, 'tag.lists_set': False, 'tag.null_element': False, 'tag.other_block_elements_set': True, 'tag.phrase_elements_set': False, 'tag.presentation_set': False, 'tag.section_headings_set': False, 'BOS': True, '+1:postag': 'O', '+1:tag.basic_text_set': False, '+1:tag.block_elements_set': True, '+1:tag.document_body_elements_set': True, '+1:tag.inline_elements_set': False, '+1:tag.lists_set': False, '+1:tag.null_element': False, '+1:tag.other_block_elements_set': True, '+1:tag.phrase_elements_set': False, '+1:tag.presentation_set': False, '+1:tag.section_headings_set': False, '+1:tag==previous': True, '+2:postag': 'H-TS', '+2:tag.basic_text_set': False, '+2:tag.block_elements_set': False, '+2:tag.document_body_elements_set': True, '+2:tag.inline_elements_set': True, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.phrase_elements_set': True, '+2:tag.presentation_set': True, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 0, '+3:postag': 'O', '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': True, '+3:tag.document_body_elements_set': True, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': True, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
-        self.assertEqual(self.crf.word2features(self.feature_tuple_list, 0), feature_dict)
+        self.assertEqual(self.crf.word_to_crf_features(self.feature_tuple_list, 0), feature_dict)
     def test_word2features0(self):
         feature_dict = {'postag': 'H-RQ', 'child_str.pos_lr_predict_single': 'H-RQ', 'child_str.pos_crf_predict_single': 'H-RQ', 'child_str.pos_sgd_predict_single': 'O-RQ', 'BOS': True, '+1:postag': 'O-RQ', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': True, 'tag.consecutive_next_tags': 5, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': True}
         feature_tuple = ('hrq', '<hrq>Role Primary Skill:</hrq>', 'H-RQ')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features1(self):
         feature_dict = {'postag': 'O-RQ', 'child_str.pos_lr_predict_single': 'O-RQ', 'child_str.pos_crf_predict_single': 'O-RQ', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'H-RQ', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-RQ', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': True, 'tag.consecutive_next_tags': 0, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': True}
         feature_tuple = ('orq', '<orq>1 - IT Infrastructure Operations (P5 - Master)</orq>', 'O-RQ')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features2(self):
         feature_dict = {'postag': 'O-RQ', 'child_str.pos_lr_predict_single': 'O-RQ', 'child_str.pos_crf_predict_single': 'O-RQ', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-RQ', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-RQ', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': True, 'tag.consecutive_next_tags': 0, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': True}
         feature_tuple = ('orq', '<orq>2 - Infrastructure Architecture &amp; Design (P5 - Master)</orq>', 'O-RQ')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features3(self):
         feature_dict = {'postag': 'O-RQ', 'child_str.pos_lr_predict_single': 'O-RQ', 'child_str.pos_crf_predict_single': 'O-RQ', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-RQ', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-RQ', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': True, 'tag.consecutive_next_tags': 0, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('orq', '<orq>3 - Accenture Delivery Methods (ADM) (P4 - Expert)</orq>', 'O-RQ')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features4(self):
         feature_dict = {'postag': 'O-RQ', 'child_str.pos_lr_predict_single': 'O-RQ', 'child_str.pos_crf_predict_single': 'O-RQ', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-RQ', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-RQ', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 0, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('orq', '<orq>4 - Intelligent Infrastructure (P4 - Expert)</orq>', 'O-RQ')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features5(self):
         feature_dict = {'postag': 'O-RQ', 'child_str.pos_lr_predict_single': 'O-RQ', 'child_str.pos_crf_predict_single': 'O-RQ', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-RQ', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'H-TS', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('orq', '<orq>5 - Build Management (P4 - Expert)</orq>', 'O-RQ')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features6(self):
         feature_dict = {'postag': 'H-TS', 'child_str.pos_lr_predict_single': 'H-TS', 'child_str.pos_crf_predict_single': 'H-TS', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-RQ', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-TS', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('hts', '<hts>Role Description:</hts>', 'H-TS')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features7(self):
         feature_dict = {'postag': 'O-TS', 'child_str.pos_lr_predict_single': 'O-TS', 'child_str.pos_crf_predict_single': 'O-TS', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'H-TS', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-RQ', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('ots', '<ots>Leads the implementation of Infrastructure Services projects, leveraging our global delivery capability (method, tools, training, assets).</ots>', 'O-TS')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features8(self):
         feature_dict = {'postag': 'O-RQ', 'child_str.pos_lr_predict_single': 'O-RQ', 'child_str.pos_crf_predict_single': 'O-RQ', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-TS', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-JT', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('orq', '<orq>Ability to leads the implementation of Infrastructure Services projects, leveraging our global delivery capability (method, tools, training, assets).</orq>', 'O-RQ')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features9(self):
         feature_dict = {'postag': 'O-JT', 'child_str.pos_lr_predict_single': 'O-JT', 'child_str.pos_crf_predict_single': 'O-JT', 'child_str.pos_sgd_predict_single': 'O-JT', '-1:postag': 'O-RQ', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-CS', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('ojt', '<ojt>Role ID: 4688612</ojt>', 'O-JT')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features10(self):
         feature_dict = {'postag': 'O-CS', 'child_str.pos_lr_predict_single': 'O-CS', 'child_str.pos_crf_predict_single': 'O-CS', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-JT', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-JT', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('ocs', '<ocs>Client: TIAA</ocs>', 'O-CS')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features11(self):
         feature_dict = {'postag': 'O-JT', 'child_str.pos_lr_predict_single': 'O-JT', 'child_str.pos_crf_predict_single': 'O-JT', 'child_str.pos_sgd_predict_single': 'O-JT', '-1:postag': 'O-CS', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-TS', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('ojt', '<ojt>Role Title: Layer 1 SOW - Senior Infrastructure Analyst</ojt>', 'O-JT')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features12(self):
         feature_dict = {'postag': 'O-TS', 'child_str.pos_lr_predict_single': 'O-TS', 'child_str.pos_crf_predict_single': 'O-TS', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-JT', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-OL', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('ots', '<ots>Assigned Role: Infra Implementation Svcs Lead</ots>', 'O-TS')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features13(self):
         feature_dict = {'postag': 'O-OL', 'child_str.pos_lr_predict_single': 'O-OL', 'child_str.pos_crf_predict_single': 'O-OL', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-TS', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-SP', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 1, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': True}
         feature_tuple = ('ool', '<ool>Project Metro City: New York</ool>', 'O-OL')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features14(self):
         feature_dict = {'postag': 'O-SP', 'child_str.pos_lr_predict_single': 'O-SP', 'child_str.pos_crf_predict_single': 'O-SP', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-OL', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-JD', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': True, 'tag.consecutive_next_tags': 2, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
         feature_tuple = ('osp', '<osp>Career Level From - To: 10 to 8</osp>', 'O-SP')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features15(self):
         feature_dict = {'postag': 'O-JD', 'child_str.pos_lr_predict_single': 'O-JD', 'child_str.pos_crf_predict_single': 'O-JD', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-SP', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-JD', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 0, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': True}
         feature_tuple = ('ojd', '<ojd>Role Start Date: 2/13/2023</ojd>', 'O-JD')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features16(self):
         feature_dict = {'postag': 'O-JD', 'child_str.pos_lr_predict_single': 'O-JD', 'child_str.pos_crf_predict_single': 'O-JD', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-JD', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-IP', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': True, 'tag.consecutive_next_tags': 4, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': True}
         feature_tuple = ('ojd', '<ojd>Role End Date: 1/31/2024</ojd>', 'O-JD')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features17(self):
         feature_dict = {'postag': 'O-IP', 'child_str.pos_lr_predict_single': 'O-IP', 'child_str.pos_crf_predict_single': 'O-IP', 'child_str.pos_sgd_predict_single': 'O-IP', '-1:postag': 'O-JD', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-IP', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': True, 'tag.consecutive_next_tags': 0, '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': False, '+3:tag.document_body_elements_set': False, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': False, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': True}
         feature_tuple = ('oip', '<oip>Role Client Supply Contact: Bernardele,Mariana A.</oip>', 'O-IP')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features18(self):
         feature_dict = {'postag': 'O-IP', 'child_str.pos_lr_predict_single': 'O-IP', 'child_str.pos_crf_predict_single': 'O-IP', 'child_str.pos_sgd_predict_single': 'O-IP', '-1:postag': 'O-IP', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-IP', '+2:tag.basic_text_set': False, '+2:tag.inline_elements_set': False, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.presentation_set': False, '+2:tag.section_headings_set': False, '+2:tag==previous': True, 'tag.consecutive_next_tags': 0}
         feature_tuple = ('oip', '<oip>Role Primary Contact: Rukes,Amiee</oip>', 'O-IP')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features19(self):
         feature_dict = {'postag': 'O-IP', 'child_str.pos_lr_predict_single': 'O-IP', 'child_str.pos_crf_predict_single': 'O-IP', 'child_str.pos_sgd_predict_single': 'O-IP', '-1:postag': 'O-IP', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, '+1:postag': 'O-IP'}
         feature_tuple = ('oip', '<oip>Role Primary Contact (Email ID): amiee.rukes@accenture.com</oip>', 'O-IP')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_word2features20(self):
         feature_dict = {'postag': 'O-IP', 'child_str.pos_lr_predict_single': 'O-IP', 'child_str.pos_crf_predict_single': 'O-IP', 'child_str.pos_sgd_predict_single': 'O-RQ', '-1:postag': 'O-IP', '-1:tag.basic_text_set': False, '-1:tag.inline_elements_set': False, '-1:tag.null_element': False, '-1:tag.other_block_elements_set': False, '-1:tag.section_headings_set': False, 'EOS': True}
         feature_tuple = ('oip', '<oip>Role Is Sold: Yes</oip>', 'O-IP')
         self.assertEqual(
-            {k: v for k, v in sorted(self.crf.word2features([feature_tuple], 0).items())},
+            {k: v for k, v in sorted(self.crf.word_to_crf_features([feature_tuple], 0).items())},
             {k: v for k, v in sorted(feature_dict.items())}
         )
     def test_sent2features(self):
         test_feature_dict = {'bias': 1.0, 'child_str.pos_lr_predict_single': 'O-CS', 'position': 1, 'postag': 'O', 'tag.basic_text_set': False, 'tag.block_elements_set': True, 'tag.document_body_elements_set': True, 'tag.inline_elements_set': False, 'tag.lists_set': False, 'tag.null_element': False, 'tag.other_block_elements_set': True, 'tag.phrase_elements_set': False, 'tag.presentation_set': False, 'tag.section_headings_set': False, 'BOS': True, '+1:postag': 'O', '+1:tag.basic_text_set': False, '+1:tag.block_elements_set': True, '+1:tag.document_body_elements_set': True, '+1:tag.inline_elements_set': False, '+1:tag.lists_set': False, '+1:tag.null_element': False, '+1:tag.other_block_elements_set': True, '+1:tag.phrase_elements_set': False, '+1:tag.presentation_set': False, '+1:tag.section_headings_set': False, '+1:tag==previous': True, '+2:postag': 'H-TS', '+2:tag.basic_text_set': False, '+2:tag.block_elements_set': False, '+2:tag.document_body_elements_set': True, '+2:tag.inline_elements_set': True, '+2:tag.lists_set': False, '+2:tag.null_element': False, '+2:tag.other_block_elements_set': False, '+2:tag.phrase_elements_set': True, '+2:tag.presentation_set': True, '+2:tag.section_headings_set': False, '+2:tag==previous': False, 'tag.consecutive_next_tags': 0, '+3:postag': 'O', '+3:tag.basic_text_set': False, '+3:tag.block_elements_set': True, '+3:tag.document_body_elements_set': True, '+3:tag.inline_elements_set': False, '+3:tag.lists_set': False, '+3:tag.null_element': False, '+3:tag.other_block_elements_set': True, '+3:tag.phrase_elements_set': False, '+3:tag.presentation_set': False, '+3:tag.section_headings_set': False, '+3:tag==previous': False}
-        result_feature_dict = self.crf.sent2features(self.feature_tuple_list)[0]
+        result_feature_dict = self.crf.sentence_to_crf_features(self.feature_tuple_list)[0]
         self.assertEqual(result_feature_dict, test_feature_dict)
 
     def test_sent2labels(self):
         labels_list = ['O', 'O', 'H-TS', 'O', 'O', 'H-TS', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'H-RQ', 'H-PQ', 'O',
                        'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'H-SP', 'O', 'H-O', 'O', 'O', 'O']
-        self.assertEqual(self.crf.sent2labels(self.feature_tuple_list), labels_list)
+        self.assertEqual(self.crf.sentence_to_crf_labels(self.feature_tuple_list), labels_list)
     def test_sent2tokens(self):
         tokens_list = ['div', 'div', 'b', 'div', 'div', 'div', 'li', 'li', 'li', 'li', 'li',
                        'li', 'li', 'li', 'li', 'li', 'b', 'p', 'p', 'p', 'li', 'li', 'plaintext',
@@ -359,7 +359,7 @@ class TestCrfMethods(unittest.TestCase):
     
     def test_predict_single(self):
         feature_tuple_list = [('plaintext', 'The Data Science Transformation team seeks a hands-on Manager/Principal Machine Learning Data Scientist to join our team. You should be an exceptional disciplined and self-motivated Data Scientist with predictive modeling and machine learning advanced analytics experience and a passion for working with healthcare data (relevant experience with data from other industries of interest as well; financial, retail, telco, etc), experience using various computational approaches, and a portfolio of projects you can show and talk about.', 'O-RQ'), ('b', '<b>Primary Responsibilities:</b>', 'H-TS'), ('li', "<li>A leader. You're a hands-on Machine Learning leader who challenge conventional thinking and work with stakeholders to identify and improve the status quo. You i ndependently identify significant opportunities in an ambiguous area and builds consensus around roadmaps and how to evaluate success.</li>", 'O-TS'), ('li', '<li>People Manager. You have experience leading and growing a team of M/L data scientists. You have a passion for mentoring members of your team to achieve strong results and continued engagement.</li>', 'O-TS'), ('li', '<li>Innovative. You continually research and evaluate emerging technologies. You stay current on published state-of-the-art methods, technologies, and applications and seek out opportunities to apply them.</li>', 'O-TS'), ('li', '<li>Technical Leadership. You are proficient at performing hands-on coding including reviews through all phases of development, from design through training, evaluation, validation, backtested and implementation . You know how to interpret a confusion matrix or a ROC curve. You have experience with clustering, classification, sentiment analysis, time series, and deep learning.</li>', 'O-RQ'), ('li', '<li>A "Big data" guru. You have the skills to retrieve, combine, and analyze data from a variety of sources and structures. You know understanding the data is often the key to great data science.</li>', 'O-TS'), ('li', '<li>Partner with a cross-functional team of data scientists, software engineers, IT, data architect and product managers to deliver machine learning products customers love.</li>', 'O-TS'), ('li', '<li>Pilot and build out data science custom projects into repeatable and scalable data science products</li>', 'O-TS'), ('li', '<li>Develop a rigorous ML Ops data science culture, including best practices on pipeline creation, model building in productization, enabling consistent and high-quality delivery</li>', 'O-TS'), ('li', '<li>Work with a great deal of autonomy to find solutions to complex problems</li>', 'O-TS'), ('plaintext', 'You effectively communicate complex technical concepts/results to business partners and non-technical audiences', 'O-RQ'), ('div', "<div>You'll be rewarded and recognized for your performance in an environment that will challenge you and give you clear direction on what it takes to succeed in your role as well as provide development for other roles you may be interested in.</div>", 'O-TS'), ('b', '<b>Required Qualifications:</b>', 'H-RQ'), ('li', '<li>MS or PhD in Applied Mathematics, Physics, Computer Science, Statistics or related technical field.</li>', 'O-ER'), ('li', '<li>5+ years of hands-on experience developing analytics with machine learning, deep learning, NLP, and/or other related modeling techniques</li>', 'O-RQ'), ('li', '<li>Experience designing a data science roadmap and executing the vision behind it.</li>', 'O-RQ'), ('li', '<li>Demonstrated history of leadership in managing high impact data science and engineering projects</li>', 'O-TS'), ('b', '<b>Experience directly managing a team of data scientists (role is 50/50)</b>', 'H-TS'), ('b', '<b>Experience working in an environment where the end product is a software solution</b>', 'O-CS'), ('li', '<li>Strong proficiency in advanced data science tools such as Python, Spark and H2O, Tensorflow etc. and distributed computing systems</li>', 'O-RQ'), ('li', '<li>Demonstrated ability to communicate complex technical concepts to non-technical audiences</li>', 'O-RQ'), ('li', '<li>Familiarity with wrangling large datasets with big data tools such as Hadoop, Hive and Spark.</li>', 'O-TS'), ('li', '<li>Experience applying computational algorithms and statistical methods to structured and unstructured data</li>', 'O-RQ'), ('li', '<li>Expert ability to breakdown and clearly define problems</li>', 'O-RQ'), ('li', '<li>Strong ability to communicate highly technical results to a diverse audience</li>', 'O-RQ'), ('plaintext', 'Available location: Eden Prairie, MN; Boston, MA or Basking Ridge NJ. Telecommute maybe considered for the right candidate.', 'O-RQ'), ('b', '<b>Preferred Qualifications:</b>', 'H-PQ'), ('li', '<li>Experience with deploying ML models in Azure, AWS, and/or Google Cloud</li>', 'O-RQ'), ('li', '<li>Expertise in healthcare data, e.g. medical and pharmacy claims, EMR/clinical data, lab data, etc.</li>', 'O-TS'), ('plaintext', 'Experience with agile product development', 'O-RQ'), ('b', '<b>Careers with Optum.</b>', 'H-CS'), ('plaintext', "Here's the idea. We built an entire organization around one giant objective; make health care work better for everyone. So when it comes to how we use the world?s large accumulation of health-related information, or guide health and lifestyle choices or manage pharmacy benefits for millions, our first goal is to leap beyond the status quo and uncover new ways to serve. Optum, part of the UnitedHealth Group family of businesses, brings together some of the greatest minds and most advanced ideas on where health care has to go in order to reach its fullest potential. For you, that means working on high performance teams against sophisticated challenges that matter. Optum, incredible ideas in one incredible company and a singular opportunity to do", 'O-CS'), ('plaintext', "your life's best work.(sm)", 'O-SP'), ('plaintext', "*All Telecommuters will be required to adhere to UnitedHealth Group's Telecommuter Policy.", 'O-TS'), ('plaintext', 'Diversity creates a healthier atmosphere: UnitedHealth Group is an Equal Employment Opportunity/Affirmative Action employer and all qualified applicants will receive consideration for employment without regard to race, color, religion, sex, age, national origin, protected veteran status, disability status, sexual orientation, gender identity or expression, marital status, genetic information, or any other characteristic protected by law.', 'O-LN'), ('i', '<i>UnitedHealth Group is a drug-free workplace. Candidates are required to pass a drug test before beginning employment.</i>', 'O-LN')]
-        self.assertEqual(self.crf.CRF.predict_single(self.crf.sent2features(feature_tuple_list)), pos_symbol_predictions_list)
+        self.assertEqual(self.crf.CRF.predict_single(self.crf.sentence_to_crf_features(feature_tuple_list)), pos_symbol_predictions_list)
 
 if __name__ == '__main__':
     unittest.main()

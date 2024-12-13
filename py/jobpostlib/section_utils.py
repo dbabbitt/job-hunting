@@ -87,7 +87,7 @@ class SectionUtilities(object):
             files_list = sorted([fn for fn in os.listdir(cu.SAVES_HTML_FOLDER) if fn.endswith('.html')])
             file_name = random.choice(files_list)
         if child_strs_list is None:
-            child_strs_list = hau.get_child_strs_from_file(file_name=file_name)
+            child_strs_list = hau.get_navigable_children_from_file(file_name=file_name)
         if pos_symbol_predictions_list is None:
             
             # Seek a SectionLRClassifierUtilities object
@@ -227,7 +227,7 @@ class SectionUtilities(object):
     def print_fit_job(self, row_index, row_series, fitness_threshold=2/3, verbose=True):
         job_fitness = 0.0
         file_name = row_series.file_name
-        child_strs_list = hau.get_child_strs_from_file(file_name=file_name)
+        child_strs_list = hau.get_navigable_children_from_file(file_name=file_name)
         indices_list = self.find_basic_quals_section_indexes(
             child_strs_list=child_strs_list, file_name=file_name, verbose=verbose
         )

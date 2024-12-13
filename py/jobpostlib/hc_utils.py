@@ -244,16 +244,6 @@ class HeaderCategories(object):
                 self.POS_EXPLANATION_DICT['O'] = 'Non-header'
                 nu.store_objects(POS_EXPLANATION_DICT=self.POS_EXPLANATION_DICT, verbose=verbose)
     
-    def append_parts_of_speech_list(self, navigable_parent, pos_list=[]):
-        for column_name, symbol_suffix in cu.subtypes_dict.items():
-            if navigable_parent in eval(f"self.{column_name.replace('is_', '').upper()}_HEADERS_LIST"):
-                pos_list.append(f'H-{symbol_suffix}')
-                
-                return pos_list
-        pos_list.append('O')
-
-        return pos_list
-    
     def get_pos_symbol(self, params_dict, verbose=False):
         """
         Generate a positional symbol string based on a dictionary of parameters.
@@ -358,7 +348,7 @@ class HeaderCategories(object):
         return tuple(feature_list)
     
     
-    def get_feature_dict_list(self, child_tags_list, is_header_list, child_strs_list):
+    def construct_feature_dict_list(self, child_tags_list, is_header_list, child_strs_list):
         sql_dict = {False: None, True: 1}
         feature_dict_list = []
         for tag, is_header, child_str in zip(
@@ -372,5 +362,5 @@ class HeaderCategories(object):
                 eval_str += "_HEADERS_LIST"
                 feature_dict.update({subtype: sql_dict[eval(eval_str)]})
             feature_dict_list.append(feature_dict)
-
+        
         return feature_dict_list

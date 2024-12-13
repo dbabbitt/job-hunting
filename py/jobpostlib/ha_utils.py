@@ -102,24 +102,79 @@ class HeaderAnalysis(object):
                 nu.extract()
 
         return body_soup
-
-    def get_child_strs_from_file(self, file_name):
+    
+    
+    
+    def get_navigable_children_from_file(self, file_name, verbose=False):
+        """
+        Reads an HTML file, extracts its body content, and retrieves navigable children elements.
+        
+        Parameters:
+            file_name : str
+                The name of the HTML file to be processed. It is expected to exist in the directory 
+                specified by `self.SAVES_HTML_FOLDER`.
+            verbose : bool, optional
+                If True, additional debug information will be printed (default is False).
+        
+        Returns:
+            list of str
+                A list of strings representing the navigable children elements from the HTML file. 
+                Returns an empty list if the file cannot be processed.
+        
+        Raises:
+            AssertionError
+                If the specified file does not exist in the `SAVES_HTML_FOLDER` directory.
+            UnicodeDecodeError
+                If the file cannot be decoded using UTF-8.
+            Exception
+                For other unexpected errors encountered while reading or processing the file.
+        
+        Notes:
+            - This function assumes the existence of `self.SAVES_HTML_FOLDER`, a directory path 
+              where the HTML files are stored.
+            - The function also assumes the existence of `self.get_body_soup` and
+              `self.get_navigable_children`, 
+              which are methods for parsing the HTML content and extracting children, respectively.
+        """
+        
+        # Initialize an empty list to store the navigable children strings
         child_strs_list = []
-        # file_name = self.ascii_regex.sub(' ', file_name).strip().replace(' ', '_')
+        
+        # Construct the full file path by joining the folder path and the file name
         file_path = os.path.join(self.SAVES_HTML_FOLDER, file_name)
-        assert os.path.isfile(file_path), f"Run this and resume from the Training cell:\nfile_name = '{file_name}'\ncu.delete_filename_node(file_name, verbose=True)"
+        
+        # Assert that the file exists; raise an error with a helpful message if it doesn't
+        assert os.path.isfile(file_path), (
+            f"Run this and resume from the Training cell:\nfile_name = '{file_name}'\n"
+            "cu.delete_filename_node(file_name, verbose=True)"
+        )
+        
+        # Attempt to open and process the file
         with open(file_path, 'r', encoding='utf-8') as f:
             try:
+                
+                # Read the HTML content from the file
                 html_str = f.read()
+                
+                # Parse the body content
                 body_soup = self.get_body_soup(html_str)
+                
+                # Use another helper method to extract navigable children elements
                 child_strs_list = self.get_navigable_children(body_soup, [])
+            
+            # Handle encoding errors (e.g., if the file is not UTF-8 encoded)
             except UnicodeDecodeError as e:
                 print(f'UnicodeDecodeError error in {file_path}: {str(e).strip()}')
+            
+            # Handle any other unexpected errors and print the error message
             except Exception as e:
                 print(f'{e.__class__.__name__} error in {file_path}: {str(e).strip()}')
-
+        
+        # Return the list of navigable children strings (or an empty list if an error occurred)
         return child_strs_list
-
+    
+    
+    
     def html2text(self, html_str, prob_float):
         html_str = html_str.replace('<', '&lt;').replace('>', '&gt;')
         hex_str = '%02x%02x%02x' % self.CMAP(X=prob_float, bytes=True)[:-1]
@@ -127,7 +182,7 @@ class HeaderAnalysis(object):
 
         return html_str
 
-    def get_child_tags_list(self, child_strs_list):
+    def construct_child_tags_list(self, child_strs_list):
         child_tags_list = []
         for navigable_parent in child_strs_list:
             tokenized_sent = self.html_regex_tokenizer(navigable_parent)
@@ -142,7 +197,7 @@ class HeaderAnalysis(object):
 
         return child_tags_list
 
-    def get_is_header_list(self, child_strs_list):
+    def construct_is_header_list(self, child_strs_list):
         is_header_list = []
         for navigable_parent in child_strs_list:
             if navigable_parent in self.NAVIGABLE_PARENT_IS_HEADER_DICT:

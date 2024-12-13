@@ -18,7 +18,7 @@ class TestCuMethods(unittest.TestCase):
     def setUp(self):
         import sys
         import os
-        if (osp.join('..', 'py') not in sys.path): sys.path.insert(1, osp.join('..', 'py'))
+        if (osp.join(os.pardir, 'py') not in sys.path): sys.path.insert(1, osp.join(os.pardir, 'py'))
         
         from ha_utils import HeaderAnalysis
         self.ha = HeaderAnalysis(s=s, verbose=False)
@@ -58,44 +58,44 @@ class TestCuMethods(unittest.TestCase):
     
     def test_get_child_tags_list1(self):
         self.assertEqual(
-            self.cu.get_child_tags_list(self.test_child_strs_list1),
-            self.ha.get_child_tags_list(self.test_child_strs_list1)
+            self.cu.query_child_tags_list(self.test_child_strs_list1),
+            self.ha.construct_child_tags_list(self.test_child_strs_list1)
         )
         
     def test_get_child_tags_list2(self):
         self.assertEqual(
-            self.cu.get_child_tags_list(self.test_child_strs_list2),
-            self.ha.get_child_tags_list(self.test_child_strs_list2)
+            self.cu.query_child_tags_list(self.test_child_strs_list2),
+            self.ha.construct_child_tags_list(self.test_child_strs_list2)
         )
     
     def test_get_is_header_list1(self):
         self.assertEqual(
-            self.cu.get_is_header_list(self.test_child_strs_list1),
-            self.ha.get_is_header_list(self.test_child_strs_list1)
+            self.cu.query_is_header_list(self.test_child_strs_list1),
+            self.ha.construct_is_header_list(self.test_child_strs_list1)
         )
         
     def test_get_is_header_list2(self):
         self.assertEqual(
-            self.cu.get_is_header_list(self.test_child_strs_list2),
-            self.ha.get_is_header_list(self.test_child_strs_list2)
+            self.cu.query_is_header_list(self.test_child_strs_list2),
+            self.ha.construct_is_header_list(self.test_child_strs_list2)
         )
     
     def test_get_feature_dict_list1(self):
-        child_tags_list1 = self.cu.get_child_tags_list(self.test_child_strs_list1)
-        is_header_list1 = self.cu.get_is_header_list(self.test_child_strs_list1)
+        child_tags_list1 = self.cu.query_child_tags_list(self.test_child_strs_list1)
+        is_header_list1 = self.cu.query_is_header_list(self.test_child_strs_list1)
         self.assertEqual(
-            self.cu.get_feature_dict_list(child_tags_list1, self.test_child_strs_list1),
-            self.hc.get_feature_dict_list(
+            self.cu.query_feature_dict_list(child_tags_list1, self.test_child_strs_list1),
+            self.hc.construct_feature_dict_list(
                 child_tags_list1, is_header_list1, self.test_child_strs_list1
             )
         )
         
     def test_get_feature_dict_list2(self):
-        child_tags_list2 = self.cu.get_child_tags_list(self.test_child_strs_list2)
-        is_header_list2 = self.cu.get_is_header_list(self.test_child_strs_list2)
+        child_tags_list2 = self.cu.query_child_tags_list(self.test_child_strs_list2)
+        is_header_list2 = self.cu.query_is_header_list(self.test_child_strs_list2)
         self.assertEqual(
-            self.cu.get_feature_dict_list(child_tags_list2, self.test_child_strs_list2),
-            self.hc.get_feature_dict_list(
+            self.cu.query_feature_dict_list(child_tags_list2, self.test_child_strs_list2),
+            self.hc.construct_feature_dict_list(
                 child_tags_list2, is_header_list2, self.test_child_strs_list2
             )
         )
@@ -110,7 +110,7 @@ class TestCuMethods(unittest.TestCase):
         row_div_list = page_soup.find_all(name='div', id='jobDescriptionText')
         child_strs_list = self.ha.get_navigable_children(row_div_list[0], [])
         self.assertEqual(
-            self.cu.get_child_strs_from_file(file_name=self.test_file_name2), child_strs_list
+            self.cu.get_navigable_parents_from_next_relationships(file_name=self.test_file_name2), child_strs_list
         )
     
     # def test_ensure_navigableparents_relationship(self):
