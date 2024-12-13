@@ -35,7 +35,7 @@ RETURN
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["20964dbcac551fbb_Data_Science_Computer_Vision_Co_op_Atlanta_GA_30326_Indeed_com.html"])
+WHERE (fn.file_name IN ["7juswKOyIwVGJDKekt6i6Q_Senior_Data_Scientist_Waltham_MA.html"])
 SET
     fn.rejection_email_text = "Thank you for your interest in Qlik and your application for Senior Data Scientist, however this role has been filled, and we will not be progressing with further candidates at this stage. We really appreciate the effort you have invested in this process, and we hope that you enjoyed learning about Qlik and will consider us again in future.",
     fn.rejection_email_date = date("2024-12-13"),
@@ -53,7 +53,7 @@ ORDER BY fn.opportunity_application_email_date DESC;
 
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["20964dbcac551fbb_Data_Science_Computer_Vision_Co_op_Atlanta_GA_30326_Indeed_com.html"])
+WHERE (fn.file_name IN ["7juswKOyIwVGJDKekt6i6Q_Senior_Data_Scientist_Waltham_MA.html"])
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
