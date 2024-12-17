@@ -1,4 +1,35 @@
 
+// Update File Names node with rejection email text
+MATCH (fn:FileNames)
+WHERE (fn.file_name IN ["1488199_Junior_Data_Scientist_BlastPoint.html"])
+SET
+    fn.rejection_email_text = "I'm reaching out to let you know that we made an offer for the Junior Data Scientist position and our candidate has accepted. I realize this isn't the news you were hoping for, but we'd love to keep your resume on file for future openings. We appreciate you applying and are happy we had a chance to connect with you.",
+    fn.rejection_email_date = date("2024-12-16"),
+    fn.is_closed = true,
+    fn.application_url = "https://job-boards.greenhouse.io/blastpoint/jobs/4557659007?utm_source=omnijobs.io"
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.is_closed AS is_closed,
+    fn.percent_fit AS percent_fit,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url,
+    fn.application_url AS application_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
+// Check for application duplicates or unrejected postings
+MATCH (fn:FileNames)
+WHERE (fn.file_name IN ["1488199_Junior_Data_Scientist_BlastPoint.html"])
+RETURN
+    fn.opportunity_application_email_date AS application_date,
+    fn.is_closed AS is_closed,
+    fn.percent_fit AS percent_fit,
+    fn.rejection_email_date AS rejection_email_date,
+    fn.file_name AS file_name,
+    fn.posting_url AS posting_url,
+    fn.application_url AS application_url
+ORDER BY fn.opportunity_application_email_date DESC;
+
 // Find all work search activities for the date range
 WITH "Sunday, 12/01/2024 - Saturday, 12/07/2024" AS date_range
 WITH split(date_range, " - ") AS dates
@@ -32,37 +63,6 @@ RETURN
     fn.recruiter_screen_completion_date AS recruiter_screen_completion_date,
     fn.rejection_email_date AS rejection_email_date,
     fn.tech_interview_completion_date AS tech_interview_completion_date;
-
-// Update File Names node with rejection email text
-MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["7juswKOyIwVGJDKekt6i6Q_Senior_Data_Scientist_Waltham_MA.html"])
-SET
-    fn.rejection_email_text = "Thank you for your interest in Qlik and your application for Senior Data Scientist, however this role has been filled, and we will not be progressing with further candidates at this stage. We really appreciate the effort you have invested in this process, and we hope that you enjoyed learning about Qlik and will consider us again in future.",
-    fn.rejection_email_date = date("2024-12-13"),
-    fn.is_closed = true,
-    fn.application_url = "xxxxxxxxxxxxxxx"
-RETURN
-    fn.opportunity_application_email_date AS application_date,
-    fn.is_closed AS is_closed,
-    fn.percent_fit AS percent_fit,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url,
-    fn.application_url AS application_url
-ORDER BY fn.opportunity_application_email_date DESC;
-
-// Check for application duplicates or unrejected postings
-MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["7juswKOyIwVGJDKekt6i6Q_Senior_Data_Scientist_Waltham_MA.html"])
-RETURN
-    fn.opportunity_application_email_date AS application_date,
-    fn.is_closed AS is_closed,
-    fn.percent_fit AS percent_fit,
-    fn.rejection_email_date AS rejection_email_date,
-    fn.file_name AS file_name,
-    fn.posting_url AS posting_url,
-    fn.application_url AS application_url
-ORDER BY fn.opportunity_application_email_date DESC;
 
 // Update File Names node with tech interview dates
 MATCH (fn:FileNames)
