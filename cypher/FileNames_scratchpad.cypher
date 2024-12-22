@@ -1,12 +1,12 @@
 
 // Update File Names node with rejection email text
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["1488199_Junior_Data_Scientist_BlastPoint.html"])
+WHERE (fn.file_name IN ["1694591_Software_Engineer_Ridership_Data_Swiftly_Inc.html"])
 SET
-    fn.rejection_email_text = "I'm reaching out to let you know that we made an offer for the Junior Data Scientist position and our candidate has accepted. I realize this isn't the news you were hoping for, but we'd love to keep your resume on file for future openings. We appreciate you applying and are happy we had a chance to connect with you.",
-    fn.rejection_email_date = date("2024-12-16"),
+    fn.rejection_email_text = "Thank you for your application to the Software Engineer position at Swiftly. We have received a lot of interest in this role and there have been many qualified candidates. After reviewing your work and experience, we've made the decision to not move forward at this time. However, we would like to keep your resume on file if another position opens up in the future. We appreciate your interest in Swiftly and wish you success in your job search",
+    fn.rejection_email_date = date("2024-12-20"),
     fn.is_closed = true,
-    fn.application_url = "https://job-boards.greenhouse.io/blastpoint/jobs/4557659007?utm_source=omnijobs.io"
+    fn.application_url = "https://jobs.lever.co/goswift/8a04149c-c542-45d4-972c-2f7386f399c5?utm_source=omnijobs.io"
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
@@ -19,7 +19,7 @@ ORDER BY fn.opportunity_application_email_date DESC;
 
 // Check for application duplicates or unrejected postings
 MATCH (fn:FileNames)
-WHERE (fn.file_name IN ["1488199_Junior_Data_Scientist_BlastPoint.html"])
+WHERE (fn.file_name IN ["1694591_Software_Engineer_Ridership_Data_Swiftly_Inc.html"])
 RETURN
     fn.opportunity_application_email_date AS application_date,
     fn.is_closed AS is_closed,
@@ -31,7 +31,7 @@ RETURN
 ORDER BY fn.opportunity_application_email_date DESC;
 
 // Find all work search activities for the date range
-WITH "Sunday, 12/01/2024 - Saturday, 12/07/2024" AS date_range
+WITH "Sunday, 12/15/2024 - Saturday, 12/21/2024" AS date_range
 WITH split(date_range, " - ") AS dates
 WITH
     split(dates[0], ", ") AS start_components,
